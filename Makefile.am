@@ -11,8 +11,6 @@ MAINTAINERCLEANFILES = aclocal.m4 compile \
 		       depcomp install-sh ltmain.sh missing Makefile.in \
 		       imlib2_docs.tar.gz
 
-bin_SCRIPTS = imlib2-config
-
 EXTRA_DIST = AUTHORS COPYING COPYING-PLAIN gendoc \
              Doxyfile \
 	     README.in README \

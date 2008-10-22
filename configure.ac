@@ -407,12 +407,8 @@ data/Makefile
 data/fonts/Makefile
 data/images/Makefile
 doc/Makefile
-imlib2-config
 README
 ])
-AC_CONFIG_COMMANDS([default],[
-chmod +x imlib2-config
-],[])
 AC_OUTPUT
 
 #####################################################################

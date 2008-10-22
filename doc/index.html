@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 }</font></tt></pre>
 Now to compile this
 <br>
-<tt><font color="#000099">cc imlib2_convert.c -o imlib2_convert `imlib2-config --cflags` `imlib2-config --libs`</font></tt>
+<tt><font color="#000099">cc imlib2_convert.c -o imlib2_convert `pkg-config --cflags --libs imlib2`</font></tt>
 <br>
 You now have a program that if used as follows:
 <br>

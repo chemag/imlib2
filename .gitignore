@@ -17,7 +17,6 @@
 /stamp-h1
 /m4/*.m4
 
-/imlib2-config
 /imlib2.pc
 /imlib2.spec
 /README

@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 Now to compile this
 
 @verbatim
-cc imlib2_convert.c -o imlib2_convert `imlib2-config --cflags` `imlib2-config --libs`
+cc imlib2_convert.c -o imlib2_convert `pkg-config --cflags --libs imlib2`
 @endverbatim
 
 You now have a program that if used as follows:
