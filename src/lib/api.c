@@ -1416,9 +1416,7 @@ imlib_image_get_data(void)
    CHECK_PARAM_POINTER_RETURN("imlib_image_get_data", "image", ctx->image,
                               NULL);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!im->data)
+   if (__imlib_LoadImageData(im))
       return NULL;
    __imlib_DirtyImage(im);
    return im->data;
@@ -1441,9 +1439,7 @@ imlib_image_get_data_for_reading_only(void)
    CHECK_PARAM_POINTER_RETURN("imlib_image_get_data_for_reading_only",
                               "image", ctx->image, NULL);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!im->data)
+   if (__imlib_LoadImageData(im))
       return NULL;
    return im->data;
 }
@@ -1727,9 +1723,7 @@ imlib_render_pixmaps_for_whole_image(Pixmap * pixmap_return,
    CHECK_PARAM_POINTER("imlib_render_pixmaps_for_whole_image",
                        "pixmap_return", pixmap_return);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_CreatePixmapsForImage(ctx->display, ctx->drawable, ctx->visual,
                                  ctx->depth, ctx->colormap, im, pixmap_return,
@@ -1764,10 +1758,7 @@ imlib_render_pixmaps_for_whole_image_at_size(Pixmap * pixmap_return,
    CHECK_PARAM_POINTER("imlib_render_pixmaps_for_whole_image_at_size",
                        "pixmap_return", pixmap_return);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_CreatePixmapsForImage(ctx->display, ctx->drawable, ctx->visual,
                                  ctx->depth, ctx->colormap, im, pixmap_return,
@@ -1806,9 +1797,7 @@ imlib_render_image_on_drawable(int x, int y)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_render_image_on_drawable", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_RenderImage(ctx->display, im, ctx->drawable, ctx->mask,
                        ctx->visual, ctx->colormap, ctx->depth, 0, 0, im->w,
@@ -1836,9 +1825,7 @@ imlib_render_image_on_drawable_at_size(int x, int y, int width, int height)
    CHECK_PARAM_POINTER("imlib_render_image_on_drawable_at_size", "image",
                        ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_RenderImage(ctx->display, im, ctx->drawable, ctx->mask,
                        ctx->visual, ctx->colormap, ctx->depth, 0, 0, im->w,
@@ -1875,9 +1862,7 @@ imlib_render_image_part_on_drawable_at_size(int source_x, int source_y,
    CHECK_PARAM_POINTER("imlib_render_image_part_on_drawable_at_size", "image",
                        ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_RenderImage(ctx->display, im, ctx->drawable, 0, ctx->visual,
                        ctx->colormap, ctx->depth, source_x, source_y,
@@ -1936,13 +1921,9 @@ imlib_blend_image_onto_image(Imlib_Image source_image, char merge_alpha,
    CHECK_PARAM_POINTER("imlib_blend_image_onto_image", "image", ctx->image);
    CAST_IMAGE(im_src, source_image);
    CAST_IMAGE(im_dst, ctx->image);
-   if ((!(im_src->data)) && (im_src->loader) && (im_src->loader->load))
-      im_src->loader->load(im_src, NULL, 0, 1);
-   if (!(im_src->data))
+   if (__imlib_LoadImageData(im_src))
       return;
-   if ((!(im_dst->data)) && (im_dst->loader) && (im_dst->loader->load))
-      im_dst->loader->load(im_dst, NULL, 0, 1);
-   if (!(im_dst->data))
+   if (__imlib_LoadImageData(im_dst))
       return;
    __imlib_DirtyImage(im_dst);
    /* FIXME: hack to get around infinite loops for scaling down too far */
@@ -2312,9 +2293,7 @@ imlib_copy_drawable_to_image(Pixmap mask, int x, int y, int width, int height,
      }
    CAST_IMAGE(im, ctx->image);
 
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return 0;
 
    pre_adj = 0;
@@ -2379,9 +2358,7 @@ imlib_clone_image(void)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_clone_image", "image", ctx->image, NULL);
    CAST_IMAGE(im_old, ctx->image);
-   if ((!(im_old->data)) && (im_old->loader) && (im_old->loader->load))
-      im_old->loader->load(im_old, NULL, 0, 1);
-   if (!(im_old->data))
+   if (__imlib_LoadImageData(im_old))
       return NULL;
    /* Note: below check should've ensured by original image allocation,
     * but better safe than sorry. */
@@ -2438,9 +2415,7 @@ imlib_create_cropped_image(int x, int y, int width, int height)
    if (!IMAGE_DIMENSIONS_OK(abs(width), abs(height)))
       return NULL;
    CAST_IMAGE(im_old, ctx->image);
-   if ((!(im_old->data)) && (im_old->loader) && (im_old->loader->load))
-      im_old->loader->load(im_old, NULL, 0, 1);
-   if (!(im_old->data))
+   if (__imlib_LoadImageData(im_old))
       return NULL;
    im = __imlib_CreateImage(abs(width), abs(height), NULL);
    im->data = malloc(abs(width * height) * sizeof(DATA32));
@@ -2496,9 +2471,7 @@ imlib_create_cropped_scaled_image(int source_x, int source_y,
    if (!IMAGE_DIMENSIONS_OK(abs(destination_width), abs(destination_height)))
       return NULL;
    CAST_IMAGE(im_old, ctx->image);
-   if ((!(im_old->data)) && (im_old->loader) && (im_old->loader->load))
-      im_old->loader->load(im_old, NULL, 0, 1);
-   if (!(im_old->data))
+   if (__imlib_LoadImageData(im_old))
       return NULL;
    im = __imlib_CreateImage(abs(destination_width), abs(destination_height),
                             NULL);
@@ -2720,9 +2693,7 @@ imlib_render_image_updates_on_drawable(Imlib_Updates updates, int x, int y)
    u = (ImlibUpdate *) updates;
    if (!updates)
       return;
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_SetMaxXImageCount(ctx->display, 10);
    for (; u; u = u->next)
@@ -2793,9 +2764,7 @@ imlib_image_flip_horizontal(void)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_flip_horizontal", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_FlipImageHoriz(im);
@@ -2812,9 +2781,7 @@ imlib_image_flip_vertical(void)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_flip_vertical", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_FlipImageVert(im);
@@ -2833,9 +2800,7 @@ imlib_image_flip_diagonal(void)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_flip_diagonal", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_FlipImageDiagonal(im, 0);
@@ -2857,9 +2822,7 @@ imlib_image_orientate(int orientation)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_orientate", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    switch (orientation)
@@ -2906,9 +2869,7 @@ imlib_image_blur(int radius)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_blur", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_BlurImage(im, radius);
@@ -2928,9 +2889,7 @@ imlib_image_sharpen(int radius)
    CHECK_CONTEXT(ctx);
    CAST_IMAGE(im, ctx->image);
    CHECK_PARAM_POINTER("imlib_image_sharpen", "image", ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_SharpenImage(im, radius);
@@ -2948,9 +2907,7 @@ imlib_image_tile_horizontal(void)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_tile_horizontal", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_TileImageHoriz(im);
@@ -2968,9 +2925,7 @@ imlib_image_tile_vertical(void)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_tile_vertical", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_TileImageVert(im);
@@ -2989,9 +2944,7 @@ imlib_image_tile(void)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_tile", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_TileImageHoriz(im);
@@ -3143,9 +3096,7 @@ imlib_text_draw_with_return_metrics(int x, int y, const char *text,
                        ctx->image);
    CHECK_PARAM_POINTER("imlib_text_draw_with_return_metrics", "text", text);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    fn = (ImlibFont *) ctx->font;
    __imlib_DirtyImage(im);
@@ -3844,9 +3795,7 @@ imlib_apply_color_modifier(void)
    CHECK_PARAM_POINTER("imlib_apply_color_modifier", "color_modifier",
                        ctx->color_modifier);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_DataCmodApply(im->data, im->w, im->h, 0, &(im->flags),
@@ -3895,9 +3844,7 @@ imlib_apply_color_modifier_to_rectangle(int x, int y, int width, int height)
       height = (im->h - y);
    if (height <= 0)
       return;
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_DataCmodApply(im->data + (y * im->w) + x, width, height,
@@ -3915,9 +3862,7 @@ imlib_image_draw_pixel(int x, int y, char make_updates)
    CHECK_PARAM_POINTER_RETURN("imlib_image_draw_pixel", "image", ctx->image,
                               NULL);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return NULL;
    __imlib_DirtyImage(im);
    A_VAL(&color) = (DATA8) ctx->color.alpha;
@@ -3957,9 +3902,7 @@ imlib_image_draw_line(int x1, int y1, int x2, int y2, char make_updates)
    CHECK_PARAM_POINTER_RETURN("imlib_image_draw_line", "image", ctx->image,
                               NULL);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return NULL;
    __imlib_DirtyImage(im);
    A_VAL(&color) = (DATA8) ctx->color.alpha;
@@ -3996,9 +3939,7 @@ imlib_image_draw_rectangle(int x, int y, int width, int height)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_draw_rectangle", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    A_VAL(&color) = (DATA8) ctx->color.alpha;
@@ -4030,9 +3971,7 @@ imlib_image_fill_rectangle(int x, int y, int width, int height)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_fill_rectangle", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    A_VAL(&color) = (DATA8) ctx->color.alpha;
@@ -4066,13 +4005,9 @@ imlib_image_copy_alpha_to_image(Imlib_Image image_source, int x, int y)
                        ctx->image);
    CAST_IMAGE(im, image_source);
    CAST_IMAGE(im2, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if ((!(im2->data)) && (im2->loader) && (im2->loader->load))
-      im2->loader->load(im2, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
-   if (!(im2->data))
+   if (__imlib_LoadImageData(im2))
       return;
    __imlib_DirtyImage(im);
    __imlib_copy_alpha_data(im, im2, 0, 0, im->w, im->h, x, y);
@@ -4105,13 +4040,9 @@ imlib_image_copy_alpha_rectangle_to_image(Imlib_Image image_source, int x,
                        "image_destination", ctx->image);
    CAST_IMAGE(im, image_source);
    CAST_IMAGE(im2, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if ((!(im2->data)) && (im2->loader) && (im2->loader->load))
-      im2->loader->load(im2, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
-   if (!(im2->data))
+   if (__imlib_LoadImageData(im2))
       return;
    __imlib_DirtyImage(im);
    __imlib_copy_alpha_data(im, im2, x, y, width, height, destination_x,
@@ -4140,9 +4071,7 @@ imlib_image_scroll_rect(int x, int y, int width, int height, int delta_x,
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_scroll_rect", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    if (delta_x > 0)
      {
@@ -4192,9 +4121,7 @@ imlib_image_copy_rect(int x, int y, int width, int height, int new_x, int new_y)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_copy_rect", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_copy_image_data(im, x, y, width, height, new_x, new_y);
@@ -4268,9 +4195,7 @@ imlib_image_fill_color_range_rectangle(int x, int y, int width, int height,
    CHECK_PARAM_POINTER("imlib_image_fill_color_range_rectangle",
                        "color_range", ctx->color_range);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_DrawGradient(im, x, y, width, height,
@@ -4306,9 +4231,7 @@ imlib_image_fill_hsva_color_range_rectangle(int x, int y, int width, int height,
    CHECK_PARAM_POINTER("imlib_image_fill_color_range_rectangle",
                        "color_range", ctx->color_range);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_DrawHsvaGradient(im, x, y, width, height,
@@ -4336,9 +4259,7 @@ imlib_image_query_pixel(int x, int y, Imlib_Color * color_return)
    CHECK_PARAM_POINTER("imlib_image_query_pixel", "image", ctx->image);
    CHECK_PARAM_POINTER("imlib_image_query_pixel", "color_return", color_return);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    if ((x < 0) || (x >= im->w) || (y < 0) || (y >= im->h))
      {
@@ -4377,9 +4298,7 @@ imlib_image_query_pixel_hsva(int x, int y, float *hue, float *saturation,
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_query_pixel", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    if ((x < 0) || (x >= im->w) || (y < 0) || (y >= im->h))
      {
@@ -4420,9 +4339,7 @@ imlib_image_query_pixel_hlsa(int x, int y, float *hue, float *lightness,
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_query_pixel", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    if ((x < 0) || (x >= im->w) || (y < 0) || (y >= im->h))
      {
@@ -4463,9 +4380,7 @@ imlib_image_query_pixel_cmya(int x, int y, int *cyan, int *magenta, int *yellow,
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_query_pixel", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    if ((x < 0) || (x >= im->w) || (y < 0) || (y >= im->h))
      {
@@ -4618,10 +4533,7 @@ imlib_save_image(const char *filename)
    CHECK_PARAM_POINTER("imlib_save_image", "image", ctx->image);
    CHECK_PARAM_POINTER("imlib_save_image", "filename", filename);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      if (!im->loader->load(im, NULL, 0, 1))
-         return;
-   if (!im->data)
+   if (__imlib_LoadImageData(im))
       return;
    prev_ctxt_image = ctx->image;
    __imlib_SaveImage(im, filename, (ImlibProgressFunction) ctx->progress_func,
@@ -4651,10 +4563,7 @@ imlib_save_image_with_error_return(const char *filename,
    CHECK_PARAM_POINTER("imlib_save_image_with_error_return", "error_return",
                        error_return);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      if (!im->loader->load(im, NULL, 0, 1))
-         return;
-   if (!im->data)
+   if (__imlib_LoadImageData(im))
       return;
    prev_ctxt_image = ctx->image;
    __imlib_SaveImage(im, filename, (ImlibProgressFunction) ctx->progress_func,
@@ -4681,9 +4590,7 @@ imlib_create_rotated_image(double angle)
    CHECK_PARAM_POINTER_RETURN("imlib_create_rotated_image", "image",
                               ctx->image, NULL);
    CAST_IMAGE(im_old, ctx->image);
-   if ((!(im_old->data)) && (im_old->loader) && (im_old->loader->load))
-      im_old->loader->load(im_old, NULL, 0, 1);
-   if (!(im_old->data))
+   if (__imlib_LoadImageData(im_old))
       return NULL;
 
    d = hypot((double)(im_old->w + 4), (double)(im_old->h + 4)) / sqrt(2.0);
@@ -4747,10 +4654,7 @@ imlib_rotate_image_from_buffer(double angle, Imlib_Image source_image)
    CHECK_PARAM_POINTER("imlib_rotate_image_from_buffer", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
 
-   if ((!(im_old->data)) && (im_old->loader) && (im_old->loader->load))
-      im_old->loader->load(im_old, NULL, 0, 1);
-
-   if (!(im_old->data))
+   if (__imlib_LoadImageData(im_old))
       return;
 
    d = hypot((double)(im_old->w + 4), (double)(im_old->h + 4)) / sqrt(2.0);
@@ -4833,13 +4737,9 @@ imlib_blend_image_onto_image_at_angle(Imlib_Image source_image,
                        ctx->image);
    CAST_IMAGE(im_src, source_image);
    CAST_IMAGE(im_dst, ctx->image);
-   if ((!(im_src->data)) && (im_src->loader) && (im_src->loader->load))
-      im_src->loader->load(im_src, NULL, 0, 1);
-   if (!(im_src->data))
+   if (__imlib_LoadImageData(im_src))
       return;
-   if ((!(im_dst->data)) && (im_dst->loader) && (im_dst->loader->load))
-      im_dst->loader->load(im_dst, NULL, 0, 1);
-   if (!(im_dst->data))
+   if (__imlib_LoadImageData(im_dst))
       return;
    __imlib_DirtyImage(im_dst);
    __imlib_BlendImageToImageSkewed(im_src, im_dst, ctx->anti_alias,
@@ -4922,13 +4822,9 @@ imlib_blend_image_onto_image_skewed(Imlib_Image source_image,
                        ctx->image);
    CAST_IMAGE(im_src, source_image);
    CAST_IMAGE(im_dst, ctx->image);
-   if ((!(im_src->data)) && (im_src->loader) && (im_src->loader->load))
-      im_src->loader->load(im_src, NULL, 0, 1);
-   if (!(im_src->data))
+   if (__imlib_LoadImageData(im_src))
       return;
-   if ((!(im_dst->data)) && (im_dst->loader) && (im_dst->loader->load))
-      im_dst->loader->load(im_dst, NULL, 0, 1);
-   if (!(im_dst->data))
+   if (__imlib_LoadImageData(im_dst))
       return;
    __imlib_DirtyImage(im_dst);
    __imlib_BlendImageToImageSkewed(im_src, im_dst, ctx->anti_alias,
@@ -4972,9 +4868,7 @@ imlib_render_image_on_drawable_skewed(int source_x, int source_y,
    CHECK_PARAM_POINTER("imlib_render_image_on_drawable_skewed", "image",
                        ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    CAST_IMAGE(im, ctx->image);
    __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
@@ -5013,9 +4907,7 @@ imlib_render_image_on_drawable_at_angle(int source_x, int source_y,
    CHECK_PARAM_POINTER("imlib_render_image_on_drawable_at_angle", "image",
                        ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    CAST_IMAGE(im, ctx->image);
    __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
@@ -5037,9 +4929,7 @@ imlib_image_filter(void)
    CHECK_PARAM_POINTER("imlib_image_filter", "image", ctx->image);
    CHECK_PARAM_POINTER("imlib_image_filter", "filter", ctx->filter);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    __imlib_FilterImage(im, (ImlibFilter *) ctx->filter);
@@ -5169,9 +5059,7 @@ imlib_apply_filter(char *script, ...)
    CHECK_CONTEXT(ctx);
    __imlib_dynamic_filters_init();
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    va_start(param_list, script);
@@ -5237,9 +5125,7 @@ imlib_image_draw_polygon(ImlibPolygon poly, unsigned char closed)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_draw_polygon", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    A_VAL(&color) = (DATA8) ctx->color.alpha;
@@ -5267,9 +5153,7 @@ imlib_image_fill_polygon(ImlibPolygon poly)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_fill_polygon", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    A_VAL(&color) = (DATA8) ctx->color.alpha;
@@ -5323,9 +5207,7 @@ imlib_image_draw_ellipse(int xc, int yc, int a, int b)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_draw_ellipse", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    A_VAL(&color) = (DATA8) ctx->color.alpha;
@@ -5360,9 +5242,7 @@ imlib_image_fill_ellipse(int xc, int yc, int a, int b)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_fill_ellipse", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    A_VAL(&color) = (DATA8) ctx->color.alpha;
@@ -5400,9 +5280,7 @@ imlib_image_clear(void)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_clear", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    memset(im->data, 0, im->w * im->h * sizeof(DATA32));
@@ -5418,9 +5296,7 @@ imlib_image_clear_color(int r, int g, int b, int a)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_clear_color", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
-      im->loader->load(im, NULL, 0, 1);
-   if (!(im->data))
+   if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
    max = im->w * im->h;
