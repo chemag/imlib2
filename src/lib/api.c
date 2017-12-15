@@ -4870,7 +4870,6 @@ imlib_render_image_on_drawable_skewed(int source_x, int source_y,
    CAST_IMAGE(im, ctx->image);
    if (__imlib_LoadImageData(im))
       return;
-   CAST_IMAGE(im, ctx->image);
    __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
                              ctx->visual, ctx->colormap, ctx->depth, source_x,
                              source_y, source_width, source_height,
@@ -4909,7 +4908,6 @@ imlib_render_image_on_drawable_at_angle(int source_x, int source_y,
    CAST_IMAGE(im, ctx->image);
    if (__imlib_LoadImageData(im))
       return;
-   CAST_IMAGE(im, ctx->image);
    __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
                              ctx->visual, ctx->colormap, ctx->depth, source_x,
                              source_y, source_width, source_height,
