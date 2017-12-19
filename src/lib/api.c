@@ -2172,22 +2172,16 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
       return NULL;
    if ((mask) || (get_mask_from_shape))
       domask = 1;
+
    p = XCreatePixmap(ctx->display, ctx->drawable, destination_width,
                      source_height, ctx->depth);
+
    gcv.foreground = 0;
    gcv.subwindow_mode = IncludeInferiors;
    gcv.graphics_exposures = False;
-   if (domask)
-     {
-        m = XCreatePixmap(ctx->display, ctx->drawable, destination_width,
-                          source_height, 1);
-        mgc = XCreateGC(ctx->display, m,
-                        GCForeground | GCGraphicsExposures, &gcv);
-     }
-   else
-      m = None;
    gc = XCreateGC(ctx->display, ctx->drawable,
                   GCSubwindowMode | GCGraphicsExposures, &gcv);
+
    if ((domask) && (!mask))
      {
         XRectangle         *rect;
@@ -2197,6 +2191,8 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
         mask =
            XCreatePixmap(ctx->display, ctx->drawable, source_width,
                          source_height, 1);
+        mgc = XCreateGC(ctx->display, mask,
+                        GCForeground | GCGraphicsExposures, &gcv);
         rect =
            XShapeGetRectangles(ctx->display, ctx->drawable, ShapeBounding,
                                &rect_num, &rect_ord);
@@ -2206,28 +2202,52 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
           {
              XSetForeground(ctx->display, mgc, 1);
              for (x = 0; x < rect_num; x++)
-                XFillRectangle(ctx->display, mask, mgc, rect[x].x, rect[x].y,
-                               rect[x].width, rect[x].height);
+                XFillRectangle(ctx->display, mask, mgc, rect[x].x,
+                               rect[x].y, rect[x].width, rect[x].height);
              XFree(rect);
           }
-        /* build mask from window shape rects */
      }
-   for (x = 0; x < destination_width; x++)
+
+   if ((destination_width == source_width) &&
+       (destination_height == source_height))
      {
-        xx = (source_width * x) / destination_width;
-        XCopyArea(ctx->display, ctx->drawable, p, gc, source_x + xx, source_y,
-                  1, source_height, x, 0);
-        if (m != None)
-           XCopyArea(ctx->display, mask, m, mgc, xx, 0, 1, source_height, x, 0);
+        XCopyArea(ctx->display, ctx->drawable, p, gc, source_x, source_y,
+                  source_width, source_height, 0, 0);
+        m = mask;
      }
-   for (x = 0; x < destination_height; x++)
+   else
      {
-        xx = (source_height * x) / destination_height;
-        XCopyArea(ctx->display, p, p, gc, 0, xx, destination_width, 1, 0, x);
-        if (m != None)
-           XCopyArea(ctx->display, m, m, mgc, 0, xx, destination_width, 1, 0,
-                     x);
+        if (domask)
+          {
+             m = XCreatePixmap(ctx->display, ctx->drawable, destination_width,
+                               source_height, 1);
+             if (!mgc)
+                mgc = XCreateGC(ctx->display, m,
+                                GCForeground | GCGraphicsExposures, &gcv);
+          }
+        else
+           m = None;
+
+        for (x = 0; x < destination_width; x++)
+          {
+             xx = (source_width * x) / destination_width;
+             XCopyArea(ctx->display, ctx->drawable, p, gc,
+                       source_x + xx, source_y, 1, source_height, x, 0);
+             if (m != None)
+                XCopyArea(ctx->display, mask, m, mgc,
+                          xx, 0, 1, source_height, x, 0);
+          }
+        for (x = 0; x < destination_height; x++)
+          {
+             xx = (source_height * x) / destination_height;
+             XCopyArea(ctx->display, p, p, gc,
+                       0, xx, destination_width, 1, 0, x);
+             if (m != None)
+                XCopyArea(ctx->display, m, m, mgc,
+                          0, xx, destination_width, 1, 0, x);
+          }
      }
+
    im = __imlib_CreateImage(destination_width, destination_height, NULL);
    im->data = malloc(destination_width * destination_height * sizeof(DATA32));
    __imlib_GrabDrawableToRGBA(im->data, 0, 0, destination_width,
@@ -2239,15 +2259,16 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
       SET_FLAG(im->flags, F_HAS_ALPHA);
    else
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
-   XFreePixmap(ctx->display, p);
-   if (m != None)
-     {
-        XFreeGC(ctx->display, mgc);
-        XFreePixmap(ctx->display, m);
-        if (tmpmask)
-           XFreePixmap(ctx->display, mask);
-     }
+
+   if (mgc)
+      XFreeGC(ctx->display, mgc);
+   if (m != None && m != mask)
+      XFreePixmap(ctx->display, m);
+   if (tmpmask)
+      XFreePixmap(ctx->display, mask);
    XFreeGC(ctx->display, gc);
+   XFreePixmap(ctx->display, p);
+
    return (Imlib_Image) im;
 }
 
