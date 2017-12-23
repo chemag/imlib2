@@ -2187,24 +2187,35 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
         XRectangle         *rect;
         int                 rect_num, rect_ord;
 
-        tmpmask = 1;
-        mask =
-           XCreatePixmap(ctx->display, ctx->drawable, source_width,
-                         source_height, 1);
-        mgc = XCreateGC(ctx->display, mask,
-                        GCForeground | GCGraphicsExposures, &gcv);
-        rect =
-           XShapeGetRectangles(ctx->display, ctx->drawable, ShapeBounding,
-                               &rect_num, &rect_ord);
-        XFillRectangle(ctx->display, mask, mgc, 0, 0, source_width,
-                       source_height);
-        if (rect)
+        rect = XShapeGetRectangles(ctx->display, ctx->drawable, ShapeBounding,
+                                   &rect_num, &rect_ord);
+
+        if (rect && (rect_num == 1 &&
+                     rect[0].x == 0 && rect[0].y == 0 &&
+                     rect[0].width == source_width &&
+                     rect[0].height == source_height))
           {
-             XSetForeground(ctx->display, mgc, 1);
-             for (x = 0; x < rect_num; x++)
-                XFillRectangle(ctx->display, mask, mgc, rect[x].x,
-                               rect[x].y, rect[x].width, rect[x].height);
+             domask = 0;
              XFree(rect);
+          }
+        else
+          {
+             tmpmask = 1;
+             mask =
+                XCreatePixmap(ctx->display, ctx->drawable, source_width,
+                              source_height, 1);
+             mgc = XCreateGC(ctx->display, mask,
+                             GCForeground | GCGraphicsExposures, &gcv);
+             XFillRectangle(ctx->display, mask, mgc, 0, 0, source_width,
+                            source_height);
+             if (rect)
+               {
+                  XSetForeground(ctx->display, mgc, 1);
+                  for (x = 0; x < rect_num; x++)
+                     XFillRectangle(ctx->display, mask, mgc, rect[x].x,
+                                    rect[x].y, rect[x].width, rect[x].height);
+                  XFree(rect);
+               }
           }
      }
 
