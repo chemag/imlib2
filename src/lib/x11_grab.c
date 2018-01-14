@@ -590,6 +590,49 @@ __imlib_GrabXImageToRGBA(DATA32 * data,
       XUngrabServer(d);
 }
 
+static              Pixmap
+_WindowGetShapeMask(Display * d, Window p,
+                    int x, int y, int w, int h, int ww, int wh)
+{
+   Pixmap              mask;
+   XRectangle         *rect;
+   int                 rect_num, rect_ord, i;
+   XGCValues           gcv;
+   GC                  mgc;
+
+   mask = None;
+
+   rect = XShapeGetRectangles(d, p, ShapeBounding, &rect_num, &rect_ord);
+   if (!rect)
+      return mask;
+
+   if (rect_num == 1 &&
+       rect[0].x == 0 && rect[0].y == 0 &&
+       rect[0].width == ww && rect[0].height == wh)
+      goto done;
+
+   mask = XCreatePixmap(d, p, w, h, 1);
+
+   gcv.foreground = 0;
+   gcv.graphics_exposures = False;
+   mgc = XCreateGC(d, mask, GCForeground | GCGraphicsExposures, &gcv);
+
+   XFillRectangle(d, mask, mgc, 0, 0, w, h);
+
+   XSetForeground(d, mgc, 1);
+   for (i = 0; i < rect_num; i++)
+      XFillRectangle(d, mask, mgc, rect[i].x - x, rect[i].y - y,
+                     rect[i].width, rect[i].height);
+
+   if (mgc)
+      XFreeGC(d, mgc);
+
+ done:
+   XFree(rect);
+
+   return mask;
+}
+
 int
 __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
                            int h_dst, Display * d, Drawable p, Pixmap m_,
@@ -711,35 +754,10 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
 
    w_src = width;
    h_src = height;
+
    if ((!is_pixmap) && (domask) && (m == None))
-     {
-        int                 ord, rect_no = 0;
-        XRectangle         *r = NULL;
-
-        r = XShapeGetRectangles(d, p, ShapeBounding, &rect_no, &ord);
-        if (r)
-          {
-             if (!((rect_no == 1) &&
-                   (r[0].x == 0) && (r[0].y == 0) &&
-                   (r[0].width == xatt.width) && (r[0].height == xatt.height)))
-               {
-                  XGCValues           gcv;
-                  GC                  gc;
-
-                  m = XCreatePixmap(d, p, w_src, h_src, 1);
-                  gcv.foreground = 0;
-                  gc = XCreateGC(d, m, GCForeground, &gcv);
-                  XFillRectangle(d, m, gc, 0, 0, w_src, h_src);
-                  XSetForeground(d, gc, 1);
-                  for (i = 0; i < rect_no; i++)
-                     XFillRectangle(d, m, gc,
-                                    r[i].x - x_src, r[i].y - y_src,
-                                    r[i].width, r[i].height);
-                  XFreeGC(d, gc);
-               }
-             XFree(r);
-          }
-     }
+      m = _WindowGetShapeMask(d, p, x_src, y_src, w_src, h_src,
+                              xatt.width, xatt.height);
 
    /* Create an Ximage (shared or not) */
    xim = __imlib_ShmGetXImage(d, v, p, xatt.depth, x_src, y_src, w_src, h_src,
@@ -857,7 +875,7 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
    int                 rc;
    int                 h_tmp, i, xx;
    XGCValues           gcv;
-   GC                  gc = NULL, mgc = NULL;
+   GC                  gc, mgc = NULL;
    Pixmap              m = m_;
    Pixmap              psc, msc;
 
@@ -871,31 +889,9 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
 
    if (*pdomask && m == None)
      {
-        XRectangle         *rect;
-        int                 rect_num, rect_ord;
-
-        rect = XShapeGetRectangles(d, p, ShapeBounding, &rect_num, &rect_ord);
-
-        if (rect && (rect_num == 1 && rect[0].x == 0 && rect[0].y == 0 &&
-                     rect[0].width == w_src && rect[0].height == h_src))
-          {
-             *pdomask = 0;
-             XFree(rect);
-          }
-        else
-          {
-             m = XCreatePixmap(d, p, w_src, h_src, 1);
-             mgc = XCreateGC(d, m, GCForeground | GCGraphicsExposures, &gcv);
-             XFillRectangle(d, m, mgc, 0, 0, w_src, h_src);
-             if (rect)
-               {
-                  XSetForeground(d, mgc, 1);
-                  for (i = 0; i < rect_num; i++)
-                     XFillRectangle(d, m, mgc, rect[i].x, rect[i].y,
-                                    rect[i].width, rect[i].height);
-                  XFree(rect);
-               }
-          }
+        m = _WindowGetShapeMask(d, p, 0, 0, w_src, h_src, w_src, h_src);
+        if (m == None)
+           *pdomask = 0;
      }
 
    if (w_dst == w_src && h_dst == h_src)
@@ -908,9 +904,7 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
         if (*pdomask)
           {
              msc = XCreatePixmap(d, p, w_dst, h_tmp, 1);
-             if (!mgc)
-                mgc =
-                   XCreateGC(d, msc, GCForeground | GCGraphicsExposures, &gcv);
+             mgc = XCreateGC(d, msc, GCForeground | GCGraphicsExposures, &gcv);
           }
         else
            msc = None;
