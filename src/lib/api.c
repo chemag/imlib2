@@ -462,6 +462,80 @@ imlib_context_get_mask(void)
    CHECK_CONTEXT(ctx);
    return ctx->mask;
 }
+
+/**
+ * @return The current number of cached XImages.
+ */
+EAPI int
+imlib_get_ximage_cache_count_used(void)
+{
+   CHECK_CONTEXT(ctx);
+   return __imlib_GetXImageCacheCountUsed(ctx->display);
+}
+
+/**
+ * @return The current XImage cache max count.
+ */
+EAPI int
+imlib_get_ximage_cache_count_max(void)
+{
+   CHECK_CONTEXT(ctx);
+   return __imlib_GetXImageCacheCountMax(ctx->display);
+}
+
+/**
+ * @param count XImage cache max count.
+ *
+ * Sets the maximum number of XImages to cache.
+ * Setting the cache size to 0 effectively flushes the cache and keeps
+ * the cached XImage count at 0 until set to another value.
+ * Whenever you set the max count Imlib2 will flush as many old XImages
+ * from the cache as possible until the current cached XImage count is
+ * less than or equal to the cache max count.
+ */
+EAPI void
+imlib_set_ximage_cache_count_max(int count)
+{
+   CHECK_CONTEXT(ctx);
+   __imlib_SetXImageCacheCountMax(ctx->display, count);
+}
+
+/**
+ * @return The current XImage cache memory usage.
+ */
+EAPI int
+imlib_get_ximage_cache_size_used(void)
+{
+   CHECK_CONTEXT(ctx);
+   return __imlib_GetXImageCacheSizeUsed(ctx->display);
+}
+
+/**
+ * @return The current XImage cache max size.
+ */
+EAPI int
+imlib_get_ximage_cache_size_max(void)
+{
+   CHECK_CONTEXT(ctx);
+   return __imlib_GetXImageCacheSizeMax(ctx->display);
+}
+
+/**
+ * @param bytes XImage cache max size.
+ *
+ * Sets the XImage cache maximum size. The size is in bytes.
+ * Setting the cache size to 0 effectively flushes the cache and keeps
+ * the cache size at 0 until set to another value.
+ * Whenever you set the max size Imlib2 will flush as many old XImages
+ * from the cache as possible until the current XImage cache usage is
+ * less than or equal to the cache max size.
+ */
+EAPI void
+imlib_set_ximage_cache_size_max(int bytes)
+{
+   CHECK_CONTEXT(ctx);
+   __imlib_SetXImageCacheSizeMax(ctx->display, bytes);
+}
 #endif
 
 /**
@@ -2730,6 +2804,7 @@ imlib_render_image_updates_on_drawable(Imlib_Updates updates, int x, int y)
 {
    ImlibUpdate        *u;
    ImlibImage         *im;
+   int                 ximcs;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_render_image_updates_on_drawable", "image",
@@ -2740,7 +2815,9 @@ imlib_render_image_updates_on_drawable(Imlib_Updates updates, int x, int y)
       return;
    if (__imlib_LoadImageData(im))
       return;
-   __imlib_SetMaxXImageCount(ctx->display, 10);
+   ximcs = __imlib_GetXImageCacheCountMax(ctx->display);        /* Save */
+   if (ximcs == 0)              /* Only if we don't set this up elsewhere */
+      __imlib_SetXImageCacheCountMax(ctx->display, 10);
    for (; u; u = u->next)
      {
         __imlib_RenderImage(ctx->display, im, ctx->drawable, 0, ctx->visual,
@@ -2748,7 +2825,8 @@ imlib_render_image_updates_on_drawable(Imlib_Updates updates, int x, int y)
                             x + u->x, y + u->y, u->w, u->h, 0, ctx->dither, 0,
                             0, 0, ctx->color_modifier, OP_COPY);
      }
-   __imlib_SetMaxXImageCount(ctx->display, 0);
+   if (ximcs == 0)
+      __imlib_SetXImageCacheCountMax(ctx->display, ximcs);
 }
 #endif
 

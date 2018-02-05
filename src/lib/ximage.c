@@ -248,29 +248,41 @@ __imlib_ShmDestroyXImage(Display * d, XImage * xim, XShmSegmentInfo * si)
 }
 
 void
-__imlib_SetMaxXImageCount(Display * d, int num)
+__imlib_SetXImageCacheCountMax(Display * d, int num)
 {
    list_max_count = num;
    __imlib_FlushXImage(d);
 }
 
 int
-__imlib_GetMaxXImageCount(Display * d)
+__imlib_GetXImageCacheCountMax(Display * d)
 {
    return list_max_count;
 }
 
+int
+__imlib_GetXImageCacheCountUsed(Display * d)
+{
+   return list_num;
+}
+
 void
-__imlib_SetMaxXImageTotalSize(Display * d, int num)
+__imlib_SetXImageCacheSizeMax(Display * d, int num)
 {
    list_max_mem = num;
    __imlib_FlushXImage(d);
 }
 
 int
-__imlib_GetMaxXImageTotalSize(Display * d)
+__imlib_GetXImageCacheSizeMax(Display * d)
 {
    return list_max_mem;
+}
+
+int
+__imlib_GetXImageCacheSizeUsed(Display * d)
+{
+   return list_mem_use;
 }
 
 void

@@ -6,10 +6,12 @@
 
 #include "common.h"
 
-void                __imlib_SetMaxXImageCount(Display * d, int num);
-int                 __imlib_GetMaxXImageCount(Display * d);
-void                __imlib_SetMaxXImageTotalSize(Display * d, int num);
-int                 __imlib_GetMaxXImageTotalSize(Display * d);
+void                __imlib_SetXImageCacheCountMax(Display * d, int num);
+int                 __imlib_GetXImageCacheCountMax(Display * d);
+int                 __imlib_GetXImageCacheCountUsed(Display * d);
+void                __imlib_SetXImageCacheSizeMax(Display * d, int num);
+int                 __imlib_GetXImageCacheSizeMax(Display * d);
+int                 __imlib_GetXImageCacheSizeUsed(Display * d);
 void                __imlib_FlushXImage(Display * d);
 void                __imlib_ConsumeXImage(Display * d, XImage * xim);
 XImage             *__imlib_ProduceXImage(Display * d, Visual * v, int depth,

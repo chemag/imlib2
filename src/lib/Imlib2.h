@@ -316,6 +316,13 @@ EAPI char           imlib_copy_drawable_to_image(Pixmap mask, int x, int y,
                                                  int destination_x,
                                                  int destination_y,
                                                  char need_to_grab_x);
+
+EAPI int            imlib_get_ximage_cache_count_used(void);
+EAPI int            imlib_get_ximage_cache_count_max(void);
+EAPI void           imlib_set_ximage_cache_count_max(int count);
+EAPI int            imlib_get_ximage_cache_size_used(void);
+EAPI int            imlib_get_ximage_cache_size_max(void);
+EAPI void           imlib_set_ximage_cache_size_max(int bytes);
 #endif
 EAPI Imlib_Image    imlib_clone_image(void);
 EAPI Imlib_Image    imlib_create_cropped_image(int x, int y, int width,
