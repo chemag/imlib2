@@ -82,6 +82,17 @@ ShmCheck(Display * d)
         printf("%s: x_does_shm=%d x_does_shm_fd=%d\n", __func__,
                x_does_shm, x_does_shm_fd);
      }
+
+   /* Set ximage cache list_max_count */
+   s = getenv("IMLIB2_XIMAGE_CACHE_COUNT");
+   if (s)
+     {
+        val = atoi(s);
+        if (val > 0)
+           list_max_count = val;
+
+        printf("%s: list_max_count=%d\n", __func__, list_max_count);
+     }
 }
 
 XImage             *
