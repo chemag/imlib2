@@ -44,6 +44,9 @@ TmpXError(Display * d, XErrorEvent * ev)
 static void
 ShmCheck(Display * d)
 {
+   const char         *s;
+   int                 val;
+
    /* if its there set x_does_shm flag */
    if (XShmQueryExtension(d))
      {
@@ -63,6 +66,21 @@ ShmCheck(Display * d)
    else
      {
         x_does_shm = 0;
+        return;
+     }
+
+   /* Modify SHM handling if requested */
+   s = getenv("IMLIB2_SHM_OPT");
+   if (s)
+     {
+        val = atoi(s);
+        if (val == 0)
+           x_does_shm = x_does_shm_fd = 0;      /* Disable SHM entirely */
+        else if (val == 1)
+           x_does_shm_fd = 0;   /* Disable SHM-FD */
+
+        printf("%s: x_does_shm=%d x_does_shm_fd=%d\n", __func__,
+               x_does_shm, x_does_shm_fd);
      }
 }
 
