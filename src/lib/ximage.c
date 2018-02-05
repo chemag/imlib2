@@ -13,19 +13,22 @@
 
 #include "ximage.h"
 
-/* global flags */
 static signed char  x_does_shm = -1;
 
 #ifdef HAVE_X11_SHM_FD
 static signed char  x_does_shm_fd = 0;
 #endif
 
-/* static private variables */
+typedef struct {
+   XImage             *xim;
+   XShmSegmentInfo    *si;
+   Display            *dpy;
+   char                used;
+} xim_cache_rec_t;
+
+static xim_cache_rec_t *xim_cache = NULL;
+
 static int          list_num = 0;
-static XImage     **list_xim = NULL;
-static XShmSegmentInfo **list_si = NULL;
-static Display    **list_d = NULL;
-static char        *list_used = NULL;
 static int          list_mem_use = 0;
 static int          list_max_mem = 1024 * 1024 * 1024;
 static int          list_max_count = 0;
@@ -244,22 +247,6 @@ __imlib_ShmDestroyXImage(Display * d, XImage * xim, XShmSegmentInfo * si)
    XDestroyImage(xim);
 }
 
-/* "safe" realloc allowing handling of out-of-memory situations */
-static void        *
-_safe_realloc(void *ptr, size_t size, int *err)
-{
-   void               *ptr_new;
-
-   ptr_new = realloc(ptr, size);
-   if (!ptr_new)
-     {
-        *err = 1;
-        return ptr;
-     }
-
-   return ptr_new;
-}
-
 void
 __imlib_SetMaxXImageCount(Display * d, int num)
 {
@@ -289,7 +276,7 @@ __imlib_GetMaxXImageTotalSize(Display * d)
 void
 __imlib_FlushXImage(Display * d)
 {
-   int                 i;
+   int                 i, j;
    XImage             *xim;
    char                did_free = 1;
 
@@ -297,58 +284,46 @@ __imlib_FlushXImage(Display * d)
           (did_free))
      {
         did_free = 0;
-        for (i = 0; i < list_num; i++)
+        for (i = 0; i < list_num;)
           {
-             if (list_used[i] == 0)
+             if (xim_cache[i].used)
                {
-                  int                 j;
-
-                  xim = list_xim[i];
-                  list_mem_use -= xim->bytes_per_line * xim->height;
-                  if (list_si[i])
-                    {
-                       __imlib_ShmDestroyXImage(d, xim, list_si[i]);
-                       free(list_si[i]);
-                    }
-                  else
-                    {
-                       XDestroyImage(xim);
-                    }
-                  list_num--;
-                  for (j = i; j < list_num; j++)
-                    {
-                       list_xim[j] = list_xim[j + 1];
-                       list_si[j] = list_si[j + 1];
-                       list_used[j] = list_used[j + 1];
-                       list_d[j] = list_d[j + 1];
-                    }
-                  if (list_num == 0)
-                    {
-                       if (list_xim)
-                          free(list_xim);
-                       if (list_si)
-                          free(list_si);
-                       if (list_used)
-                          free(list_used);
-                       if (list_d)
-                          free(list_d);
-                       list_xim = NULL;
-                       list_si = NULL;
-                       list_used = NULL;
-                       list_d = NULL;
-                    }
-                  else
-                    {
-                       list_xim =
-                          realloc(list_xim, sizeof(XImage *) * list_num);
-                       list_si =
-                          realloc(list_si,
-                                  sizeof(XShmSegmentInfo *) * list_num);
-                       list_used = realloc(list_used, sizeof(char) * list_num);
-                       list_d = realloc(list_d, sizeof(Display *) * list_num);
-                    }
-                  did_free = 1;
+                  i++;
+                  continue;
                }
+
+             xim = xim_cache[i].xim;
+             list_mem_use -= xim->bytes_per_line * xim->height;
+
+             if (xim_cache[i].si)
+               {
+                  __imlib_ShmDestroyXImage(d, xim, xim_cache[i].si);
+                  free(xim_cache[i].si);
+               }
+             else
+               {
+                  XDestroyImage(xim);
+               }
+
+             list_num--;
+             for (j = i; j < list_num; j++)
+               {
+                  xim_cache[j] = xim_cache[j + 1];
+               }
+
+             if (list_num == 0)
+               {
+                  if (xim_cache)
+                     free(xim_cache);
+                  xim_cache = NULL;
+               }
+             else
+               {
+                  xim_cache =
+                     realloc(xim_cache, sizeof(xim_cache_rec_t) * list_num);
+               }
+
+             did_free = 1;
           }
      }
 }
@@ -363,10 +338,10 @@ __imlib_ConsumeXImage(Display * d, XImage * xim)
    for (i = 0; i < list_num; i++)
      {
         /* find a match */
-        if (list_xim[i] == xim)
+        if (xim_cache[i].xim == xim)
           {
              /* we have a match = mark as unused */
-             list_used[i] = 0;
+             xim_cache[i].used = 0;
              /* flush the XImage list to get rud of stuff we dont want */
              __imlib_FlushXImage(d);
              /* return */
@@ -382,7 +357,8 @@ __imlib_ProduceXImage(Display * d, Visual * v, int depth, int w, int h,
                       char *shared)
 {
    XImage             *xim;
-   int                 i, err;
+   xim_cache_rec_t    *xim_cache_tmp;
+   int                 i;
 
    /* find a cached XImage (to avoid server to & fro) that is big enough */
    /* for our needs and the right depth */
@@ -390,43 +366,37 @@ __imlib_ProduceXImage(Display * d, Visual * v, int depth, int w, int h,
    /* go thru the current image list */
    for (i = 0; i < list_num; i++)
      {
-        int                 depth_ok = 0;
+        if (xim_cache[i].used)
+           continue;
+
+        xim = xim_cache[i].xim;
 
         /* if the image has the same depth, width and height - recycle it */
-        /* as long as its not used */
-        if (list_xim[i]->depth == depth)
-           depth_ok = 1;
-        if (depth_ok &&
-            (list_xim[i]->width >= w) && (list_xim[i]->height >= h) &&
-            /*   (list_d[i] == d) && */
-            (!list_used[i]))
+        if ((xim->depth == depth) && (xim->width >= w) && (xim->height >= h))
+           /*  && (xim_cache[i].dpy == d) */
           {
-             /* mark it as used */
-             list_used[i] = 1;
+             xim_cache[i].used = 1;
              /* if its shared set shared flag */
-             if (list_si[i])
+             if (xim_cache[i].si)
                 *shared = 1;
              /* return it */
-             return list_xim[i];
+             return xim;
           }
      }
 
    /* can't find a usable XImage on the cache - create one */
    /* add the new XImage to the XImage cache */
    list_num++;
-   err = 0;
-   list_xim = _safe_realloc(list_xim, sizeof(XImage *) * list_num, &err);
-   list_si = _safe_realloc(list_si, sizeof(XShmSegmentInfo *) * list_num, &err);
-   list_used = _safe_realloc(list_used, sizeof(char) * list_num, &err);
-   list_d = _safe_realloc(list_d, sizeof(Display *) * list_num, &err);
-   if (err)
+   xim_cache_tmp = realloc(xim_cache, sizeof(xim_cache_rec_t) * list_num);
+   if (!xim_cache_tmp)
      {
         /* failed to allocate memory */
         list_num--;
         return NULL;
      }
-   list_si[list_num - 1] = malloc(sizeof(XShmSegmentInfo));
-   if (!list_si[list_num - 1])
+   xim_cache = xim_cache_tmp;
+   xim_cache[list_num - 1].si = malloc(sizeof(XShmSegmentInfo));
+   if (!xim_cache[list_num - 1].si)
      {
         /* failed to allocate memory */
         list_num--;
@@ -435,7 +405,7 @@ __imlib_ProduceXImage(Display * d, Visual * v, int depth, int w, int h,
 
    /* work on making a shared image */
    xim = __imlib_ShmGetXImage(d, v, None, depth, 0, 0, w, h,
-                              list_si[list_num - 1]);
+                              xim_cache[list_num - 1].si);
    /* ok if xim == NULL it all failed - fall back to XImages */
    if (xim)
      {
@@ -444,9 +414,9 @@ __imlib_ProduceXImage(Display * d, Visual * v, int depth, int w, int h,
    else
      {
         /* get rid of out shm info struct */
-        free(list_si[list_num - 1]);
+        free(xim_cache[list_num - 1].si);
         /* flag it as NULL ot indicate a normal XImage */
-        list_si[list_num - 1] = NULL;
+        xim_cache[list_num - 1].si = NULL;
         /* create a normal ximage */
         xim = XCreateImage(d, v, depth, ZPixmap, 0, NULL, w, h, 32, 0);
         /* allocate data for it */
@@ -462,13 +432,13 @@ __imlib_ProduceXImage(Display * d, Visual * v, int depth, int w, int h,
           }
      }
    /* add xim to our list */
-   list_xim[list_num - 1] = xim;
+   xim_cache[list_num - 1].xim = xim;
    /* incriment our memory count */
    list_mem_use += xim->bytes_per_line * xim->height;
    /* mark image as used */
-   list_used[list_num - 1] = 1;
+   xim_cache[list_num - 1].used = 1;
    /* remember what display that XImage was for */
-   list_d[list_num - 1] = d;
+   xim_cache[list_num - 1].dpy = d;
 
    /* flush unused images from the image list */
    __imlib_FlushXImage(d);
