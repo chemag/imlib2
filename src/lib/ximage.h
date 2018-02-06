@@ -17,6 +17,7 @@ XImage             *__imlib_ProduceXImage(Display * d, Visual * v, int depth,
 XImage             *__imlib_ShmGetXImage(Display * d, Visual * v, Drawable draw,
                                          int depth, int x, int y, int w, int h,
                                          XShmSegmentInfo * si);
-void                __imlib_ShmDetach(Display * d, XShmSegmentInfo * si);
+void                __imlib_ShmDestroyXImage(Display * d, XImage * xim,
+                                             XShmSegmentInfo * si);
 
 #endif

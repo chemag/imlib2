@@ -733,13 +733,16 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int ox, int oy, int ow, int oh,
 
    /* destroy the Ximage */
    if (is_shm)
-      __imlib_ShmDetach(d, &shminfo);
-   XDestroyImage(xim);
+      __imlib_ShmDestroyXImage(d, xim, &shminfo);
+   else
+      XDestroyImage(xim);
+
    if (mxim)
      {
         if (is_mshm)
-           __imlib_ShmDetach(d, &mshminfo);
-        XDestroyImage(mxim);
+           __imlib_ShmDestroyXImage(d, mxim, &mshminfo);
+        else
+           XDestroyImage(mxim);
      }
    if (created_mask)
       XFreePixmap(d, m);

@@ -119,12 +119,13 @@ __imlib_ShmGetXImage(Display * d, Visual * v, Drawable draw, int depth,
 }
 
 void
-__imlib_ShmDetach(Display * d, XShmSegmentInfo * si)
+__imlib_ShmDestroyXImage(Display * d, XImage * xim, XShmSegmentInfo * si)
 {
    XSync(d, False);
    XShmDetach(d, si);
    shmdt(si->shmaddr);
    shmctl(si->shmid, IPC_RMID, 0);
+   XDestroyImage(xim);
 }
 
 /* "safe" realloc allowing handling of out-of-memory situations */
@@ -190,10 +191,13 @@ __imlib_FlushXImage(Display * d)
                   list_mem_use -= xim->bytes_per_line * xim->height;
                   if (list_si[i])
                     {
-                       __imlib_ShmDetach(d, list_si[i]);
+                       __imlib_ShmDestroyXImage(d, xim, list_si[i]);
                        free(list_si[i]);
                     }
-                  XDestroyImage(xim);
+                  else
+                    {
+                       XDestroyImage(xim);
+                    }
                   list_num--;
                   for (j = i; j < list_num; j++)
                     {
