@@ -99,8 +99,31 @@ fi
 
 if test "x$have_x" = "xyes"; then
   AC_DEFINE(BUILD_X11, 1, [enabling X11 support])
+  AC_MSG_CHECKING(whether to enable X11 MIT-SHM FD-passing support)
+  AC_ARG_WITH([x-shm-fd],
+    [AS_HELP_STRING([--without-x-shm-fd], [Disable X11 MIT-SHM FD-passing support])],
+    [
+     if test "$withval" = no ; then
+       x_shm_fd=no
+     else
+       x_shm_fd=yes
+     fi
+    ],
+    [ x_shm_fd=auto ]
+  )
+  AC_MSG_RESULT($x_shm_fd)
+
+  if test "$x_shm_fd" != no ; then
+    PKG_CHECK_MODULES(X_SHM_FD, x11-xcb xcb xcb-shm >= 1.9, [ x_shm_fd="yes" ], [ x_shm_fd="no"])
+  else
+    x_shm_fd="no"
+  fi
+  if test "$x_shm_fd" = yes ; then
+    AC_DEFINE(HAVE_X11_SHM_FD, 1, [enabling X11 MIT-SHM FD-passing support])
+  fi
 else
   have_x="no"
+  x_shm_fd="no"
 fi
 AM_CONDITIONAL(BUILD_X11, test "x$have_x" = "xyes")
 
@@ -443,6 +466,7 @@ echo "Use X86 MMX for speed.....: $mmx"
 echo "Use AMD64 for speed.......: $amd64"
 echo
 echo "Use visibility hiding.....: $enable_visibility_hiding"
+echo "Use X MIT-SHM FD-passing..: $x_shm_fd"
 echo
 echo
 echo "Installation Path.........: $prefix"

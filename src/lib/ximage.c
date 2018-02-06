@@ -3,6 +3,11 @@
 #include <X11/Xlib.h>
 #include <X11/extensions/XShm.h>
 #include <X11/Xutil.h>
+#ifdef HAVE_X11_SHM_FD
+#include <X11/Xlib-xcb.h>
+#include <xcb/shm.h>
+#include <sys/mman.h>
+#endif
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
@@ -10,6 +15,9 @@
 
 /* global flags */
 static signed char  x_does_shm = -1;
+#ifdef HAVE_X11_SHM_FD
+static signed char  x_does_shm_fd = 0;
+#endif
 
 /* static private variables */
 static int          list_num = 0;
@@ -37,10 +45,24 @@ ShmCheck(Display * d)
 {
    /* if its there set x_does_shm flag */
    if (XShmQueryExtension(d))
-      x_does_shm = 2;           /* 2: __imlib_ShmGetXImage tests first XShmAttach */
+     {
+#ifdef HAVE_X11_SHM_FD
+        int major, minor;
+        Bool pixmaps;
+#endif
+        x_does_shm = 2;           /* 2: __imlib_ShmGetXImage tests first XShmAttach */
+#ifdef HAVE_X11_SHM_FD
+        if (XShmQueryVersion(d, &major, &minor, &pixmaps))
+          {
+             x_does_shm_fd = (major == 1 && minor >= 2) || major > 1;
+          }
+#endif
+     }
    /* clear the flag - no shm at all */
    else
-      x_does_shm = 0;
+     {
+        x_does_shm = 0;
+     }
 }
 
 XImage             *
@@ -60,55 +82,106 @@ __imlib_ShmGetXImage(Display * d, Visual * v, Drawable draw, int depth,
    if (!xim)
       return NULL;
 
-   /* get an shm id of this image */
-   si->shmid = shmget(IPC_PRIVATE, xim->bytes_per_line * xim->height,
-                      IPC_CREAT | 0666);
-   /* if the get succeeds */
-   if (si->shmid != -1)
+#ifdef HAVE_X11_SHM_FD
+   if (x_does_shm_fd)
      {
-        /* set the params for the shm segment */
-        si->readOnly = False;
-        si->shmaddr = xim->data = shmat(si->shmid, 0, 0);
-        /* get the shm addr for this data chunk */
-        if (xim->data != (char *)-1)
-          {
-             XErrorHandler       ph = NULL;
+        xcb_generic_error_t *error = NULL;
+        xcb_shm_create_segment_cookie_t cookie;
+        xcb_shm_create_segment_reply_t *reply;
+        size_t segment_size = xim->bytes_per_line * xim->height;
 
-             if (x_does_shm == 2)
+        xcb_connection_t *c = XGetXCBConnection(d);
+        si->shmaddr = NULL;
+        si->shmseg = xcb_generate_id(c);
+        si->readOnly = False;
+
+        cookie = xcb_shm_create_segment(c, si->shmseg, segment_size, si->readOnly);
+        reply = xcb_shm_create_segment_reply(c, cookie, &error);
+        if (reply)
+          {
+             int *fds = reply->nfd == 1 ? xcb_shm_create_segment_reply_fds(c, reply) : NULL;
+             if (fds)
                {
-                  /* setup a temporary error handler */
-                  _x_err = 0;
-                  XSync(d, False);
-                  ph = XSetErrorHandler(TmpXError);
+                  si->shmaddr = mmap(0, segment_size, PROT_READ|PROT_WRITE,
+                                     MAP_SHARED, fds[0], 0);
+                  close(fds[0]);
+                  if (si->shmaddr == MAP_FAILED)
+                      si->shmaddr = NULL;
                }
-             /* ask X to attach to the shared mem segment */
-             XShmAttach(d, si);
+             if (si->shmaddr == NULL)
+               {
+                  xcb_shm_detach(c, si->shmseg);
+               }
+             free(reply);
+          }
+        free(error);
+
+        if (si->shmaddr)
+          {
+             xim->data = si->shmaddr;
              if (draw != None)
                 XShmGetImage(d, draw, xim, x, y, 0xffffffff);
-             if (x_does_shm == 2)
+
+             return xim;
+          }
+        else
+          {
+             x_does_shm = 0;
+          }
+     }
+   else
+#endif
+     {
+        /* get an shm id of this image */
+        si->shmid = shmget(IPC_PRIVATE, xim->bytes_per_line * xim->height,
+                           IPC_CREAT | 0666);
+        /* if the get succeeds */
+        if (si->shmid != -1)
+          {
+             /* set the params for the shm segment */
+             si->readOnly = False;
+             si->shmaddr = xim->data = shmat(si->shmid, 0, 0);
+             /* get the shm addr for this data chunk */
+             if (xim->data != (char *)-1)
                {
-                  /* wait for X to reply and do this */
-                  XSync(d, False);
-                  /* reset the error handler */
-                  XSetErrorHandler(ph);
-                  x_does_shm = 1;
+                  XErrorHandler       ph = NULL;
+
+                  if (x_does_shm == 2)
+                    {
+                       /* setup a temporary error handler */
+                       _x_err = 0;
+                       XSync(d, False);
+                       ph = XSetErrorHandler(TmpXError);
+                    }
+                  /* ask X to attach to the shared mem segment */
+                  XShmAttach(d, si);
+                  if (draw != None)
+                     XShmGetImage(d, draw, xim, x, y, 0xffffffff);
+                  if (x_does_shm == 2)
+                    {
+                       /* wait for X to reply and do this */
+                       XSync(d, False);
+                       /* reset the error handler */
+                       XSetErrorHandler(ph);
+                       x_does_shm = 1;
+                    }
+
+                  /* if we attached without an error we're set */
+                  if (_x_err == 0)
+                     return xim;
+
+                  /* attach by X failed... must be remote client */
+                  /* flag shm forever to not work - remote */
+                  x_does_shm = 0;
+
+                  /* detach */
+                  shmdt(si->shmaddr);
                }
 
-             /* if we attached without an error we're set */
-             if (_x_err == 0)
-                return xim;
-
-             /* attach by X failed... must be remote client */
-             /* flag shm forever to not work - remote */
-             x_does_shm = 0;
-
-             /* detach */
-             shmdt(si->shmaddr);
+             /* get failed - out of shm id's or shm segment too big ? */
+             /* remove the shm id we created */
+             shmctl(si->shmid, IPC_RMID, 0);
           }
-
-        /* get failed - out of shm id's or shm segment too big ? */
-        /* remove the shm id we created */
-        shmctl(si->shmid, IPC_RMID, 0);
      }
 
    /* couldnt create SHM image ? */
@@ -123,8 +196,17 @@ __imlib_ShmDestroyXImage(Display * d, XImage * xim, XShmSegmentInfo * si)
 {
    XSync(d, False);
    XShmDetach(d, si);
-   shmdt(si->shmaddr);
-   shmctl(si->shmid, IPC_RMID, 0);
+#ifdef HAVE_X11_SHM_FD
+   if (x_does_shm_fd)
+     {
+        munmap(si->shmaddr, xim->bytes_per_line * xim->height);
+     }
+   else
+#endif
+     {
+        shmdt(si->shmaddr);
+        shmctl(si->shmid, IPC_RMID, 0);
+     }
    XDestroyImage(xim);
 }
 
