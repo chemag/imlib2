@@ -459,14 +459,15 @@ echo "  GIF.....................: $gif_ok"
 echo "  ZLIB....................: $zlib_ok"
 echo "  BZIP2...................: $bz2_ok"
 echo "  ID3.....................: $id3_ok"
-echo "  X.......................: $have_x"
 echo
+echo
+echo "Build for X11.............: $have_x"
+echo "Use X MIT-SHM FD-passing..: $x_shm_fd"
 echo
 echo "Use X86 MMX for speed.....: $mmx"
 echo "Use AMD64 for speed.......: $amd64"
 echo
 echo "Use visibility hiding.....: $enable_visibility_hiding"
-echo "Use X MIT-SHM FD-passing..: $x_shm_fd"
 echo
 echo
 echo "Installation Path.........: $prefix"
