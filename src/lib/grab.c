@@ -659,15 +659,9 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int ox, int oy, int ow, int oh,
      }
 
    /* Create an Ximage (shared or not) */
-   if (x_does_shm < 0)
-      __imlib_ShmCheck(d);
+   xim = __imlib_ShmGetXImage(d, v, p, xatt.depth, x, y, w, h, &shminfo);
+   is_shm = ! !xim;
 
-   xim = NULL;
-   if (x_does_shm)
-     {
-        xim = __imlib_ShmGetXImage(d, v, p, xatt.depth, x, y, w, h, &shminfo);
-        is_shm = ! !xim;
-     }
    if (!xim)
       xim = XGetImage(d, p, x, y, w, h, 0xffffffff, ZPixmap);
    if (!xim)

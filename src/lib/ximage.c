@@ -9,7 +9,7 @@
 #include "ximage.h"
 
 /* global flags */
-signed char         x_does_shm = -1;
+static signed char  x_does_shm = -1;
 
 /* static private variables */
 static int          list_num = 0;
@@ -32,8 +32,8 @@ TmpXError(Display * d, XErrorEvent * ev)
    return 0;
 }
 
-void
-__imlib_ShmCheck(Display * d)
+static void
+ShmCheck(Display * d)
 {
    /* if its there set x_does_shm flag */
    if (XShmQueryExtension(d))
@@ -48,6 +48,12 @@ __imlib_ShmGetXImage(Display * d, Visual * v, Drawable draw, int depth,
                      int x, int y, int w, int h, XShmSegmentInfo * si)
 {
    XImage             *xim;
+
+   if (x_does_shm < 0)
+      ShmCheck(d);
+
+   if (!x_does_shm)
+       return NULL;
 
    /* try create an shm image */
    xim = XShmCreateImage(d, v, depth, ZPixmap, NULL, si, w, h);
@@ -258,10 +264,6 @@ __imlib_ProduceXImage(Display * d, Visual * v, int depth, int w, int h,
    XImage             *xim;
    int                 i, err;
 
-   /* if we havent check the shm extension before - see if its there */
-   if (x_does_shm < 0)
-      __imlib_ShmCheck(d);
-
    /* find a cached XImage (to avoid server to & fro) that is big enough */
    /* for our needs and the right depth */
    *shared = 0;
@@ -312,13 +314,8 @@ __imlib_ProduceXImage(Display * d, Visual * v, int depth, int w, int h,
      }
 
    /* work on making a shared image */
-   xim = NULL;
-   /* if the server does shm */
-   if (x_does_shm)
-     {
-        xim = __imlib_ShmGetXImage(d, v, None, depth, 0, 0, w, h,
-                                   list_si[list_num - 1]);
-     }
+   xim = __imlib_ShmGetXImage(d, v, None, depth, 0, 0, w, h,
+                              list_si[list_num - 1]);
    /* ok if xim == NULL it all failed - fall back to XImages */
    if (xim)
      {
