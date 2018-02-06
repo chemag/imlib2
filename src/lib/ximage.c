@@ -15,6 +15,7 @@
 
 /* global flags */
 static signed char  x_does_shm = -1;
+
 #ifdef HAVE_X11_SHM_FD
 static signed char  x_does_shm_fd = 0;
 #endif
@@ -47,10 +48,10 @@ ShmCheck(Display * d)
    if (XShmQueryExtension(d))
      {
 #ifdef HAVE_X11_SHM_FD
-        int major, minor;
-        Bool pixmaps;
+        int                 major, minor;
+        Bool                pixmaps;
 #endif
-        x_does_shm = 2;           /* 2: __imlib_ShmGetXImage tests first XShmAttach */
+        x_does_shm = 2;         /* 2: __imlib_ShmGetXImage tests first XShmAttach */
 #ifdef HAVE_X11_SHM_FD
         if (XShmQueryVersion(d, &major, &minor, &pixmaps))
           {
@@ -75,7 +76,7 @@ __imlib_ShmGetXImage(Display * d, Visual * v, Drawable draw, int depth,
       ShmCheck(d);
 
    if (!x_does_shm)
-       return NULL;
+      return NULL;
 
    /* try create an shm image */
    xim = XShmCreateImage(d, v, depth, ZPixmap, NULL, si, w, h);
@@ -88,25 +89,29 @@ __imlib_ShmGetXImage(Display * d, Visual * v, Drawable draw, int depth,
         xcb_generic_error_t *error = NULL;
         xcb_shm_create_segment_cookie_t cookie;
         xcb_shm_create_segment_reply_t *reply;
-        size_t segment_size = xim->bytes_per_line * xim->height;
+        xcb_connection_t   *c = XGetXCBConnection(d);
+        size_t              segment_size = xim->bytes_per_line * xim->height;
 
-        xcb_connection_t *c = XGetXCBConnection(d);
         si->shmaddr = NULL;
         si->shmseg = xcb_generate_id(c);
         si->readOnly = False;
 
-        cookie = xcb_shm_create_segment(c, si->shmseg, segment_size, si->readOnly);
+        cookie =
+           xcb_shm_create_segment(c, si->shmseg, segment_size, si->readOnly);
         reply = xcb_shm_create_segment_reply(c, cookie, &error);
         if (reply)
           {
-             int *fds = reply->nfd == 1 ? xcb_shm_create_segment_reply_fds(c, reply) : NULL;
+             int                *fds;
+
+             fds = reply->nfd == 1 ?
+                xcb_shm_create_segment_reply_fds(c, reply) : NULL;
              if (fds)
                {
-                  si->shmaddr = mmap(0, segment_size, PROT_READ|PROT_WRITE,
+                  si->shmaddr = mmap(0, segment_size, PROT_READ | PROT_WRITE,
                                      MAP_SHARED, fds[0], 0);
                   close(fds[0]);
                   if (si->shmaddr == MAP_FAILED)
-                      si->shmaddr = NULL;
+                     si->shmaddr = NULL;
                }
              if (si->shmaddr == NULL)
                {
