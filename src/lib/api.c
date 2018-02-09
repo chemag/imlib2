@@ -1551,10 +1551,10 @@ imlib_image_set_border(Imlib_Border * border)
        && (im->border.top == border->top)
        && (im->border.bottom == border->bottom))
       return;
-   im->border.left = border->left;
-   im->border.right = border->right;
-   im->border.top = border->top;
-   im->border.bottom = border->bottom;
+   im->border.left = MAX(0, border->left);
+   im->border.right = MAX(0, border->right);
+   im->border.top = MAX(0, border->top);
+   im->border.bottom = MAX(0, border->bottom);
    __imlib_DirtyPixmapsForImage(im);
 }
 
