@@ -1042,10 +1042,23 @@ imlib_context_get_TTF_encoding(void)
 /* imlib api */
 
 /**
- * @return The current image cache size.
+ * @return The current image cache memory usage.
  *
- * Returns the current size of the image cache in bytes. The cache is
- * a unified cache used for image data AND pixmaps.
+ * Returns the current size of the image cache in bytes.
+ * The cache is a unified cache used for image data AND pixmaps.
+ */
+EAPI int
+imlib_get_cache_used(void)
+{
+   CHECK_CONTEXT(ctx);
+   return __imlib_CurrentCacheSize();
+}
+
+/**
+ * @return The current image cache max size.
+ *
+ * Returns the current maximum size of the image cache in bytes.
+ * The cache is a unified cache used for image data AND pixmaps.
  */
 EAPI int
 imlib_get_cache_size(void)
@@ -1055,7 +1068,7 @@ imlib_get_cache_size(void)
 }
 
 /**
- * @param bytes Cache size.
+ * @param bytes Image cache max size.
  *
  * Sets the cache size. The size is in bytes. Setting the cache size to
  * 0 effectively flushes the cache and keeps the cache size at 0 until

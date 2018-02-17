@@ -196,6 +196,7 @@ EAPI Imlib_Image    imlib_context_get_image(void);
 EAPI void           imlib_context_get_cliprect(int *x, int *y, int *w, int *h);
 EAPI Imlib_TTF_Encoding imlib_context_get_TTF_encoding(void);
 
+EAPI int            imlib_get_cache_used(void);
 EAPI int            imlib_get_cache_size(void);
 EAPI void           imlib_set_cache_size(int bytes);
 EAPI int            imlib_get_color_usage(void);
