@@ -843,6 +843,36 @@ __imlib_CreateImage(int w, int h, DATA32 * data)
    return im;
 }
 
+static int
+__imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im,
+                         ImlibProgressFunction progress,
+                         char progress_granularity, char immediate_load)
+{
+   int                 rc;
+
+   rc = l->load(im, progress, progress_granularity, immediate_load);
+   if (rc == 0)
+     {
+        /* Failed - clean up */
+        if (im->w != 0 || im->h != 0)
+          {
+             im->w = im->h = 0;
+          }
+        if (im->data)
+          {
+             free(im->data);
+             im->data = NULL;
+          }
+        if (im->format)
+          {
+             free(im->format);
+             im->format = NULL;
+          }
+     }
+
+   return rc;
+}
+
 ImlibImage         *
 __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
                   char progress_granularity, char immediate_load,
@@ -910,7 +940,9 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
    errno = 0;
    if (best_loader)
       loader_ret =
-         best_loader->load(im, progress, progress_granularity, immediate_load);
+         __imlib_LoadImageWrapper(best_loader, im,
+                                  progress, progress_granularity,
+                                  immediate_load);
    /* width is still 0 - the loader didn't manage to do anything */
    if (im->w == 0)
      {
@@ -924,7 +956,9 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
              /* if its not the best loader that already failed - try load */
              if (l != best_loader)
                 loader_ret =
-                   l->load(im, progress, progress_granularity, immediate_load);
+                   __imlib_LoadImageWrapper(l, im,
+                                            progress, progress_granularity,
+                                            immediate_load);
              /* if it failed - advance */
              if (im->w == 0)
                {
@@ -1013,7 +1047,7 @@ int
 __imlib_LoadImageData(ImlibImage * im)
 {
    if ((!(im->data)) && (im->loader) && (im->loader->load))
-      if (im->loader->load(im, NULL, 0, 1) == 0)
+      if (__imlib_LoadImageWrapper(im->loader, im, NULL, 0, 1) == 0)
          return 1;              /* Load failed */
    return im->data == NULL;
 }
