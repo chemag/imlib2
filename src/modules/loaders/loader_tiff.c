@@ -335,8 +335,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       SET_FLAG(im->flags, F_HAS_ALPHA);
    else
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
-   if (!im->format)
-      im->format = strdup("tiff");
 
    if ((im->loader) || (immediate_load) || (progress))
      {

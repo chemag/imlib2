@@ -38,16 +38,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         return 0;
      }
 
-   /* set format */
-   if (!im->loader)
-     {
-        if (!(im->format = strdup("ff")))
-          {
-             im->w = 0;
-             fclose(f);
-             return 0;
-          }
-     }
    SET_FLAG(im->flags, F_HAS_ALPHA);
 
    /* load the data */

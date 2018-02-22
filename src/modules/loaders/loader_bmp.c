@@ -298,11 +298,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
       im->w = w;
       im->h = h;
-      if (!im->format)
-        {
-           UNSET_FLAG(im->flags, F_HAS_ALPHA);
-           im->format = strdup("bmp");
-        }
+      UNSET_FLAG(im->flags, F_HAS_ALPHA);
    }
    if (((!im->data) && (im->loader)) || (immediate_load) || (progress))
      {

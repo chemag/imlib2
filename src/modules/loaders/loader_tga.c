@@ -296,14 +296,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         return 0;
      }
 
-   if (!im->format)
-     {
-        if (bpp == 32)
-           SET_FLAG(im->flags, F_HAS_ALPHA);
-        else
-           UNSET_FLAG(im->flags, F_HAS_ALPHA);
-        im->format = strdup("tga");
-     }
+   if (bpp == 32)
+      SET_FLAG(im->flags, F_HAS_ALPHA);
+   else
+      UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
    /* if we need to actually read the pixel data... */
    if (((!im->data) && (im->loader)) || (immediate_load) || (progress))

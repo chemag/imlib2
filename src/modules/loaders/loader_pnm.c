@@ -121,14 +121,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!IMAGE_DIMENSIONS_OK(w, h))
       goto quit;
 
-   if (!im->format)
-     {
-        if (p == '8')
-           SET_FLAG(im->flags, F_HAS_ALPHA);
-        else
-           UNSET_FLAG(im->flags, F_HAS_ALPHA);
-        im->format = strdup("pnm");
-     }
+   if (p == '8')
+      SET_FLAG(im->flags, F_HAS_ALPHA);
+   else
+      UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
    rc = 1;                      /* Ok */
 

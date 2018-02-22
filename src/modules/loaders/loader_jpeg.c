@@ -74,7 +74,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         if (!IMAGE_DIMENSIONS_OK(w, h))
            goto quit_error;
         UNSET_FLAG(im->flags, F_HAS_ALPHA);
-        im->format = strdup("jpeg");
      }
 
    if (((!im->data) && (im->loader)) || (immediate_load) || (progress))

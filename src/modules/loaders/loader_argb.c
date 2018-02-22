@@ -41,14 +41,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         }
       im->w = w;
       im->h = h;
-      if (!im->format)
-        {
-           if (alpha)
-              SET_FLAG(im->flags, F_HAS_ALPHA);
-           else
-              UNSET_FLAG(im->flags, F_HAS_ALPHA);
-           im->format = strdup("argb");
-        }
+      if (alpha)
+         SET_FLAG(im->flags, F_HAS_ALPHA);
+      else
+         UNSET_FLAG(im->flags, F_HAS_ALPHA);
    }
    if (((!im->data) && (im->loader)) || (immediate_load) || (progress))
      {

@@ -869,6 +869,11 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im,
              im->format = NULL;
           }
      }
+   else
+     {
+        if (!im->format && l->formats && l->formats[0])
+           im->format = strdup(l->formats[0]);
+     }
 
    return rc;
 }

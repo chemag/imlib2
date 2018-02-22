@@ -1661,12 +1661,8 @@ imlib_image_set_format(const char *format)
    CHECK_PARAM_POINTER("imlib_image_set_format", "image", ctx->image);
    CHECK_PARAM_POINTER("imlib_image_set_format", "format", format);
    CAST_IMAGE(im, ctx->image);
-   if (im->format)
-      free(im->format);
-   if (format)
-      im->format = strdup(format);
-   else
-      im->format = NULL;
+   free(im->format);
+   im->format = (format) ? strdup(format) : NULL;
    if (!(im->flags & F_FORMAT_IRRELEVANT))
      {
         __imlib_DirtyImage(im);
@@ -2499,15 +2495,9 @@ imlib_clone_image(void)
    im->border = im_old->border;
    im->loader = im_old->loader;
    if (im_old->format)
-     {
-        im->format = malloc(strlen(im_old->format) + 1);
-        strcpy(im->format, im_old->format);
-     }
+      im->format = strdup(im_old->format);
    if (im_old->file)
-     {
-        im->file = malloc(strlen(im_old->file) + 1);
-        strcpy(im->file, im_old->file);
-     }
+      im->file = strdup(im_old->file);
    return (Imlib_Image) im;
 }
 

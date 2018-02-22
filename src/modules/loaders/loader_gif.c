@@ -126,13 +126,8 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
         goto quit2;
      }
 
-   /* set the format string member to the lower-case full extension */
-   /* name for the format - so example names would be: */
-   /* "png", "jpeg", "tiff", "ppm", "pgm", "pbm", "gif", "xpm" ... */
    im->w = w;
    im->h = h;
-   if (!im->format)
-      im->format = strdup("gif");
 
    if (im->loader || immediate_load || progress)
      {

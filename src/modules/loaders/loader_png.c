@@ -91,11 +91,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
            SET_FLAG(im->flags, F_HAS_ALPHA);
         else
            UNSET_FLAG(im->flags, F_HAS_ALPHA);
-        /* set the format string member to the lower-case full extension */
-        /* name for the format - so example names would be: */
-        /* "png", "jpeg", "tiff", "ppm", "pgm", "pbm", "gif", "xpm" ... */
-        if (!im->loader)
-           im->format = strdup("png");
      }
    /* if its the second phase load OR its immediate load or a progress */
    /* callback is set then load the data */

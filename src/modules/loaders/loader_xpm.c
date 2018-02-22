@@ -214,8 +214,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                     }
                   im->w = w;
                   im->h = h;
-                  if (!im->format)
-                     im->format = strdup("xpm");
 
                   cmap = malloc(sizeof(struct _cmap) * ncolors);
 

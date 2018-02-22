@@ -503,9 +503,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                 || !strcmp(env, "on")))
            UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
-        if (!im->format)
-           im->format = strdup("lbm");
-
         ilbm.ham = 0;
         ilbm.hbrite = 0;
         if (ilbm.depth <= 8)
