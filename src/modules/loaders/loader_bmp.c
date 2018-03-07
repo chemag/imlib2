@@ -235,6 +235,17 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                 ReadleLong(f, &rmask);
                 ReadleLong(f, &gmask);
                 ReadleLong(f, &bmask);
+                if (bitcount == 16)
+                  {
+                     rmask &= 0xffffU;
+                     gmask &= 0xffffU;
+                     bmask &= 0xffffU;
+                  }
+                if (rmask == 0 || gmask == 0 || bmask == 0)
+                  {
+                     fclose(f);
+                     return 0;
+                  }
                 for (bit = bitcount - 1; bit >= 0; bit--)
                   {
                      if (bmask & (1 << bit))
