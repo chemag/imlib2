@@ -156,6 +156,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
            return 0;
         }
 
+      offset = 0;
+      headSize = 0;
       fseek(f, 8, SEEK_CUR);
       ReadleLong(f, &offset);
       ReadleLong(f, &headSize);
@@ -164,8 +166,13 @@ load(ImlibImage * im, ImlibProgressFunction progress,
            fclose(f);
            return 0;
         }
+
+      w = h = 0;
+      bitcount = 0;
+      comp = BI_RGB;
       if (headSize == 12)
         {
+           tmpShort = 0;
            ReadleShort(f, &tmpShort);
            w = tmpShort;
            ReadleShort(f, &tmpShort);
@@ -173,7 +180,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
            ReadleShort(f, &planes);
            ReadleShort(f, &bitcount);
            imgsize = size - offset;
-           comp = BI_RGB;
         }
       else if (headSize == 40)
         {
