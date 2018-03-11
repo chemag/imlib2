@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "Imlib2.h"
+#include "props.h"
 
 Display            *disp;
 Window              win;
@@ -21,9 +22,6 @@ Imlib_Image         bg_im = NULL;
 static char         progress_granularity = 10;
 static char         progress_print = 0;
 static int          progress_delay = 0;
-
-static Atom         ATOM_WM_DELETE_WINDOW = None;
-static Atom         ATOM_WM_PROTOCOLS = None;
 
 #define MAX_DIM	32767
 
@@ -200,9 +198,7 @@ main(int argc, char **argv)
    XSelectInput(disp, win, KeyPressMask | ButtonPressMask | ButtonReleaseMask |
                 ButtonMotionMask | PointerMotionMask);
 
-   ATOM_WM_PROTOCOLS = XInternAtom(disp, "WM_PROTOCOLS", False);
-   ATOM_WM_DELETE_WINDOW = XInternAtom(disp, "WM_DELETE_WINDOW", False);
-   XSetWMProtocols(disp, win, &ATOM_WM_DELETE_WINDOW, 1);
+   props_win_set_proto_quit(win);
 
    imlib_context_set_display(disp);
    imlib_context_set_visual(DefaultVisual(disp, DefaultScreen(disp)));
@@ -250,8 +246,7 @@ main(int argc, char **argv)
              break;
 
           case ClientMessage:
-             if (ev.xclient.message_type == ATOM_WM_PROTOCOLS &&
-                 (Atom) ev.xclient.data.l[0] == ATOM_WM_DELETE_WINDOW)
+             if (props_clientmsg_check_quit(&ev.xclient))
                 goto quit;
              break;
           case KeyPress:
