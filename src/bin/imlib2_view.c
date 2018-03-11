@@ -1,24 +1,16 @@
 #include "config.h"
+
 #include <X11/Xlib.h>
-#include <X11/extensions/XShm.h>
-#include <X11/Xutil.h>
-#include <X11/extensions/shape.h>
-#include <X11/Xatom.h>
-#include <X11/Xos.h>
+#include <X11/keysym.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <errno.h>
+
 #include "Imlib2.h"
 
 Display            *disp;
 Window              win;
 Pixmap              pm = 0;
-Visual             *vis;
-Colormap            cm;
 int                 depth;
 int                 image_width = 0, image_height = 0;
 int                 window_width = 0, window_height = 0;
@@ -157,9 +149,7 @@ main(int argc, char **argv)
         return 1;
      }
 
-   vis = DefaultVisual(disp, DefaultScreen(disp));
    depth = DefaultDepth(disp, DefaultScreen(disp));
-   cm = DefaultColormap(disp, DefaultScreen(disp));
 
    win = XCreateSimpleWindow(disp, DefaultRootWindow(disp), 0, 0, 10, 10,
                              0, 0, 0);
@@ -171,8 +161,8 @@ main(int argc, char **argv)
    XSetWMProtocols(disp, win, &ATOM_WM_DELETE_WINDOW, 1);
 
    imlib_context_set_display(disp);
-   imlib_context_set_visual(vis);
-   imlib_context_set_colormap(cm);
+   imlib_context_set_visual(DefaultVisual(disp, DefaultScreen(disp)));
+   imlib_context_set_colormap(DefaultColormap(disp, DefaultScreen(disp)));
    imlib_context_set_progress_function(progress);
    imlib_context_set_progress_granularity(10);
    imlib_context_set_drawable(win);
