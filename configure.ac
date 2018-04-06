@@ -440,8 +440,6 @@ AC_OUTPUT
 
 #####################################################################
 ## Info
-
-echo
 echo
 echo
 echo "------------------------------------------------------------------------"
@@ -450,8 +448,7 @@ echo "------------------------------------------------------------------------"
 echo
 echo "Configuration Options Summary:"
 echo
-echo
-echo "Image Loaders:"
+echo "Image loaders:"
 echo "  JPEG....................: $jpeg_ok"
 echo "  PNG.....................: $png_ok"
 echo "  TIFF....................: $tiff_ok"
@@ -459,7 +456,6 @@ echo "  GIF.....................: $gif_ok"
 echo "  ZLIB....................: $zlib_ok"
 echo "  BZIP2...................: $bz2_ok"
 echo "  ID3.....................: $id3_ok"
-echo
 echo
 echo "Build for X11.............: $have_x"
 echo "Use X MIT-SHM FD-passing..: $x_shm_fd"
@@ -469,9 +465,5 @@ echo "Use AMD64 for speed.......: $amd64"
 echo
 echo "Use visibility hiding.....: $enable_visibility_hiding"
 echo
-echo
-echo "Installation Path.........: $prefix"
-echo
-echo "Compilation...............: make"
-echo "Installation..............: make install"
+echo "Installation path.........: $prefix"
 echo
