@@ -488,7 +488,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
                        for (i = 0; (i < count) && (dataptr < final_pixel); i++)
                          {
-                            if ((bufptr + 1 + (bpp / 8)) > bufend)
+                            if ((bufptr + bpp / 8) > bufend)
                               {
                                  munmap(seg, ss.st_size);
                                  free(im->data);
