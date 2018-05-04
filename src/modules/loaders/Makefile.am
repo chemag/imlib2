@@ -33,6 +33,7 @@ bmp.la \
 $(BZ2_L) \
 ff.la \
 $(GIF_L) \
+ico.la \
 $(ID3_L) \
 $(JPEG_L) \
 lbm.la \
@@ -69,6 +70,11 @@ gif_la_SOURCES       = loader_gif.c
 gif_la_LDFLAGS       = -module -avoid-version
 gif_la_LIBADD        = @GIFLIBS@ $(top_builddir)/src/lib/libImlib2.la
 gif_la_LIBTOOLFLAGS = --tag=disable-static
+
+ico_la_SOURCES       = loader_ico.c
+ico_la_LDFLAGS       = -module -avoid-version
+ico_la_LIBADD        = $(top_builddir)/src/lib/libImlib2.la
+ico_la_LIBTOOLFLAGS = --tag=disable-static
 
 id3_la_SOURCES       = loader_id3.c
 id3_la_LDFLAGS       = -module -avoid-version
