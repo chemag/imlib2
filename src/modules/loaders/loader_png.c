@@ -24,10 +24,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    png_infop           info_ptr = NULL;
    int                 bit_depth, color_type, interlace_type;
 
-   /* if immediate_load is 1, then don't delay image loading as below, or */
-   /* already data in this image - don't load it again */
-   if (im->data)
-      return 0;
    f = fopen(im->real_file, "rb");
    if (!f)
       return 0;

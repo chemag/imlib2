@@ -51,8 +51,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    struct ImLib_JPEG_error_mgr jerr;
    FILE               *f;
 
-   if (im->data)
-      return 0;
    f = fopen(im->real_file, "rb");
    if (!f)
       return 0;

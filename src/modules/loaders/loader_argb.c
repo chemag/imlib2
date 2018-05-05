@@ -13,8 +13,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    int                 w = 0, h = 0, alpha = 0;
    FILE               *f;
 
-   if (im->data)
-      return 0;
    f = fopen(im->real_file, "rb");
    if (!f)
       return 0;

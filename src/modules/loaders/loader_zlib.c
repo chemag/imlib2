@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <assert.h>
 
 #define OUTBUF_SIZE 16484
 
@@ -47,8 +46,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    char               *file, *p, *q, tmp[] = "/tmp/imlib2_loader_zlib-XXXXXX";
    char               *real_ext;
    struct stat         st;
-
-   assert(im);
 
    /* check that this file ends in *.gz and that there's another ext
     * (e.g. "foo.png.gz"

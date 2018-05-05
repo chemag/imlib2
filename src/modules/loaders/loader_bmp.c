@@ -128,8 +128,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
     */
    unsigned char       byte1, byte2;
 
-   if (im->data)
-      return 0;
    f = fopen(im->real_file, "rb");
    if (!f)
       return 0;

@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <assert.h>
 
 #define OUTBUF_SIZE 16384
 #define INBUF_SIZE 1024
@@ -54,8 +53,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    int                 dest, res;
    char               *file, *p, *q, tmp[] = "/tmp/imlib2_loader_bz2-XXXXXX";
    char               *real_ext;
-
-   assert(im);
 
    /* make sure this file ends in ".bz2" and that there's another ext
     * (e.g. "foo.png.bz2"

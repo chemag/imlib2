@@ -271,9 +271,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    ok = 0;
 
-   if (im->data)
-      return 0;
-
    file = fopen(im->real_file, "rb");
    if (!file)
       return 0;

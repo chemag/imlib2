@@ -23,35 +23,32 @@ load(ImlibImage * im, ImlibProgressFunction progress,
      }
 
    /* read and check the header */
-   if (!im->data)
+   if (fread(hdr, sizeof(uint32_t), LEN(hdr), f) != LEN(hdr) ||
+       memcmp("farbfeld", hdr, sizeof("farbfeld") - 1))
      {
-        if (fread(hdr, sizeof(uint32_t), LEN(hdr), f) != LEN(hdr) ||
-            memcmp("farbfeld", hdr, sizeof("farbfeld") - 1))
-          {
-             fclose(f);
-             return 0;
-          }
-        im->w = ntohl(hdr[2]);
-        im->h = ntohl(hdr[3]);
-        if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
+        fclose(f);
+        return 0;
+     }
+   im->w = ntohl(hdr[2]);
+   im->h = ntohl(hdr[3]);
+   if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
+     {
+        im->w = 0;
+        fclose(f);
+        return 0;
+     }
+
+   /* set format */
+   if (!im->loader)
+     {
+        if (!(im->format = strdup("ff")))
           {
              im->w = 0;
              fclose(f);
              return 0;
           }
-
-        /* set format */
-        if (!im->loader)
-          {
-             if (!(im->format = strdup("ff")))
-               {
-                  im->w = 0;
-                  fclose(f);
-                  return 0;
-               }
-          }
-        SET_FLAG(im->flags, F_HAS_ALPHA);
      }
+   SET_FLAG(im->flags, F_HAS_ALPHA);
 
    /* load the data */
    if (im->loader || immediate_load || progress)

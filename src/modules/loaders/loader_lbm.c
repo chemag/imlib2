@@ -458,12 +458,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    ILBM                ilbm;
 
   /*----------
-   * Do nothing if the data is already loaded.
-   *----------*/
-   if (im->data)
-      return 0;
-
-  /*----------
    * Load the chunk(s) we're interested in. If full is not true, then we only
    * want the image size and format.
    *----------*/

@@ -201,9 +201,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    tga_header         *header;
    tga_footer         *footer;
 
-   if (im->data)
-      return 0;
-
    fd = open(im->real_file, O_RDONLY);
    if (fd < 0)
       return 0;

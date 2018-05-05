@@ -26,11 +26,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    rows = NULL;
    transp = -1;
 
-   /* if immediate_load is 1, then dont delay image laoding as below, or */
-   /* already data in this image - dont load it again */
-   if (im->data)
-      return 0;
-
    fd = open(im->real_file, O_RDONLY);
    if (fd < 0)
       return 0;
