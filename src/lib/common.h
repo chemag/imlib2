@@ -16,6 +16,24 @@
 #define DATA16  unsigned short
 #define DATA8   unsigned char
 
+#define SWAP32(x) \
+    ((((x) & 0x000000ff ) << 24) | \
+     (((x) & 0x0000ff00 ) <<  8) | \
+     (((x) & 0x00ff0000 ) >>  8) | \
+     (((x) & 0xff000000 ) >> 24))
+
+#define SWAP16(x) \
+    ((((x) & 0x00ff ) << 8) | \
+     (((x) & 0xff00 ) >> 8))
+
+#ifdef WORDS_BIGENDIAN
+#define SWAP_LE_16(x) x = SWAP16(x)
+#define SWAP_LE_32(x) x = SWAP32(x)
+#else
+#define SWAP_LE_16(x)
+#define SWAP_LE_32(x)
+#endif
+
 #ifdef DO_MMX_ASM
 int                 __imlib_get_cpuid(void);
 
