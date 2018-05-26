@@ -34,6 +34,8 @@
 #define SWAP_LE_32(x)
 #endif
 
+#define PIXEL_ARGB(a, r, g, b)  ((a) << 24) | ((r) << 16) | ((g) << 8) | (b)
+
 #ifdef DO_MMX_ASM
 int                 __imlib_get_cpuid(void);
 

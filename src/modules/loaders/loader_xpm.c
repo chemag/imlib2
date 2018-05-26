@@ -392,9 +392,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                     }
                   if (cpp == 1)
                     {
-#define PIX_RGB(_r, _g, _b) (((_r) << 16) | ((_g) << 8) | (_b))
-#define PIX_ARGB(_r, _g, _b) ((0xff << 24) | PIX_RGB(_r, _g, _b))
-
 #define CM1_TRANS() cmap[lookup[col[0] - ' '][0]].transp
 #define CM1_R()     (unsigned char)cmap[lookup[col[0] - ' '][0]].r
 #define CM1_G()     (unsigned char)cmap[lookup[col[0] - ' '][0]].g
@@ -407,9 +404,9 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                             g = CM1_G();
                             b = CM1_B();
                             if (transp && CM1_TRANS())
-                               *ptr++ = PIX_RGB(r, g, b);
+                               *ptr++ = PIXEL_ARGB(0, r, g, b);
                             else
-                               *ptr++ = PIX_ARGB(r, g, b);
+                               *ptr++ = PIXEL_ARGB(0xff, r, g, b);
                             count++;
                          }
                     }
@@ -429,9 +426,9 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                             g = CM2_G();
                             b = CM2_B();
                             if (transp && CM2_TRANS())
-                               *ptr++ = PIX_RGB(r, g, b);
+                               *ptr++ = PIXEL_ARGB(0, r, g, b);
                             else
-                               *ptr++ = PIX_ARGB(r, g, b);
+                               *ptr++ = PIXEL_ARGB(0xff, r, g, b);
                             count++;
                          }
                     }
@@ -458,9 +455,9 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                                       g = CM0_G(j);
                                       b = CM0_B(j);
                                       if (transp && CM0_TRANS(j))
-                                         *ptr++ = PIX_RGB(r, g, b);
+                                         *ptr++ = PIXEL_ARGB(0, r, g, b);
                                       else
-                                         *ptr++ = PIX_ARGB(r, g, b);
+                                         *ptr++ = PIXEL_ARGB(0xff, r, g, b);
                                       count++;
                                       j = ncolors;
                                    }

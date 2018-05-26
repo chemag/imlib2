@@ -100,7 +100,7 @@ __imlib_MapRange(ImlibRange * rg, int len)
                   g = ((p->green * v2) + (p->next->green * v1)) >> 16;
                   b = ((p->blue * v2) + (p->next->blue * v1)) >> 16;
                   a = ((p->alpha * v2) + (p->next->alpha * v1)) >> 16;
-                  pmap[i++] = (a << 24) | (r << 16) | (g << 8) | b;
+                  pmap[i++] = PIXEL_ARGB(a, r, g, b);
                }
           }
         else
@@ -109,7 +109,7 @@ __imlib_MapRange(ImlibRange * rg, int len)
              g = p->green;
              b = p->blue;
              a = p->alpha;
-             pmap[i++] = (a << 24) | (r << 16) | (g << 8) | b;
+             pmap[i++] = PIXEL_ARGB(a, r, g, b);
           }
      }
    inc = ((ll - 1) << 16) / (len - 1);
@@ -135,7 +135,7 @@ __imlib_MapRange(ImlibRange * rg, int len)
         g = ((g * v2) + (gg * v1)) >> 16;
         b = ((b * v2) + (bb * v1)) >> 16;
         a = ((a * v2) + (aa * v1)) >> 16;
-        map[i] = (a << 24) | (r << 16) | (g << 8) | b;
+        map[i] = PIXEL_ARGB(a, r, g, b);
         l += inc;
      }
    free(pmap);
@@ -182,7 +182,7 @@ __imlib_MapHsvaRange(ImlibRange * rg, int len)
                   __imlib_hsv_to_rgb(h, s, v, &r, &g, &b);
                   a = (unsigned long int)((p->alpha * k2) +
                                           (p->next->alpha * k1)) >> 16;
-                  pmap[i++] = (a << 24) | (r << 16) | (g << 8) | b;
+                  pmap[i++] = PIXEL_ARGB(a, r, g, b);
                }
           }
         else
@@ -191,7 +191,7 @@ __imlib_MapHsvaRange(ImlibRange * rg, int len)
              g = p->green;
              b = p->blue;
              a = p->alpha;
-             pmap[i++] = (a << 24) | (r << 16) | (g << 8) | b;
+             pmap[i++] = PIXEL_ARGB(a, r, g, b);
           }
      }
    inc = ((ll - 1) << 16) / (len - 1);
@@ -220,7 +220,7 @@ __imlib_MapHsvaRange(ImlibRange * rg, int len)
         v = ((v1 * k2) + (v2 * k1)) / 65536.0;
         __imlib_hsv_to_rgb(h, s, v, &r, &g, &b);
         a = (unsigned long int)((a * k2) + (aa * k1)) >> 16;
-        map[i] = (a << 24) | (r << 16) | (g << 8) | b;
+        map[i] = PIXEL_ARGB(a, r, g, b);
         l += inc;
      }
    free(pmap);

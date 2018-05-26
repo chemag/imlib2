@@ -387,9 +387,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                     {
                        for (x = 0; x < w; x++)
                          {
-                            *ptr2 =
-                               (ptr[3] << 24) | (ptr[0] << 16) |
-                               (ptr[1] << 8) | ptr[2];
+                            *ptr2 = PIXEL_ARGB(ptr[3], ptr[0], ptr[1], ptr[2]);
                             ptr2++;
                             ptr += 4;
                          }
@@ -399,10 +397,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                        for (x = 0; x < w; x++)
                          {
                             *ptr2 =
-                               (((ptr[3] * 255) / v) << 24) |
-                               (((ptr[0] * 255) / v) << 16) |
-                               (((ptr[1] * 255) / v) << 8) |
-                               ((ptr[2] * 255) / v);
+                               PIXEL_ARGB((ptr[3] * 255) / v,
+                                          (ptr[0] * 255) / v,
+                                          (ptr[1] * 255) / v,
+                                          (ptr[2] * 255) / v);
                             ptr2++;
                             ptr += 4;
                          }

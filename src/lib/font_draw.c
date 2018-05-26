@@ -96,7 +96,7 @@ __imlib_render_str(ImlibImage * im, ImlibFont * fn, int drx, int dry,
    SET_FLAG(im2->flags, F_HAS_ALPHA);
 
    /* TODO check for endianess */
-   col = (a << 24) | (r << 16) | (g << 8) | b;
+   col = PIXEL_ARGB(a, r, g, b);
 
    ascent = __imlib_font_max_ascent_get(fn);
 

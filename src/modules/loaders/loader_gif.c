@@ -143,7 +143,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                   r = cmap->Colors[i].Red;
                   g = cmap->Colors[i].Green;
                   b = cmap->Colors[i].Blue;
-                  colormap[i] = (0xff << 24) | (r << 16) | (g << 8) | b;
+                  colormap[i] = PIXEL_ARGB(0xff, r, g, b);
                }
              /* if bg > cmap->ColorCount, it is transparent black already */
              if (transp >= 0 && transp < 256)

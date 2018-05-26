@@ -102,7 +102,7 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
                   if (img->rgba.orientation == ORIENTATION_TOPRIGHT)
                      k = image_width - 1 - k;
                   buffer_pixel = PIM(k, image_height - 1 - (y - j));
-                  *buffer_pixel = (a << 24) | (r << 16) | (g << 8) | b;
+                  *buffer_pixel = PIXEL_ARGB(a, r, g, b);
                }
           }
         break;
@@ -129,7 +129,7 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
                   if (img->rgba.orientation == ORIENTATION_BOTRIGHT)
                      k = image_width - 1 - k;
                   buffer_pixel = PIM(k, image_height - 1 - (y + j));
-                  *buffer_pixel = (a << 24) | (r << 16) | (g << 8) | b;
+                  *buffer_pixel = PIXEL_ARGB(a, r, g, b);
                }
           }
         break;
@@ -157,7 +157,7 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
                   if (img->rgba.orientation == ORIENTATION_LEFTTOP)
                      k = image_width - 1 - k;
                   buffer_pixel = PIM(k, x + j);
-                  *buffer_pixel = (a << 24) | (r << 16) | (g << 8) | b;
+                  *buffer_pixel = PIXEL_ARGB(a, r, g, b);
                }
           }
         break;
@@ -184,7 +184,7 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
                   if (img->rgba.orientation == ORIENTATION_RIGHTBOT)
                      k = image_width - 1 - k;
                   buffer_pixel = PIM(k, image_height - 1 - (x + j));
-                  *buffer_pixel = (a << 24) | (r << 16) | (g << 8) | b;
+                  *buffer_pixel = PIXEL_ARGB(a, r, g, b);
                }
           }
         break;
