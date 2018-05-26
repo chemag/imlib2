@@ -9,9 +9,6 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif
 
 #define DATABIG unsigned long long
 #define DATA64  unsigned long long
@@ -27,13 +24,14 @@ int                 __imlib_get_cpuid(void);
 #endif
 
 #define CLIP(x, y, w, h, xx, yy, ww, hh) \
-if (x < (xx)) {w += (x - (xx)); x = (xx);} \
-if (y < (yy)) {h += (y - (yy)); y = (yy);} \
-if ((x + w) > ((xx) + (ww))) {w = (ww) - (x - xx);} \
-if ((y + h) > ((yy) + (hh))) {h = (hh) - (y - yy);}
+    if (x < (xx)) { w += (x - (xx)); x = (xx); } \
+    if (y < (yy)) { h += (y - (yy)); y = (yy); } \
+    if ((x + w) > ((xx) + (ww))) { w = (ww) - (x - xx); } \
+    if ((y + h) > ((yy) + (hh))) { h = (hh) - (y - yy); }
+
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-#define round(x) ((x)>=0?(int)((x)+0.5):(int)((x)-0.5))
+#define round(x) ((x) >=0 ? (int)((x) + 0.5) : (int)((x) - 0.5))
 
 #endif
