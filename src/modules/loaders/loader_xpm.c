@@ -245,63 +245,21 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                        cmap[j].transp = 0;
                        for (k = cpp; k < len; k++)
                          {
-                            if (line[k] != ' ')
+                            if (line[k] == ' ')
+                               continue;
+
+                            s[0] = 0;
+                            sscanf(&line[k], "%255s", s);
+                            slen = strlen(s);
+                            k += slen;
+                            if (!strcmp(s, "c"))
+                               iscolor = 1;
+                            if ((!strcmp(s, "m")) || (!strcmp(s, "s"))
+                                || (!strcmp(s, "g4"))
+                                || (!strcmp(s, "g"))
+                                || (!strcmp(s, "c")) || (k >= len))
                               {
-                                 s[0] = 0;
-                                 sscanf(&line[k], "%255s", s);
-                                 slen = strlen(s);
-                                 k += slen;
-                                 if (!strcmp(s, "c"))
-                                    iscolor = 1;
-                                 if ((!strcmp(s, "m")) || (!strcmp(s, "s"))
-                                     || (!strcmp(s, "g4"))
-                                     || (!strcmp(s, "g"))
-                                     || (!strcmp(s, "c")) || (k >= len))
-                                   {
-                                      if (k >= len)
-                                        {
-                                           if (col[0])
-                                             {
-                                                if (strlen(col) <
-                                                    (sizeof(col) - 2))
-                                                   strcat(col, " ");
-                                                else
-                                                   done = 1;
-                                             }
-                                           if (strlen(col) + strlen(s) <
-                                               (sizeof(col) - 1))
-                                              strcat(col, s);
-                                        }
-                                      if (col[0])
-                                        {
-                                           if (!strcasecmp(col, "none"))
-                                             {
-                                                transp = 1;
-                                                cmap[j].transp = 1;
-                                             }
-                                           else
-                                             {
-                                                if ((((cmap[j].r < 0) ||
-                                                      (!strcmp(tok, "c")))
-                                                     && (!hascolor)))
-                                                  {
-                                                     r = 0;
-                                                     g = 0;
-                                                     b = 0;
-                                                     xpm_parse_color(col, &r,
-                                                                     &g, &b);
-                                                     cmap[j].r = r;
-                                                     cmap[j].g = g;
-                                                     cmap[j].b = b;
-                                                     if (iscolor)
-                                                        hascolor = 1;
-                                                  }
-                                             }
-                                        }
-                                      strcpy(tok, s);
-                                      col[0] = 0;
-                                   }
-                                 else
+                                 if (k >= len)
                                    {
                                       if (col[0])
                                         {
@@ -314,6 +272,43 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                                           (sizeof(col) - 1))
                                          strcat(col, s);
                                    }
+                                 if (col[0])
+                                   {
+                                      if (!strcasecmp(col, "none"))
+                                        {
+                                           transp = 1;
+                                           cmap[j].transp = 1;
+                                        }
+                                      else if ((((cmap[j].r < 0) ||
+                                                 (!strcmp(tok, "c")))
+                                                && (!hascolor)))
+                                        {
+                                           r = 0;
+                                           g = 0;
+                                           b = 0;
+                                           xpm_parse_color(col, &r, &g, &b);
+                                           cmap[j].r = r;
+                                           cmap[j].g = g;
+                                           cmap[j].b = b;
+                                           if (iscolor)
+                                              hascolor = 1;
+                                        }
+                                   }
+                                 strcpy(tok, s);
+                                 col[0] = 0;
+                              }
+                            else
+                              {
+                                 if (col[0])
+                                   {
+                                      if (strlen(col) < (sizeof(col) - 2))
+                                         strcat(col, " ");
+                                      else
+                                         done = 1;
+                                   }
+                                 if (strlen(col) + strlen(s) <
+                                     (sizeof(col) - 1))
+                                    strcat(col, s);
                               }
                          }
                     }
