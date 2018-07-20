@@ -90,9 +90,9 @@ char
 load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
      char immediate_load)
 {
+   int                 rc;
    DATA32             *ptr, *end;
    FILE               *f;
-
    int                 pc, c, i, j, k, w, h, ncolors, cpp, comment, transp,
       quote, context, len, done, r, g, b, backslash;
    char               *line, s[256], tok[256], col[256];
@@ -102,39 +102,31 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
       unsigned char       transp;
       short               r, g, b;
    }                  *cmap;
-
    short               lookup[128 - 32][128 - 32];
    float               per = 0.0, per_inc = 0.0;
    int                 last_per = 0, last_y = 0;
    int                 count, pixels;
 
+   rc = 0;
    done = 0;
    transp = -1;
+   line = NULL;
+   cmap = NULL;
 
    f = fopen(im->real_file, "rb");
    if (!f)
-     {
-        xpm_parse_done();
-        return 0;
-     }
+      goto quit;
+
    if (fread(s, 1, 9, f) != 9)
-     {
-        fclose(f);
-        xpm_parse_done();
-        return 0;
-     }
+      goto quit;
+
    rewind(f);
    s[9] = 0;
    if (strcmp("/* XPM */", s))
-     {
-        fclose(f);
-        xpm_parse_done();
-        return 0;
-     }
+      goto quit;
 
    i = 0;
    j = 0;
-   cmap = NULL;
    w = 10;
    h = 10;
    ncolors = 0;
@@ -149,7 +141,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    count = 0;
    line = malloc(lsz);
    if (!line)
-      return 0;
+      goto quit;
 
    backslash = 0;
    memset(lookup, 0, sizeof(lookup));
@@ -188,43 +180,27 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                     {
                        fprintf(stderr,
                                "IMLIB ERROR: XPM files with colors > 32766 or < 1 not supported\n");
-                       free(line);
-                       fclose(f);
-                       xpm_parse_done();
-                       return 0;
+                       goto quit;
                     }
                   if ((cpp > 5) || (cpp < 1))
                     {
                        fprintf(stderr,
                                "IMLIB ERROR: XPM files with characters per pixel > 5 or < 1 not supported\n");
-                       free(line);
-                       fclose(f);
-                       xpm_parse_done();
-                       return 0;
+                       goto quit;
                     }
                   if (!IMAGE_DIMENSIONS_OK(w, h))
                     {
                        fprintf(stderr,
                                "IMLIB ERROR: Invalid image dimension: %dx%d\n",
                                w, h);
-                       free(line);
-                       fclose(f);
-                       xpm_parse_done();
-                       return 0;
+                       goto quit;
                     }
                   im->w = w;
                   im->h = h;
 
                   cmap = malloc(sizeof(struct _cmap) * ncolors);
-
                   if (!cmap)
-                    {
-                       im->w = 0;
-                       free(line);
-                       fclose(f);
-                       xpm_parse_done();
-                       return 0;
-                    }
+                     goto quit;
 
                   per_inc = 100.0 / (((float)w) * h);
 
@@ -233,25 +209,15 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                        im->data =
                           (DATA32 *) malloc(sizeof(DATA32) * im->w * im->h);
                        if (!im->data)
-                         {
-                            im->w = 0;
-                            free(cmap);
-                            free(line);
-                            fclose(f);
-                            xpm_parse_done();
-                            return 0;
-                         }
+                          goto quit;
                        ptr = im->data;
                        pixels = w * h;
                        end = ptr + (pixels);
                     }
                   else
                     {
-                       free(cmap);
-                       free(line);
-                       fclose(f);
-                       xpm_parse_done();
-                       return 1;
+                       rc = 1;
+                       goto quit;
                     }
 
                   j = 0;
@@ -272,16 +238,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                        s[0] = 0;
                        len = strlen(line);
                        if (len < cpp)
-                         {
-                            free(im->data);
-                            im->data = NULL;
-                            im->w = 0;
-                            free(cmap);
-                            free(line);
-                            fclose(f);
-                            xpm_parse_done();
-                            return 0;
-                         }
+                          goto quit;
                        strncpy(cmap[j].str, line, cpp);
                        cmap[j].str[cpp] = 0;
                        cmap[j].r = -1;
@@ -471,11 +428,8 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                        last_per = (int)per;
                        if (!(progress(im, (int)per, 0, last_y, w, i)))
                          {
-                            fclose(f);
-                            free(cmap);
-                            free(line);
-                            xpm_parse_done();
-                            return 2;
+                            rc = 2;
+                            goto quit;
                          }
                        last_y = i;
                     }
@@ -513,17 +467,8 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
 
              lsz += 256;
              nline = realloc(line, lsz);
-             if (nline == NULL)
-               {
-                  free(im->data);
-                  im->data = NULL;
-                  im->w = 0;
-                  free(cmap);
-                  free(line);
-                  fclose(f);
-                  xpm_parse_done();
-                  return 0;
-               }
+             if (!nline)
+                goto quit;
              line = nline;
           }
 
@@ -536,13 +481,22 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
         progress(im, 100, 0, last_y, w, h);
      }
 
+   rc = 1;
+
+ quit:
+   if (rc == 0)
+     {
+        free(im->data);
+        im->data = NULL;
+        im->w = im->h = 0;
+     }
    fclose(f);
    free(cmap);
    free(line);
 
    xpm_parse_done();
 
-   return 1;
+   return rc;
 }
 
 void
