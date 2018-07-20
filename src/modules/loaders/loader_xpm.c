@@ -6,9 +6,12 @@
 static FILE        *rgb_txt = NULL;
 
 static void
-xpm_parse_color(char *color, int *r, int *g, int *b)
+xpm_parse_color(char *color, DATA32 * pixel)
 {
    char                buf[4096];
+   int                 r, g, b;
+
+   r = g = b = 0;
 
    /* is a #ff00ff like color */
    if (color[0] == '#')
@@ -25,30 +28,31 @@ xpm_parse_color(char *color, int *r, int *g, int *b)
              for (i = 0; i < len; i++)
                 val[i] = color[1 + i + (0 * len)];
              val[i] = 0;
-             sscanf(val, "%x", r);
+             sscanf(val, "%x", &r);
              for (i = 0; i < len; i++)
                 val[i] = color[1 + i + (1 * len)];
              val[i] = 0;
-             sscanf(val, "%x", g);
+             sscanf(val, "%x", &g);
              for (i = 0; i < len; i++)
                 val[i] = color[1 + i + (2 * len)];
              val[i] = 0;
-             sscanf(val, "%x", b);
+             sscanf(val, "%x", &b);
              if (len == 1)
                {
-                  *r = (*r << 4) | *r;
-                  *g = (*g << 4) | *g;
-                  *b = (*b << 4) | *b;
+                  r = (r << 4) | r;
+                  g = (g << 4) | g;
+                  b = (b << 4) | b;
                }
              else if (len > 2)
                {
-                  *r >>= (len - 2) * 4;
-                  *g >>= (len - 2) * 4;
-                  *b >>= (len - 2) * 4;
+                  r >>= (len - 2) * 4;
+                  g >>= (len - 2) * 4;
+                  b >>= (len - 2) * 4;
                }
           }
-        return;
+        goto done;
      }
+
    /* look in rgb txt database */
    if (!rgb_txt)
       rgb_txt = fopen("/usr/share/X11/rgb.txt", "r");
@@ -57,7 +61,8 @@ xpm_parse_color(char *color, int *r, int *g, int *b)
    if (!rgb_txt)
       rgb_txt = fopen("/usr/openwin/lib/X11/rgb.txt", "r");
    if (!rgb_txt)
-      return;
+      goto done;
+
    fseek(rgb_txt, 0, SEEK_SET);
    while (fgets(buf, 4000, rgb_txt))
      {
@@ -69,13 +74,15 @@ xpm_parse_color(char *color, int *r, int *g, int *b)
              sscanf(buf, "%i %i %i %[^\n]", &rr, &gg, &bb, name);
              if (!strcasecmp(name, color))
                {
-                  *r = rr;
-                  *g = gg;
-                  *b = bb;
-                  return;
+                  r = rr;
+                  g = gg;
+                  b = bb;
+                  goto done;
                }
           }
      }
+ done:
+   *pixel = PIXEL_ARGB(0xff, r, g, b);
 }
 
 static void
@@ -93,15 +100,15 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    int                 rc;
    DATA32             *ptr, *end;
    FILE               *f;
-   int                 pc, c, i, j, k, w, h, ncolors, cpp, comment, transp,
-      quote, context, len, done, r, g, b, backslash;
+   int                 pc, c, i, j, k, w, h, ncolors, cpp;
+   int                 comment, transp, quote, context, len, done, backslash;
    char               *line, s[256], tok[256], col[256];
    int                 lsz = 256;
    struct _cmap {
       char                assigned;
       unsigned char       transp;
       char                str[6];
-      short               r, g, b;
+      DATA32              pixel;
    }                  *cmap;
    short               lookup[128 - 32][128 - 32];
    float               per = 0.0, per_inc = 0.0;
@@ -275,20 +282,15 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                                       if (!strcasecmp(col, "none"))
                                         {
                                            cmap[j].transp = 1;
+                                           cmap[j].pixel = 0;
                                         }
                                       else if ((!cmap[j].assigned ||
                                                 !strcmp(tok, "c"))
                                                && (!hascolor))
                                         {
-                                           r = 0;
-                                           g = 0;
-                                           b = 0;
-                                           xpm_parse_color(col, &r, &g, &b);
+                                           xpm_parse_color(col, &cmap[j].pixel);
                                            cmap[j].assigned = 1;
                                            cmap[j].transp = 0;
-                                           cmap[j].r = r;
-                                           cmap[j].g = g;
-                                           cmap[j].b = b;
                                            if (iscolor)
                                               hascolor = 1;
                                         }
@@ -329,59 +331,31 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
              else
                {
                   /* Image Data */
-                  i = 0;
-                  if (cpp == 0)
-                    {
-                       /* Chars per pixel = 0? well u never know */
-                    }
+
                   if (cpp == 1)
                     {
-#define CM1_TRANS() cmap[lookup[col[0] - ' '][0]].transp
-#define CM1_R()     (unsigned char)cmap[lookup[col[0] - ' '][0]].r
-#define CM1_G()     (unsigned char)cmap[lookup[col[0] - ' '][0]].g
-#define CM1_B()     (unsigned char)cmap[lookup[col[0] - ' '][0]].b
+#define CM1(c0) (&cmap[lookup[c0 - ' '][0]])
                        for (i = 0;
                             ((i < 65536) && (ptr < end) && (line[i])); i++)
                          {
-                            col[0] = line[i];
-                            r = CM1_R();
-                            g = CM1_G();
-                            b = CM1_B();
-                            if (transp && CM1_TRANS())
-                               *ptr++ = 0;
-                            else
-                               *ptr++ = PIXEL_ARGB(0xff, r, g, b);
+                            *ptr++ = CM1(line[i])->pixel;
                             count++;
                          }
                     }
                   else if (cpp == 2)
                     {
-#define CM2_TRANS() cmap[lookup[col[0] - ' '][col[1] - ' ']].transp
-#define CM2_R()     (unsigned char)cmap[lookup[col[0] - ' '][col[1] - ' ']].r
-#define CM2_G()     (unsigned char)cmap[lookup[col[0] - ' '][col[1] - ' ']].g
-#define CM2_B()     (unsigned char)cmap[lookup[col[0] - ' '][col[1] - ' ']].b
+#define CM2(c0, c1) (&cmap[lookup[c0 - ' '][c1 - ' ']])
                        for (i = 0;
                             ((i < 65536) && (ptr < end)
-                             && (line[i]) && (line[i + 1])); i++)
+                             && (line[i]) && (line[i + 1])); i += 2)
                          {
-                            col[0] = line[i++];
-                            col[1] = line[i];
-                            r = CM2_R();
-                            g = CM2_G();
-                            b = CM2_B();
-                            if (transp && CM2_TRANS())
-                               *ptr++ = 0;
-                            else
-                               *ptr++ = PIXEL_ARGB(0xff, r, g, b);
+                            *ptr++ = CM2(line[i], line[i + 1])->pixel;
                             count++;
                          }
                     }
                   else
                     {
-#define CM0_TRANS(_j) cmap[_j].transp
-#define CM0_R(_j)     (unsigned char)cmap[_j].r
-#define CM0_G(_j)     (unsigned char)cmap[_j].g
-#define CM0_B(_j)     (unsigned char)cmap[_j].b
+#define CMn(_j) (&cmap[_j])
                        for (i = 0;
                             ((i < 65536) && (ptr < end) && (line[i])); i++)
                          {
@@ -395,13 +369,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                               {
                                  if (!strcmp(col, cmap[j].str))
                                    {
-                                      r = CM0_R(j);
-                                      g = CM0_G(j);
-                                      b = CM0_B(j);
-                                      if (transp && CM0_TRANS(j))
-                                         *ptr++ = 0;
-                                      else
-                                         *ptr++ = PIXEL_ARGB(0xff, r, g, b);
+                                      *ptr++ = CMn(j)->pixel;
                                       count++;
                                       j = ncolors;
                                    }
