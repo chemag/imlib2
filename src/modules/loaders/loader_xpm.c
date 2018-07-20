@@ -98,8 +98,9 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    char               *line, s[256], tok[256], col[256];
    int                 lsz = 256;
    struct _cmap {
-      char                str[6];
+      char                assigned;
       unsigned char       transp;
+      char                str[6];
       short               r, g, b;
    }                  *cmap;
    short               lookup[128 - 32][128 - 32];
@@ -198,7 +199,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                   im->w = w;
                   im->h = h;
 
-                  cmap = malloc(sizeof(struct _cmap) * ncolors);
+                  cmap = calloc(ncolors, sizeof(struct _cmap));
                   if (!cmap)
                      goto quit;
 
@@ -240,9 +241,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                        if (len < cpp)
                           goto quit;
                        strncpy(cmap[j].str, line, cpp);
-                       cmap[j].str[cpp] = 0;
-                       cmap[j].r = -1;
-                       cmap[j].transp = 0;
                        for (k = cpp; k < len; k++)
                          {
                             if (line[k] == ' ')
@@ -276,17 +274,18 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                                    {
                                       if (!strcasecmp(col, "none"))
                                         {
-                                           transp = 1;
                                            cmap[j].transp = 1;
                                         }
-                                      else if ((((cmap[j].r < 0) ||
-                                                 (!strcmp(tok, "c")))
-                                                && (!hascolor)))
+                                      else if ((!cmap[j].assigned ||
+                                                !strcmp(tok, "c"))
+                                               && (!hascolor))
                                         {
                                            r = 0;
                                            g = 0;
                                            b = 0;
                                            xpm_parse_color(col, &r, &g, &b);
+                                           cmap[j].assigned = 1;
+                                           cmap[j].transp = 0;
                                            cmap[j].r = r;
                                            cmap[j].g = g;
                                            cmap[j].b = b;
@@ -311,6 +310,8 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                                     strcat(col, s);
                               }
                          }
+                       if (cmap[j].transp)
+                          transp = 1;
                     }
                   j++;
                   if (j >= ncolors)
@@ -323,15 +324,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                              lookup[(int)cmap[i].str[0] -
                                     32][(int)cmap[i].str[1] - 32] = i;
                        context++;
-                    }
-
-                  if (transp >= 0)
-                    {
-                       SET_FLAG(im->flags, F_HAS_ALPHA);
-                    }
-                  else
-                    {
-                       UNSET_FLAG(im->flags, F_HAS_ALPHA);
                     }
                }
              else
@@ -356,7 +348,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                             g = CM1_G();
                             b = CM1_B();
                             if (transp && CM1_TRANS())
-                               *ptr++ = PIXEL_ARGB(0, r, g, b);
+                               *ptr++ = 0;
                             else
                                *ptr++ = PIXEL_ARGB(0xff, r, g, b);
                             count++;
@@ -378,7 +370,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                             g = CM2_G();
                             b = CM2_B();
                             if (transp && CM2_TRANS())
-                               *ptr++ = PIXEL_ARGB(0, r, g, b);
+                               *ptr++ = 0;
                             else
                                *ptr++ = PIXEL_ARGB(0xff, r, g, b);
                             count++;
@@ -407,7 +399,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                                       g = CM0_G(j);
                                       b = CM0_B(j);
                                       if (transp && CM0_TRANS(j))
-                                         *ptr++ = PIXEL_ARGB(0, r, g, b);
+                                         *ptr++ = 0;
                                       else
                                          *ptr++ = PIXEL_ARGB(0xff, r, g, b);
                                       count++;
@@ -469,6 +461,15 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
 
         if ((context > 1) && (count >= pixels))
            done = 1;
+     }
+
+   if (transp >= 0)
+     {
+        SET_FLAG(im->flags, F_HAS_ALPHA);
+     }
+   else
+     {
+        UNSET_FLAG(im->flags, F_HAS_ALPHA);
      }
 
    if (progress)
