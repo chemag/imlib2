@@ -104,88 +104,63 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
         count = 0;
         prevy = 0;
-        if (cinfo.output_components > 1)
-          {
-             for (i = 0; i < cinfo.rec_outbuf_height; i++)
-                line[i] = data + (i * w * cinfo.output_components);
-             for (l = 0; l < h; l += cinfo.rec_outbuf_height)
-               {
-                  jpeg_read_scanlines(&cinfo, line, cinfo.rec_outbuf_height);
-                  scans = cinfo.rec_outbuf_height;
-                  if ((h - l) < scans)
-                     scans = h - l;
-                  ptr = data;
-                  for (y = 0; y < scans; y++)
-                    {
-                       for (x = 0; x < w; x++)
-                         {
-                            *ptr2 = (0xff000000) | ((ptr[0]) << 16) |
-                               ((ptr[1]) << 8) | (ptr[2]);
-                            ptr += cinfo.output_components;
-                            ptr2++;
-                         }
-                    }
-                  if (progress)
-                    {
-                       int                 per;
 
-                       per = (l * 100) / h;
-                       if (((per - count) >= progress_granularity)
-                           || ((h - l) <= cinfo.rec_outbuf_height))
-                         {
-                            count = per;
-                            if (!progress
-                                (im, per, 0, prevy, w, scans + l - prevy))
-                              {
-                                 rc = 2;
-                                 goto done;
-                              }
-                            prevy = l + scans;
-                         }
-                    }
-               }
-          }
-        else if (cinfo.output_components == 1)
+        for (i = 0; i < cinfo.rec_outbuf_height; i++)
+           line[i] = data + (i * w * cinfo.output_components);
+
+        for (l = 0; l < h; l += cinfo.rec_outbuf_height)
           {
-             for (i = 0; i < cinfo.rec_outbuf_height; i++)
-                line[i] = data + (i * w);
-             for (l = 0; l < h; l += cinfo.rec_outbuf_height)
+             jpeg_read_scanlines(&cinfo, line, cinfo.rec_outbuf_height);
+             scans = cinfo.rec_outbuf_height;
+             if ((h - l) < scans)
+                scans = h - l;
+             ptr = data;
+             for (y = 0; y < scans; y++)
                {
-                  jpeg_read_scanlines(&cinfo, line, cinfo.rec_outbuf_height);
-                  scans = cinfo.rec_outbuf_height;
-                  if ((h - l) < scans)
-                     scans = h - l;
-                  ptr = data;
-                  for (y = 0; y < scans; y++)
+                  switch (cinfo.out_color_space)
                     {
+                    default:
+                       free(data);
+                       goto quit_error;
+                    case JCS_GRAYSCALE:
                        for (x = 0; x < w; x++)
                          {
-                            *ptr2 = (0xff000000) | ((ptr[0]) << 16) |
-                               ((ptr[0]) << 8) | (ptr[0]);
+                            *ptr2 = PIXEL_ARGB(0xff, ptr[0], ptr[0], ptr[0]);
                             ptr++;
                             ptr2++;
                          }
-                    }
-                  if (progress)
-                    {
-                       int                 per;
-
-                       per = (l * 100) / h;
-                       if (((per - count) >= progress_granularity)
-                           || ((h - l) <= cinfo.rec_outbuf_height))
+                       break;
+                    case JCS_RGB:
+                    case JCS_CMYK:
+                       for (x = 0; x < w; x++)
                          {
-                            count = per;
-                            if (!progress
-                                (im, per, 0, prevy, w, l + scans - prevy))
-                              {
-                                 rc = 2;
-                                 goto done;
-                              }
-                            prevy = l + scans;
+                            *ptr2 = PIXEL_ARGB(0xff, ptr[0], ptr[1], ptr[2]);
+                            ptr += cinfo.output_components;
+                            ptr2++;
                          }
+                       break;
+                    }
+               }
+
+             if (progress)
+               {
+                  int                 per;
+
+                  per = (l * 100) / h;
+                  if (((per - count) >= progress_granularity)
+                      || ((h - l) <= cinfo.rec_outbuf_height))
+                    {
+                       count = per;
+                       if (!progress(im, per, 0, prevy, w, scans + l - prevy))
+                         {
+                            rc = 2;
+                            goto done;
+                         }
+                       prevy = l + scans;
                     }
                }
           }
+
       done:
         jpeg_finish_decompress(&cinfo);
         free(data);
