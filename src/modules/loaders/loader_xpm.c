@@ -115,7 +115,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
 
    f = fopen(im->real_file, "rb");
    if (!f)
-      goto quit;
+      return 0;
 
    if (fread(s, 1, 9, f) != 9)
       goto quit;
