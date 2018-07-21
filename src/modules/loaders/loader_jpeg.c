@@ -131,10 +131,19 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                          }
                        break;
                     case JCS_RGB:
-                    case JCS_CMYK:
                        for (x = 0; x < w; x++)
                          {
                             *ptr2 = PIXEL_ARGB(0xff, ptr[0], ptr[1], ptr[2]);
+                            ptr += cinfo.output_components;
+                            ptr2++;
+                         }
+                       break;
+                    case JCS_CMYK:
+                       for (x = 0; x < w; x++)
+                         {
+                            *ptr2 = PIXEL_ARGB(0xff, ptr[0] * ptr[3] / 255,
+                                               ptr[1] * ptr[3] / 255,
+                                               ptr[2] * ptr[3] / 255);
                             ptr += cinfo.output_components;
                             ptr2++;
                          }
