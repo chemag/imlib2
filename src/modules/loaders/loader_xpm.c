@@ -431,6 +431,13 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
            done = 1;
      }
 
+   for (; count < pixels; count++)
+     {
+        /* Fill in missing pixels
+         * (avoid working with uninitialized data in bad xpms) */
+        im->data[count] = cmap[0].pixel;
+     }
+
    if (transp >= 0)
      {
         SET_FLAG(im->flags, F_HAS_ALPHA);
