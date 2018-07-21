@@ -98,7 +98,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
      char immediate_load)
 {
    int                 rc;
-   DATA32             *ptr, *end;
+   DATA32             *ptr;
    FILE               *f;
    int                 pc, c, i, j, k, w, h, ncolors, cpp;
    int                 comment, transp, quote, context, len, done, backslash;
@@ -140,7 +140,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    ncolors = 0;
    cpp = 0;
    ptr = NULL;
-   end = NULL;
    c = ' ';
    comment = 0;
    quote = 0;
@@ -150,6 +149,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    line = malloc(lsz);
    if (!line)
       goto quit;
+   len = 0;
 
    backslash = 0;
    memset(lookup, 0, sizeof(lookup));
@@ -174,11 +174,11 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
         if ((!quote) && (c == '"'))
           {
              quote = 1;
-             i = 0;
+             len = 0;
           }
         else if ((quote) && (c == '"'))
           {
-             line[i] = 0;
+             line[len] = 0;
              quote = 0;
              if (context == 0)
                {
@@ -220,7 +220,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                           goto quit;
                        ptr = im->data;
                        pixels = w * h;
-                       end = ptr + (pixels);
                     }
                   else
                     {
@@ -244,7 +243,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                        tok[0] = 0;
                        col[0] = 0;
                        s[0] = 0;
-                       len = strlen(line);
                        if (len < cpp)
                           goto quit;
                        strncpy(cmap[j].str, line, cpp);
@@ -335,8 +333,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                   if (cpp == 1)
                     {
 #define CM1(c0) (&cmap[lookup[c0 - ' '][0]])
-                       for (i = 0;
-                            ((i < 65536) && (ptr < end) && (line[i])); i++)
+                       for (i = 0; count < pixels && i < len; i++)
                          {
                             *ptr++ = CM1(line[i])->pixel;
                             count++;
@@ -345,9 +342,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                   else if (cpp == 2)
                     {
 #define CM2(c0, c1) (&cmap[lookup[c0 - ' '][c1 - ' ']])
-                       for (i = 0;
-                            ((i < 65536) && (ptr < end)
-                             && (line[i]) && (line[i + 1])); i += 2)
+                       for (i = 0; count < pixels && i < len - 1; i += 2)
                          {
                             *ptr++ = CM2(line[i], line[i + 1])->pixel;
                             count++;
@@ -356,15 +351,12 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                   else
                     {
 #define CMn(_j) (&cmap[_j])
-                       for (i = 0;
-                            ((i < 65536) && (ptr < end) && (line[i])); i++)
+                       for (i = 0; count < pixels && i < len - (cpp - 1);
+                            i += cpp)
                          {
-                            for (j = 0; ((j < cpp) && (line[i])); j++, i++)
-                              {
-                                 col[j] = line[i];
-                              }
+                            for (j = 0; j < cpp; j++)
+                               col[j] = line[i + j];
                             col[j] = 0;
-                            i--;
                             for (j = 0; j < ncolors; j++)
                               {
                                  if (!strcmp(col, cmap[j].str))
@@ -402,7 +394,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                {
                   if (++backslash < 2)
                     {
-                       line[i++] = c;
+                       line[len++] = c;
                     }
                   else
                     {
@@ -412,11 +404,11 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
              else
                {
                   backslash = 0;
-                  line[i++] = c;
+                  line[len++] = c;
                }
           }
 
-        if (i >= lsz)
+        if (len >= lsz)
           {
              char               *nline;
 
