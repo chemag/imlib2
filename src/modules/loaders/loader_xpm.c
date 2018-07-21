@@ -278,9 +278,6 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                                              {
                                                 transp = 1;
                                                 cmap[j].transp = 1;
-                                                cmap[j].r = 0;
-                                                cmap[j].g = 0;
-                                                cmap[j].b = 0;
                                              }
                                            else
                                              {
