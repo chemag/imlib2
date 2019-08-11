@@ -23,6 +23,9 @@ endif
 if BUILD_TIFF_LOADER
 TIFF_L               = tiff.la
 endif
+if BUILD_WEBP_LOADER
+WEBP_L		     = webp.la
+endif
 if BUILD_ZLIB_LOADER
 ZLIB_L               = zlib.la
 endif
@@ -41,6 +44,7 @@ $(PNG_L) \
 pnm.la \
 tga.la \
 $(TIFF_L) \
+$(WEBP_L) \
 xpm.la \
 $(ZLIB_L)
 
@@ -111,6 +115,12 @@ tiff_la_SOURCES      = loader_tiff.c
 tiff_la_LDFLAGS      = -module -avoid-version
 tiff_la_LIBADD       = @TIFFLIBS@ $(top_builddir)/src/lib/libImlib2.la
 tiff_la_LIBTOOLFLAGS = --tag=disable-static
+
+webp_la_SOURCES       = loader_webp.c
+webp_la_CPPFLAGS      = @WEBP_CFLAGS@ $(AM_CPPFLAGS)
+webp_la_LDFLAGS       = -module -avoid-version
+webp_la_LIBADD        = @WEBP_LIBS@ $(top_builddir)/src/lib/libImlib2.la
+webp_la_LIBTOOLFLAGS = --tag=disable-static
 
 xpm_la_SOURCES       = loader_xpm.c
 xpm_la_LDFLAGS       = -module -avoid-version

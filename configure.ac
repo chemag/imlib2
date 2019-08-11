@@ -192,6 +192,27 @@ else
 fi
 AM_CONDITIONAL(BUILD_PNG_LOADER, test "$png_ok" = yes)
 
+AC_MSG_CHECKING(whether to enable webp support)
+AC_ARG_WITH([webp],
+  [AS_HELP_STRING([--without-webp], [Disable WEBP image loader])],
+  [
+   if test "$withval" = no ; then
+     webp_loader=no
+   else
+     webp_loader=yes
+   fi
+  ],
+  [ webp_loader=auto ]
+)
+AC_MSG_RESULT($webp_loader)
+
+if test "$webp_loader" != no ; then
+  PKG_CHECK_MODULES(WEBP, libwebp, [ webp_ok="yes" ], [ webp_ok="no" ])
+else
+  webp_ok="no"
+fi
+AM_CONDITIONAL(BUILD_WEBP_LOADER, test "$webp_ok" = yes)
+
 
 AC_MSG_CHECKING(whether to enable tiff support)
 AC_ARG_WITH([tiff],
@@ -453,6 +474,7 @@ echo "  JPEG....................: $jpeg_ok"
 echo "  PNG.....................: $png_ok"
 echo "  TIFF....................: $tiff_ok"
 echo "  GIF.....................: $gif_ok"
+echo "  WEBP....................: $webp_ok"
 echo "  ZLIB....................: $zlib_ok"
 echo "  BZIP2...................: $bz2_ok"
 echo "  ID3.....................: $id3_ok"
