@@ -302,7 +302,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
    /* if we need to actually read the pixel data... */
-   if (((!im->data) && (im->loader)) || (immediate_load) || (progress))
+   if (im->loader || immediate_load || progress)
      {
         unsigned long       datasize;
         unsigned char      *bufptr, *bufend;

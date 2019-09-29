@@ -128,7 +128,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    rc = 1;                      /* Ok */
 
-   if (((!im->data) && (im->loader)) || (immediate_load) || (progress))
+   if (im->loader || immediate_load || progress)
      {
         DATA8              *data = NULL;        /* for the binary versions */
         DATA8              *ptr = NULL;

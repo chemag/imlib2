@@ -47,7 +47,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         h = im->h;
         rowlen = w * (sizeof("RGBA") - 1);
 
-        free(im->data);
         if (!(im->data = malloc(rowlen * h)) ||
             !(row = malloc(rowlen * sizeof(uint16_t))))
           {

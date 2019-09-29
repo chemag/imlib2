@@ -23,6 +23,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    png_structp         png_ptr = NULL;
    png_infop           info_ptr = NULL;
    int                 bit_depth, color_type, interlace_type;
+   unsigned char       buf[PNG_BYTES_TO_CHECK];
 
    f = fopen(im->real_file, "rb");
    if (!f)
@@ -30,71 +31,66 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    /* read header */
    hasa = 0;
-   if (!im->data)
-     {
-        unsigned char       buf[PNG_BYTES_TO_CHECK];
 
-        /* if we haven't read the header before, set the header data */
-        if (fread(buf, 1, PNG_BYTES_TO_CHECK, f) != PNG_BYTES_TO_CHECK)
-          {
-             fclose(f);
-             return 0;
-          }
-        if (png_sig_cmp(buf, 0, PNG_BYTES_TO_CHECK))
-          {
-             fclose(f);
-             return 0;
-          }
-        rewind(f);
-        png_ptr =
-           png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-        if (!png_ptr)
-          {
-             fclose(f);
-             return 0;
-          }
-        info_ptr = png_create_info_struct(png_ptr);
-        if (!info_ptr)
-          {
-             png_destroy_read_struct(&png_ptr, NULL, NULL);
-             fclose(f);
-             return 0;
-          }
-        if (setjmp(png_jmpbuf(png_ptr)))
-          {
-             im->w = 0;
-             png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-             fclose(f);
-             return 0;
-          }
-        png_init_io(png_ptr, f);
-        png_read_info(png_ptr, info_ptr);
-        png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *) (&w32),
-                     (png_uint_32 *) (&h32), &bit_depth, &color_type,
-                     &interlace_type, NULL, NULL);
-        if (!IMAGE_DIMENSIONS_OK(w32, h32))
-          {
-             im->w = 0;
-             png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
-             fclose(f);
-             return 0;
-          }
-        im->w = (int)w32;
-        im->h = (int)h32;
-        if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-           hasa = 1;
-        if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-           hasa = 1;
-        if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-           hasa = 1;
-        if (hasa)
-           SET_FLAG(im->flags, F_HAS_ALPHA);
-        else
-           UNSET_FLAG(im->flags, F_HAS_ALPHA);
+   if (fread(buf, 1, PNG_BYTES_TO_CHECK, f) != PNG_BYTES_TO_CHECK)
+     {
+        fclose(f);
+        return 0;
      }
+   if (png_sig_cmp(buf, 0, PNG_BYTES_TO_CHECK))
+     {
+        fclose(f);
+        return 0;
+     }
+   rewind(f);
+   png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+   if (!png_ptr)
+     {
+        fclose(f);
+        return 0;
+     }
+   info_ptr = png_create_info_struct(png_ptr);
+   if (!info_ptr)
+     {
+        png_destroy_read_struct(&png_ptr, NULL, NULL);
+        fclose(f);
+        return 0;
+     }
+   if (setjmp(png_jmpbuf(png_ptr)))
+     {
+        im->w = 0;
+        png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+        fclose(f);
+        return 0;
+     }
+   png_init_io(png_ptr, f);
+   png_read_info(png_ptr, info_ptr);
+   png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *) (&w32),
+                (png_uint_32 *) (&h32), &bit_depth, &color_type,
+                &interlace_type, NULL, NULL);
+   if (!IMAGE_DIMENSIONS_OK(w32, h32))
+     {
+        im->w = 0;
+        png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
+        fclose(f);
+        return 0;
+     }
+   im->w = (int)w32;
+   im->h = (int)h32;
+   if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+      hasa = 1;
+   if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
+      hasa = 1;
+   if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+      hasa = 1;
+   if (hasa)
+      SET_FLAG(im->flags, F_HAS_ALPHA);
+   else
+      UNSET_FLAG(im->flags, F_HAS_ALPHA);
+
    /* if its the second phase load OR its immediate load or a progress */
    /* callback is set then load the data */
-   if ((im->loader) || (immediate_load) || (progress))
+   if (im->loader || immediate_load || progress)
      {
         unsigned char     **lines;
         int                 i;
@@ -138,8 +134,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
            png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
 #endif
 
-        if (im->data)
-           free(im->data);
         im->data = malloc(w * h * sizeof(DATA32));
         if (!im->data)
           {

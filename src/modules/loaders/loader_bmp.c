@@ -300,7 +300,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       im->h = h;
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
    }
-   if (((!im->data) && (im->loader)) || (immediate_load) || (progress))
+   if (im->loader || immediate_load || progress)
      {
         fseek(f, offset, SEEK_SET);
         buffer = malloc(imgsize);

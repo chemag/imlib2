@@ -40,7 +40,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       else
          UNSET_FLAG(im->flags, F_HAS_ALPHA);
    }
-   if (((!im->data) && (im->loader)) || (immediate_load) || (progress))
+   if (im->loader || immediate_load || progress)
      {
         DATA32             *ptr;
         int                 y, l, pl = 0;
