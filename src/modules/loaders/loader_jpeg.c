@@ -50,11 +50,13 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    struct jpeg_decompress_struct cinfo;
    struct ImLib_JPEG_error_mgr jerr;
    FILE               *f;
+   DATA8              *data;
 
    f = fopen(im->real_file, "rb");
    if (!f)
       return 0;
 
+   data = NULL;
    cinfo.err = jpeg_std_error(&(jerr.pub));
    jerr.pub.error_exit = _JPEGFatalErrorHandler;
    jerr.pub.emit_message = _JPEGErrorHandler2;
@@ -78,7 +80,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    if (im->loader || immediate_load || progress)
      {
-        DATA8              *ptr, *line[16], *data;
+        DATA8              *ptr, *line[16];
         DATA32             *ptr2;
         int                 x, y, l, i, scans, count, prevy;
 
@@ -97,10 +99,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         /* must set the im->data member before callign progress function */
         ptr2 = im->data = malloc(w * h * sizeof(DATA32));
         if (!im->data)
-          {
-             free(data);
-             goto quit_error;
-          }
+           goto quit_error;
 
         count = 0;
         prevy = 0;
@@ -120,7 +119,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                   switch (cinfo.out_color_space)
                     {
                     default:
-                       free(data);
                        goto quit_error;
                     case JCS_GRAYSCALE:
                        for (x = 0; x < w; x++)
@@ -172,16 +170,18 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
       done:
         jpeg_finish_decompress(&cinfo);
-        free(data);
      }
 
  quit:
    jpeg_destroy_decompress(&cinfo);
+   free(data);
    fclose(f);
    return rc;
 
  quit_error:
    rc = 0;                      /* Error */
+   free(im->data);
+   im->data = NULL;
    im->w = im->h = 0;
    goto quit;
 }
