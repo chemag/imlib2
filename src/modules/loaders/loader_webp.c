@@ -103,6 +103,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                                (uint8_t *) im->data, webp_buffer_size,
                                im->w * 4) == NULL)
           {
+             free(im->data);
+             im->data = NULL;
              free(encoded_data);
              return 0;
           }
