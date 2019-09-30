@@ -150,8 +150,8 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                 colormap[transp] = bg >= 0 && bg < 256 ?
                    colormap[bg] & 0x00ffffff : 0x00000000;
           }
-        im->data = (DATA32 *) malloc(sizeof(DATA32) * w * h);
-        if (!im->data)
+
+        if (!__imlib_AllocateData(im, w, h))
            goto quit;
 
         ptr = im->data;
@@ -195,11 +195,8 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
 #endif
 
    if (rc == 0)
-     {
-        free(im->data);
-        im->data = NULL;
-        im->w = 0;
-     }
+      __imlib_FreeData(im);
+
    return rc;
 }
 

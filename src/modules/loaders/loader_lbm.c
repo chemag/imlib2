@@ -542,7 +542,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    plane[0] = NULL;
    gran = nexty = 0;
 
-   im->data = malloc(im->w * im->h * sizeof(DATA32));
+   __imlib_AllocateData(im, im->w, im->h);
    n = ilbm.depth;
    if (ilbm.mask == 1)
       n++;
@@ -595,12 +595,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    * the memory for im->data or plane[0].
    *----------*/
    if (!ok)
-     {
-        im->w = im->h = 0;
-        if (im->data)
-           free(im->data);
-        im->data = NULL;
-     }
+      __imlib_FreeData(im);
 
    if (plane[0])
       free(plane[0]);

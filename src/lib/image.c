@@ -27,6 +27,52 @@ static ImlibImagePixmap *pixmaps = NULL;
 static ImlibLoader *loaders = NULL;
 static int          cache_size = 4096 * 1024;
 
+__EXPORT__ DATA32 *
+__imlib_AllocateData(ImlibImage *im, int w, int h)
+{
+   if (im->data_memory_func)
+      im->data = im->data_memory_func(NULL, w * h * sizeof(DATA32));
+   else
+      im->data = malloc(w * h * sizeof(DATA32));
+
+   if (im->data)
+     {
+        im->w = w;
+        im->h = h;
+     }
+   return im->data;
+}
+
+__EXPORT__ void
+__imlib_FreeData(ImlibImage *im)
+{
+   if (im->data)
+     {
+        if (im->data_memory_func)
+           im->data_memory_func(im->data, im->w * im->h * sizeof(DATA32));
+        else
+           free(im->data);
+
+        im->data = NULL;
+     }
+   im->w = 0;
+   im->h = 0;
+}
+
+__EXPORT__ void
+__imlib_ReplaceData(ImlibImage *im, unsigned int *new_data)
+{
+   if (im->data)
+     {
+        if (im->data_memory_func)
+           im->data_memory_func(im->data, im->w * im->h * sizeof(DATA32));
+        else
+           free(im->data);
+     }
+   im->data = new_data;
+   im->data_memory_func = NULL;
+}
+
 /* attach a string key'd data and/or int value to an image that cna be */
 /* looked up later by its string key */
 __EXPORT__ void
@@ -175,7 +221,7 @@ __imlib_ConsumeImage(ImlibImage * im)
    if (im->key)
       free(im->key);
    if ((IMAGE_FREE_DATA(im)) && (im->data))
-      free(im->data);
+      __imlib_FreeData(im);
    if (im->format)
       free(im->format);
    free(im);
@@ -850,6 +896,7 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im,
 {
    int                 rc;
 
+   im->data_memory_func = imlib_context_get_image_data_memory_function();
    rc = l->load(im, progress, progress_granularity, immediate_load);
    if (rc == 0)
      {
@@ -860,8 +907,7 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im,
           }
         if (im->data)
           {
-             free(im->data);
-             im->data = NULL;
+             __imlib_FreeData(im);
           }
         if (im->format)
           {

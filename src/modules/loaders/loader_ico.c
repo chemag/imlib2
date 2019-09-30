@@ -315,14 +315,11 @@ ico_load(ico_t * ico, ImlibImage * im)
    if (w <= 0 || h <= 0)
       return 0;
 
-   im->data = malloc(sizeof(DATA32) * w * h);
-   if (!im->data)
+   if (!__imlib_AllocateData(im, w, h))
       return 0;
 
    D("Loading icon %d: WxHxD=%dx%dx%d\n", ic, w, h, ie->bih.bpp);
 
-   im->w = w;
-   im->h = h;
    SET_FLAG(im->flags, F_HAS_ALPHA);
 
    cmap = ie->cmap;
@@ -427,8 +424,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
 
  error:
    ico_delete(ico);
-   free(im->data);
-   im->data = NULL;
+   __imlib_FreeData(im);
 
    return 0;
 }

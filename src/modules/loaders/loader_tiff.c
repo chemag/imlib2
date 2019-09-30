@@ -342,17 +342,14 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         rgba_image.pper = rgba_image.py = 0;
         rgba_image.progress_granularity = progress_granularity;
         rast = (uint32 *) _TIFFmalloc(sizeof(uint32) * num_pixels);
-        im->data = (DATA32 *) malloc(sizeof(DATA32) * num_pixels);
 
-        if ((!rast) || (!im->data))     /* Error checking */
+        if ((!rast) || (!__imlib_AllocateData(im, im->w, im->h)))     /* Error checking */
           {
              fprintf(stderr, "imlib2-tiffloader: Out of memory\n");
 
              if (rast)
                 _TIFFfree(rast);
-             free(im->data);
-             im->data = NULL;
-             im->w = 0;
+             __imlib_FreeData(im);
              goto quit2;
           }
 
@@ -361,9 +358,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              fprintf(stderr, "imlib2-tiffloader: No put function");
 
              _TIFFfree(rast);
-             free(im->data);
-             im->data = NULL;
-             im->w = 0;
+             __imlib_FreeData(im);
              goto quit2;
           }
 
@@ -382,9 +377,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                               rgba_image.rgba.width, rgba_image.rgba.height))
           {
              _TIFFfree(rast);
-             free(im->data);
-             im->data = NULL;
-             im->w = 0;
+             __imlib_FreeData(im);
              goto quit2;
           }
 

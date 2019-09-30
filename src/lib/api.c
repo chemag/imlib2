@@ -96,6 +96,7 @@ struct _imlibcontext {
    Imlib_Color         color;
    Imlib_Color_Range   color_range;
    Imlib_Image         image;
+   Imlib_Image_Data_Memory_Function image_data_memory_func;
    Imlib_Progress_Function progress_func;
    char                progress_granularity;
    char                dither_mask;
@@ -188,6 +189,7 @@ imlib_context_new(void)
    context->color.blue = 255;
    context->color_range = NULL;
    context->image = NULL;
+   context->image_data_memory_func = NULL;
    context->progress_func = NULL;
    context->progress_granularity = 0;
    context->dither_mask = 0;
@@ -1022,6 +1024,18 @@ imlib_context_get_color_range(void)
 }
 
 /**
+ * @param memory_function An image data memory management function.
+ *
+ * Sets the image data memory management function.
+ */
+EAPI void
+imlib_context_set_image_data_memory_function(Imlib_Image_Data_Memory_Function memory_function)
+{
+   CHECK_CONTEXT(ctx);
+   ctx->image_data_memory_func = memory_function;
+}
+
+/**
  * @param progress_function A progress function.
  *
  * Sets the progress function to be called back whilst loading
@@ -1033,6 +1047,18 @@ imlib_context_set_progress_function(Imlib_Progress_Function progress_function)
 {
    CHECK_CONTEXT(ctx);
    ctx->progress_func = progress_function;
+}
+
+/**
+ * @return The image data memory management function.
+ *
+ * Returns the current image data memeory management function being used.
+ */
+EAPI                Imlib_Image_Data_Memory_Function
+imlib_context_get_image_data_memory_function(void)
+{
+   CHECK_CONTEXT(ctx);
+   return ctx->image_data_memory_func;
 }
 
 /**
@@ -2079,6 +2105,37 @@ imlib_create_image_using_data(int width, int height, DATA32 * data)
    im = __imlib_CreateImage(width, height, data);
    if (im)
       SET_FLAG(im->flags, F_DONT_FREE_DATA);
+   return (Imlib_Image) im;
+}
+
+/**
+ * @param width The width of the image.
+ * @param height The height of the image.
+ * @param data The data.
+ * @param func The memory management function.
+ * @return A valid image, otherwise NULL.
+ *
+ * Creates an image from the image data specified with the width @p width and
+ * the height @p height specified. The image data @p data must be in the same format as
+ * imlib_image_get_data() would return. The memory management function @p func is
+ * responsible for freeing this image data once the image is freed. Imlib2 returns a
+ * valid image handle on success or NULL on failure.
+ *
+ **/
+EAPI                Imlib_Image
+imlib_create_image_using_data_and_memory_function(int width, int height, DATA32 * data, Imlib_Image_Data_Memory_Function func)
+{
+   ImlibImage         *im;
+
+   CHECK_CONTEXT(ctx);
+   CHECK_PARAM_POINTER_RETURN("imlib_create_image_using_data_and_memory_function", "data", data,
+                              NULL);
+   if (!IMAGE_DIMENSIONS_OK(width, height))
+      return NULL;
+   im = __imlib_CreateImage(width, height, data);
+   if (im)
+      im->data_memory_func = func;
+
    return (Imlib_Image) im;
 }
 

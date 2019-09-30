@@ -47,12 +47,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         h = im->h;
         rowlen = w * (sizeof("RGBA") - 1);
 
-        if (!(im->data = malloc(rowlen * h)) ||
+        if (!(__imlib_AllocateData(im, w, h)) ||
             !(row = malloc(rowlen * sizeof(uint16_t))))
           {
-             free(im->data);
-             im->data = NULL;
-             im->w = 0;
+             __imlib_FreeData(im);
              free(row);
              fclose(f);
              return 0;
@@ -63,9 +61,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
           {
              if (fread(row, sizeof(uint16_t), rowlen, f) != rowlen)
                {
-                  free(im->data);
-                  im->data = NULL;
-                  im->w = 0;
+                  __imlib_FreeData(im);
                   free(row);
                   fclose(f);
                   return 0;

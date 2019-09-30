@@ -214,9 +214,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
 
                   if (im->loader || immediate_load || progress)
                     {
-                       im->data =
-                          (DATA32 *) malloc(sizeof(DATA32) * im->w * im->h);
-                       if (!im->data)
+                       if (!__imlib_AllocateData(im, im->w, im->h))
                           goto quit;
                        ptr = im->data;
                        pixels = w * h;
@@ -448,11 +446,8 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
 
  quit:
    if (rc == 0)
-     {
-        free(im->data);
-        im->data = NULL;
-        im->w = im->h = 0;
-     }
+      __imlib_FreeData(im);
+
    fclose(f);
    free(cmap);
    free(line);

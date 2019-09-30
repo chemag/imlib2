@@ -311,8 +311,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         int                 y;
 
         /* allocate the destination buffer */
-        im->data = malloc(im->w * im->h * sizeof(DATA32));
-        if (!im->data)
+        if (!__imlib_AllocateData(im, im->w, im->h))
           {
              munmap(seg, ss.st_size);
              im->w = 0;
@@ -357,9 +356,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                        if (bufptr + bpp / 8 > bufend)
                          {
                             munmap(seg, ss.st_size);
-                            free(im->data);
-                            im->data = NULL;
-                            im->w = 0;
+                            __imlib_FreeData(im);
                             close(fd);
                             return 0;
                          }
@@ -419,9 +416,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                   if ((bufptr + 1 + (bpp / 8)) > bufend)
                     {
                        munmap(seg, ss.st_size);
-                       free(im->data);
-                       im->data = NULL;
-                       im->w = 0;
+                       __imlib_FreeData(im);
                        close(fd);
                        return 0;
                     }
@@ -484,9 +479,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                             if ((bufptr + bpp / 8) > bufend)
                               {
                                  munmap(seg, ss.st_size);
-                                 free(im->data);
-                                 im->data = NULL;
-                                 im->w = 0;
+                                 __imlib_FreeData(im);
                                  close(fd);
                                  return 0;
                               }

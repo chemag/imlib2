@@ -47,7 +47,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         char                pper = 0;
 
         /* must set the im->data member before callign progress function */
-        ptr = im->data = malloc(w * h * sizeof(DATA32));
+        ptr = __imlib_AllocateData(im, w, h);
         if (!im->data)
           {
              im->w = 0;
@@ -58,9 +58,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
           {
              if (fread(ptr, im->w, 4, f) != 4)
                {
-                  free(im->data);
-                  im->data = NULL;
-                  im->w = 0;
+                  __imlib_FreeData(im);
                   fclose(f);
                   return 0;
                }

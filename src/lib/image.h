@@ -25,6 +25,7 @@ typedef int         (*ImlibProgressFunction) (ImlibImage * im, char percent,
                                               int update_w, int update_h);
 typedef void        (*ImlibDataDestructorFunction) (ImlibImage * im,
                                                     void *data);
+typedef void       *(*ImlibImageDataMemoryFunction) (void *, size_t size);
 
 enum _iflags {
    F_NONE = 0,
@@ -57,6 +58,7 @@ struct _imlibimage {
    char               *file;
    int                 w, h;
    DATA32             *data;
+   ImlibImageDataMemoryFunction data_memory_func;
    ImlibImageFlags     flags;
    time_t              moddate;
    ImlibBorder         border;
@@ -102,6 +104,10 @@ struct _imlibloader {
                                 char progress_granularity);
    ImlibLoader        *next;
 };
+
+DATA32             *__imlib_AllocateData(ImlibImage * im, int w, int h);
+void                __imlib_FreeData(ImlibImage *im);
+void                __imlib_ReplaceData(ImlibImage *im, DATA32 *new_data);
 
 void                __imlib_AttachTag(ImlibImage * im, const char *key,
                                       int val, void *data,

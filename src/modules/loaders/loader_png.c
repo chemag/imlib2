@@ -134,10 +134,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
            png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
 #endif
 
-        im->data = malloc(w * h * sizeof(DATA32));
-        if (!im->data)
+        if (!__imlib_AllocateData(im, w, h))
           {
-             im->w = 0;
              png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
              fclose(f);
              return 0;
@@ -146,9 +144,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
         if (!lines)
           {
-             free(im->data);
-             im->data = NULL;
-             im->w = 0;
+             __imlib_FreeData(im);
              png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
              fclose(f);
              return 0;

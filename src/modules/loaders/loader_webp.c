@@ -98,14 +98,13 @@ load(ImlibImage * im, ImlibProgressFunction progress,
      {
         size_t              webp_buffer_size = sizeof(DATA32) * im->w * im->h;
 
-        im->data = malloc(webp_buffer_size);
+        __imlib_AllocateData(im, im->w, im->h);
         if (WebPDecodeBGRAInto(encoded_data, stats.st_size,
                                (uint8_t *) im->data, webp_buffer_size,
                                im->w * 4) == NULL)
           {
-             free(im->data);
-             im->data = NULL;
              free(encoded_data);
+             __imlib_FreeData(im);
              return 0;
           }
 

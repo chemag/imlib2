@@ -138,7 +138,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         char                pper = 0;
 
         /* must set the im->data member before callign progress function */
-        ptr2 = im->data = malloc(w * h * sizeof(DATA32));
+        ptr2 = __imlib_AllocateData(im, w, h);
         if (!im->data)
            goto quit_error;
 
@@ -427,11 +427,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
  quit:
    fclose(f);
    if (rc == 0)
-     {
-        free(im->data);
-        im->data = NULL;
-        im->w = 0;
-     }
+      __imlib_FreeData(im);
+
    return rc;
 }
 

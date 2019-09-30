@@ -154,8 +154,7 @@ __imlib_FlipImageDiagonal(ImlibImage * im, int direction)
           }
         to += hw;
      }
-   free(im->data);
-   im->data = data;
+   __imlib_ReplaceData(im, data);
 }
 
 void
@@ -245,8 +244,7 @@ __imlib_BlurImage(ImlibImage * im, int rad)
    free(rs);
    free(gs);
    free(bs);
-   free(im->data);
-   im->data = data;
+   __imlib_ReplaceData(im, data);
 }
 
 void
@@ -302,8 +300,7 @@ __imlib_SharpenImage(ImlibImage * im, int rad)
                }
           }
      }
-   free(im->data);
-   im->data = data;
+   __imlib_ReplaceData(im, data);
 }
 
 void
@@ -376,8 +373,7 @@ __imlib_TileImageHoriz(ImlibImage * im)
              p2++;
           }
      }
-   free(im->data);
-   im->data = data;
+   __imlib_ReplaceData(im, data);
 }
 
 void
@@ -428,8 +424,7 @@ __imlib_TileImageVert(ImlibImage * im)
              p2++;
           }
      }
-   free(im->data);
-   im->data = data;
+   __imlib_ReplaceData(im, data);
 }
 
 void
