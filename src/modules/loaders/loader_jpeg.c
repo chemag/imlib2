@@ -2,31 +2,31 @@
 #include <jpeglib.h>
 #include <setjmp.h>
 
-struct ImLib_JPEG_error_mgr {
-   struct jpeg_error_mgr pub;
+typedef struct {
+   struct jpeg_error_mgr jem;
    sigjmp_buf          setjmp_buffer;
-};
-typedef struct ImLib_JPEG_error_mgr *emptr;
+   DATA8              *data;
+} ImLib_JPEG_data;
 
 static void
 _JPEGFatalErrorHandler(j_common_ptr cinfo)
 {
-   emptr               errmgr;
+   ImLib_JPEG_data    *jd = (ImLib_JPEG_data *) cinfo->err;
 
-   errmgr = (emptr) cinfo->err;
-/*   cinfo->err->output_message(cinfo);*/
-   siglongjmp(errmgr->setjmp_buffer, 1);
+#if 0
+   cinfo->err->output_message(cinfo);
+#endif
+   siglongjmp(jd->setjmp_buffer, 1);
 }
 
 static void
 _JPEGErrorHandler(j_common_ptr cinfo)
 {
 #if 0
-   emptr               errmgr;
+   ImLib_JPEG_data    *jd = (ImLib_JPEG_data *) cinfo->err;
 
-   errmgr = (emptr) cinfo->err;
-/*   cinfo->err->output_message(cinfo);*/
-/*   siglongjmp(errmgr->setjmp_buffer, 1);*/
+   cinfo->err->output_message(cinfo);
+   siglongjmp(jd->setjmp_buffer, 1);
 #endif
 }
 
@@ -34,12 +34,27 @@ static void
 _JPEGErrorHandler2(j_common_ptr cinfo, int msg_level)
 {
 #if 0
-   emptr               errmgr;
+   ImLib_JPEG_data    *jd = (ImLib_JPEG_data *) cinfo->err;
 
-   errmgr = (emptr) cinfo->err;
-/*   cinfo->err->output_message(cinfo);*/
-/*   siglongjmp(errmgr->setjmp_buffer, 1);*/
+   cinfo->err->output_message(cinfo);
+   siglongjmp(jd->setjmp_buffer, 1);
 #endif
+}
+
+static struct jpeg_error_mgr *
+_jdata_init(ImLib_JPEG_data * jd)
+{
+   struct jpeg_error_mgr *jem;
+
+   jem = jpeg_std_error(&jd->jem);
+
+   jd->jem.error_exit = _JPEGFatalErrorHandler;
+   jd->jem.emit_message = _JPEGErrorHandler2;
+   jd->jem.output_message = _JPEGErrorHandler;
+
+   jd->data = NULL;
+
+   return jem;
 }
 
 char
@@ -48,21 +63,18 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 {
    int                 w, h, rc;
    struct jpeg_decompress_struct cinfo;
-   struct ImLib_JPEG_error_mgr jerr;
+   ImLib_JPEG_data     jdata;
    FILE               *f;
-   DATA8              *data;
 
    f = fopen(im->real_file, "rb");
    if (!f)
       return 0;
 
-   data = NULL;
-   cinfo.err = jpeg_std_error(&(jerr.pub));
-   jerr.pub.error_exit = _JPEGFatalErrorHandler;
-   jerr.pub.emit_message = _JPEGErrorHandler2;
-   jerr.pub.output_message = _JPEGErrorHandler;
-   if (sigsetjmp(jerr.setjmp_buffer, 1))
+   /* set up error handling */
+   cinfo.err = _jdata_init(&jdata);
+   if (sigsetjmp(jdata.setjmp_buffer, 1))
       goto quit_error;
+
    jpeg_create_decompress(&cinfo);
    jpeg_stdio_src(&cinfo, f);
    jpeg_read_header(&cinfo, TRUE);
@@ -92,8 +104,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
             !IMAGE_DIMENSIONS_OK(w, h))
            goto quit_error;
 
-        data = malloc(w * 16 * cinfo.output_components);
-        if (!data)
+        jdata.data = malloc(w * 16 * cinfo.output_components);
+        if (!jdata.data)
            goto quit_error;
 
         /* must set the im->data member before callign progress function */
@@ -105,7 +117,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         prevy = 0;
 
         for (i = 0; i < cinfo.rec_outbuf_height; i++)
-           line[i] = data + (i * w * cinfo.output_components);
+           line[i] = jdata.data + (i * w * cinfo.output_components);
 
         for (l = 0; l < h; l += cinfo.rec_outbuf_height)
           {
@@ -113,7 +125,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              scans = cinfo.rec_outbuf_height;
              if ((h - l) < scans)
                 scans = h - l;
-             ptr = data;
+             ptr = jdata.data;
              for (y = 0; y < scans; y++)
                {
                   switch (cinfo.out_color_space)
@@ -174,7 +186,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
  quit:
    jpeg_destroy_decompress(&cinfo);
-   free(data);
+   free(jdata.data);
    fclose(f);
    return rc;
 
@@ -188,7 +200,7 @@ char
 save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 {
    struct jpeg_compress_struct cinfo;
-   struct ImLib_JPEG_error_mgr jerr;
+   ImLib_JPEG_data     jdata;
    FILE               *f;
    DATA8              *buf;
    DATA32             *ptr;
@@ -201,28 +213,29 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    /* no image data? abort */
    if (!im->data)
       return 0;
+
    /* allocate a small buffer to convert image data */
    buf = malloc(im->w * 3 * sizeof(DATA8));
    if (!buf)
       return 0;
+
    f = fopen(im->real_file, "wb");
    if (!f)
      {
         free(buf);
         return 0;
      }
+
    /* set up error handling */
-   jerr.pub.error_exit = _JPEGFatalErrorHandler;
-   jerr.pub.emit_message = _JPEGErrorHandler2;
-   jerr.pub.output_message = _JPEGErrorHandler;
-   cinfo.err = jpeg_std_error(&(jerr.pub));
-   if (sigsetjmp(jerr.setjmp_buffer, 1))
+   cinfo.err = _jdata_init(&jdata);
+   if (sigsetjmp(jdata.setjmp_buffer, 1))
      {
         jpeg_destroy_compress(&cinfo);
         free(buf);
         fclose(f);
         return 0;
      }
+
    /* setup compress params */
    jpeg_create_compress(&cinfo);
    jpeg_stdio_dest(&cinfo, f);
