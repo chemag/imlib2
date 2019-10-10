@@ -58,7 +58,6 @@ struct _imlibimage {
    char               *file;
    int                 w, h;
    DATA32             *data;
-   ImlibImageDataMemoryFunction data_memory_func;
    ImlibImageFlags     flags;
    time_t              moddate;
    ImlibBorder         border;
@@ -69,6 +68,7 @@ struct _imlibimage {
    ImlibImageTag      *tags;
    char               *real_file;
    char               *key;
+   ImlibImageDataMemoryFunction data_memory_func;
 };
 
 #ifdef BUILD_X11
@@ -106,8 +106,8 @@ struct _imlibloader {
 };
 
 DATA32             *__imlib_AllocateData(ImlibImage * im, int w, int h);
-void                __imlib_FreeData(ImlibImage *im);
-void                __imlib_ReplaceData(ImlibImage *im, DATA32 *new_data);
+void                __imlib_FreeData(ImlibImage * im);
+void                __imlib_ReplaceData(ImlibImage * im, DATA32 * new_data);
 
 void                __imlib_AttachTag(ImlibImage * im, const char *key,
                                       int val, void *data,
