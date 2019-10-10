@@ -212,7 +212,7 @@ ico_read(char *filename)
    if (!ico)
       return NULL;
 
-   ico->fp = fopen(filename, "r");
+   ico->fp = fopen(filename, "rb");
    if (!ico->fp)
       return NULL;
 
