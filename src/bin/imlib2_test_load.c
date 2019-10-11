@@ -9,6 +9,9 @@
 
 #define PROG_NAME "imlib2_test_load"
 
+static char         progress_called;
+static char         break_on_error;
+
 static void
 usage(int exit_status)
 {
@@ -19,14 +22,45 @@ usage(int exit_status)
    exit(exit_status);
 }
 
+static int
+progress(Imlib_Image im, char percent, int update_x, int update_y,
+         int update_w, int update_h)
+{
+   progress_called = 1;
+   return 1;                    /* Continue */
+}
+
 int
 main(int argc, char **argv)
 {
+   const char         *s;
    Imlib_Image         im;
    Imlib_Load_Error    lerr;
 
+   break_on_error = 0;
+
+   for (;;)
+     {
+        argv++;
+        argc--;
+        if (argc <= 0)
+           break;
+        s = argv[0];
+        if (*s++ != '-')
+           break;
+        switch (*s++)
+          {
+          case 'e':
+             break_on_error += 1;
+             break;
+          }
+     }
+
    if (argc <= 1)
       usage(0);
+
+   imlib_context_set_progress_function(progress);
+   imlib_context_set_progress_granularity(10);
 
    for (;;)
      {
@@ -35,16 +69,25 @@ main(int argc, char **argv)
         if (argc <= 0)
            break;
 
+        progress_called = 0;
+
         printf("Loading image: '%s'\n", argv[0]);
         im = imlib_load_image_with_error_return(argv[0], &lerr);
         if (!im)
           {
-             fprintf(stderr, PROG_NAME ": Error %d loading image: %s\n", lerr,
-                     argv[0]);
+             printf("*** Error %d loading image: %s\n", lerr, argv[0]);
+             if (break_on_error & 2)
+                break;
              continue;
           }
         imlib_context_set_image(im);
         imlib_free_image_and_decache();
+        if (!progress_called)
+          {
+             printf("*** No progress during image load\n");
+             if (break_on_error & 1)
+                break;
+          }
      }
 
    return 0;
