@@ -106,11 +106,11 @@ ico_read_idir(ico_t * ico, int ino)
    ie->w = (ie->ide.width > 0) ? ie->ide.width : 256;
    ie->h = (ie->ide.height > 0) ? ie->ide.height : 256;
 
-   SWAP_LE_16(ie->ide.planes);
-   SWAP_LE_16(ie->ide.bpp);
+   SWAP_LE_16_INPLACE(ie->ide.planes);
+   SWAP_LE_16_INPLACE(ie->ide.bpp);
 
-   SWAP_LE_32(ie->ide.size);
-   SWAP_LE_32(ie->ide.offs);
+   SWAP_LE_32_INPLACE(ie->ide.size);
+   SWAP_LE_32_INPLACE(ie->ide.offs);
 
    D("Entry %2d: Idir: WxHxD = %dx%dx%d, colors = %d\n",
      ino, ie->w, ie->h, ie->ide.bpp, ie->ide.colors);
@@ -129,19 +129,19 @@ ico_read_icon(ico_t * ico, int ino)
    if (nr != sizeof(ie->bih))
       goto bail;
 
-   SWAP_LE_32(ie->bih.header_size);
-   SWAP_LE_32(ie->bih.width);
-   SWAP_LE_32(ie->bih.height);
+   SWAP_LE_32_INPLACE(ie->bih.header_size);
+   SWAP_LE_32_INPLACE(ie->bih.width);
+   SWAP_LE_32_INPLACE(ie->bih.height);
 
-   SWAP_LE_32(ie->bih.planes);
-   SWAP_LE_32(ie->bih.bpp);
+   SWAP_LE_32_INPLACE(ie->bih.planes);
+   SWAP_LE_32_INPLACE(ie->bih.bpp);
 
-   SWAP_LE_32(ie->bih.compression);
-   SWAP_LE_32(ie->bih.size);
-   SWAP_LE_32(ie->bih.res_hor);
-   SWAP_LE_32(ie->bih.res_ver);
-   SWAP_LE_32(ie->bih.colors);
-   SWAP_LE_32(ie->bih.colors_important);
+   SWAP_LE_32_INPLACE(ie->bih.compression);
+   SWAP_LE_32_INPLACE(ie->bih.size);
+   SWAP_LE_32_INPLACE(ie->bih.res_hor);
+   SWAP_LE_32_INPLACE(ie->bih.res_ver);
+   SWAP_LE_32_INPLACE(ie->bih.colors);
+   SWAP_LE_32_INPLACE(ie->bih.colors_important);
 
    if (ie->bih.header_size != 40)
      {
@@ -175,7 +175,7 @@ ico_read_icon(ico_t * ico, int ino)
            goto bail;
 #ifdef WORDS_BIGENDIAN
         for (nr = 0; nr < ie->bih.colors; nr++)
-           SWAP_LE_32(ie->cmap[nr]);
+           SWAP_LE_32_INPLACE(ie->cmap[nr]);
 #endif
         break;
      default:
@@ -220,9 +220,9 @@ ico_read(char *filename)
    if (nr != sizeof(ico->idir))
       goto bail;
 
-   SWAP_LE_16(ico->idir.rsvd);
-   SWAP_LE_16(ico->idir.type);
-   SWAP_LE_16(ico->idir.icons);
+   SWAP_LE_16_INPLACE(ico->idir.rsvd);
+   SWAP_LE_16_INPLACE(ico->idir.type);
+   SWAP_LE_16_INPLACE(ico->idir.icons);
 
    if (ico->idir.rsvd != 0 ||
        (ico->idir.type != 1 && ico->idir.type != 2) || ico->idir.icons <= 0)

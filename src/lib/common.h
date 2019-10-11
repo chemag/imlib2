@@ -27,11 +27,15 @@
      (((x) & 0xff00 ) >> 8))
 
 #ifdef WORDS_BIGENDIAN
-#define SWAP_LE_16(x) x = SWAP16(x)
-#define SWAP_LE_32(x) x = SWAP32(x)
+#define SWAP_LE_16(x) SWAP16(x)
+#define SWAP_LE_32(x) SWAP32(x)
+#define SWAP_LE_16_INPLACE(x) x = SWAP16(x)
+#define SWAP_LE_32_INPLACE(x) x = SWAP32(x)
 #else
-#define SWAP_LE_16(x)
-#define SWAP_LE_32(x)
+#define SWAP_LE_16(x) (x)
+#define SWAP_LE_32(x) (x)
+#define SWAP_LE_16_INPLACE(x)
+#define SWAP_LE_32_INPLACE(x)
 #endif
 
 #define PIXEL_ARGB(a, r, g, b)  ((a) << 24) | ((r) << 16) | ((g) << 8) | (b)

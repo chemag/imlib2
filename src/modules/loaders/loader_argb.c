@@ -64,7 +64,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                }
 #ifdef WORDS_BIGENDIAN
              for (l = 0; l < im->w; l++)
-                SWAP_LE_32(ptr[l]);
+                SWAP_LE_32_INPLACE(ptr[l]);
 #endif
              ptr += im->w;
              if (progress)
@@ -121,7 +121,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 
            memcpy(buf, ptr, im->w * 4);
            for (x = 0; x < im->w; x++)
-              SWAP_LE_32(buf[x]);
+              SWAP_LE_32_INPLACE(buf[x]);
            fwrite(buf, im->w, 4, f);
         }
 #else
