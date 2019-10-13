@@ -7,6 +7,8 @@ AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE(1.6 dist-bzip2)
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+AM_CONDITIONAL(SRC_IS_GIT, test -d $srcdir/.git)
+
 AC_C_BIGENDIAN
 AC_PROG_CC
 AM_PROG_AS
@@ -397,7 +399,6 @@ data/images/Makefile
 doc/Makefile
 imlib2-config
 README
-imlib2.spec
 ])
 AC_CONFIG_COMMANDS([default],[
 chmod +x imlib2-config
