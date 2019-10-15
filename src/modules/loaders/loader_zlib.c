@@ -55,10 +55,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!p || p == im->real_file || strcasecmp(p + 1, "gz") || p == q)
       return 0;
 
-   if (!(real_ext = strndup(im->real_file, p - im->real_file)))
+   if (!(real_ext = strndup(q + 1, p - q - 1)))
       return 0;
 
-   if (!(loader = __imlib_FindBestLoaderForFile(real_ext, 0)))
+   if (!(loader = __imlib_FindBestLoaderForFormat(real_ext, 0)))
      {
         free(real_ext);
         return 0;
