@@ -62,14 +62,25 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!p || p == im->real_file || strcasecmp(p + 1, "bz2") || p == q)
       return 0;
 
+   if (!(real_ext = strndup(im->real_file, p - im->real_file)))
+      return 0;
+
+   if (!(loader = __imlib_FindBestLoaderForFile(real_ext, 0)))
+     {
+        free(real_ext);
+        return 0;
+     }
+
    if (!(fp = fopen(im->real_file, "rb")))
      {
+        free(real_ext);
         return 0;
      }
 
    if ((dest = mkstemp(tmp)) < 0)
      {
         fclose(fp);
+        free(real_ext);
         return 0;
      }
 
@@ -78,15 +89,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    close(dest);
 
    if (!res)
-     {
-        unlink(tmp);
-        return 0;
-     }
-
-   if (!(real_ext = strndup(im->real_file, p - im->real_file)))
-      return 0;
-
-   if (!(loader = __imlib_FindBestLoaderForFile(real_ext, 0)))
      {
         free(real_ext);
         unlink(tmp);
