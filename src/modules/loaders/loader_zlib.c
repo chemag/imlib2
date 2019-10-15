@@ -42,10 +42,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
      char progress_granularity, char immediate_load)
 {
    ImlibLoader        *loader;
-   int                 src, dest, res;
+   int                 src;
+   int                 dest, res;
    char               *file, *p, *q, tmp[] = "/tmp/imlib2_loader_zlib-XXXXXX";
    char               *real_ext;
-   struct stat         st;
 
    /* check that this file ends in *.gz and that there's another ext
     * (e.g. "foo.png.gz"
@@ -55,17 +55,25 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!p || p == im->real_file || strcasecmp(p + 1, "gz") || p == q)
       return 0;
 
-   if (stat(im->real_file, &st) < 0)
+   if (!(real_ext = strndup(im->real_file, p - im->real_file)))
       return 0;
+
+   if (!(loader = __imlib_FindBestLoaderForFile(real_ext, 0)))
+     {
+        free(real_ext);
+        return 0;
+     }
 
    if ((src = open(im->real_file, O_RDONLY)) < 0)
      {
+        free(real_ext);
         return 0;
      }
 
    if ((dest = mkstemp(tmp)) < 0)
      {
         close(src);
+        free(real_ext);
         return 0;
      }
 
@@ -74,15 +82,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    close(dest);
 
    if (!res)
-     {
-        unlink(tmp);
-        return 0;
-     }
-
-   if (!(real_ext = strndup(im->real_file, p - im->real_file)))
-      return 0;
-
-   if (!(loader = __imlib_FindBestLoaderForFile(real_ext, 0)))
      {
         free(real_ext);
         unlink(tmp);
