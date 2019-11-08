@@ -5470,7 +5470,7 @@ imlib_image_clear_color(int r, int g, int b, int a)
       return;
    __imlib_DirtyImage(im);
    max = im->w * im->h;
-   WRITE_RGBA(&col, r, g, b, a);
+   col = PIXEL_ARGB(a, r, g, b);
    for (i = 0; i < max; i++)
       im->data[i] = col;
 }

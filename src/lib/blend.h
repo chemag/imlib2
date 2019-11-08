@@ -34,20 +34,6 @@
    (b) = B_VAL(p); \
    (a) = A_VAL(p);
 
-#define WRITE_RGB(p, r, g, b) \
-   R_VAL(p) = (r); \
-   G_VAL(p) = (g); \
-   B_VAL(p) = (b);
-
-#define WRITE_RGB_PRESERVE_ALPHA(p, r, g, b) \
-   WRITE_RGB(p, r, g, b)
-
-#define WRITE_RGBA(p, r, g, b, a) \
-   R_VAL(p) = (r); \
-   G_VAL(p) = (g); \
-   B_VAL(p) = (b); \
-   A_VAL(p) = (a);
-
 #define INTERSECTS(x, y, w, h, xx, yy, ww, hh) \
    ((x < (xx + ww)) && \
        (y < (yy + hh)) && \

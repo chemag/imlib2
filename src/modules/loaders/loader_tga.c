@@ -338,34 +338,22 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
                   switch (bpp)
                     {
-
-                       /* 32-bit BGRA pixels */
-                    case 32:
-                       WRITE_RGBA(dataptr, *(bufptr + 2),       /* R */
-                                  *(bufptr + 1),        /* G */
-                                  *(bufptr + 0),        /* B */
-                                  *(bufptr + 3) /* A */
-                          );
-                       dataptr++;
+                    case 32:   /* 32-bit BGRA pixels */
+                       *dataptr++ =
+                          PIXEL_ARGB(bufptr[3], bufptr[2], bufptr[1],
+                                     bufptr[0]);
                        bufptr += 4;
                        break;
 
-                       /* 24-bit BGR pixels */
-                    case 24:
-                       WRITE_RGBA(dataptr, *(bufptr + 2),       /* R */
-                                  *(bufptr + 1),        /* G */
-                                  *(bufptr + 0),        /* B */
-                                  (char)0xff    /* A */
-                          );
-                       dataptr++;
+                    case 24:   /* 24-bit BGR pixels */
+                       *dataptr++ =
+                          PIXEL_ARGB(0xff, bufptr[2], bufptr[1], bufptr[0]);
                        bufptr += 3;
                        break;
 
-                       /* 8-bit grayscale */
-                    case 8:
-                       WRITE_RGBA(dataptr,      /* grayscale */
-                                  *bufptr, *bufptr, *bufptr, (char)0xff);
-                       dataptr++;
+                    case 8:    /* 8-bit grayscale */
+                       *dataptr++ =
+                          PIXEL_ARGB(0xff, bufptr[0], bufptr[0], bufptr[0]);
                        bufptr += 1;
                        break;
                     }
@@ -400,31 +388,23 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                        red = *bufptr++;
                        alpha = *bufptr++;
                        for (i = 0; (i < count) && (dataptr < final_pixel); i++)
-                         {
-                            WRITE_RGBA(dataptr, red, green, blue, alpha);
-                            dataptr++;
-                         }
+                          *dataptr++ = PIXEL_ARGB(alpha, red, green, blue);
                        break;
 
                     case 24:
                        blue = *bufptr++;
                        green = *bufptr++;
                        red = *bufptr++;
+                       alpha = 0xff;
                        for (i = 0; (i < count) && (dataptr < final_pixel); i++)
-                         {
-                            WRITE_RGBA(dataptr, red, green, blue, (char)0xff);
-                            dataptr++;
-                         }
+                          *dataptr++ = PIXEL_ARGB(alpha, red, green, blue);
                        break;
 
                     case 8:
-                       alpha = *bufptr++;
+                       red = *bufptr++;
+                       alpha = 0xff;
                        for (i = 0; (i < count) && (dataptr < final_pixel); i++)
-                         {
-                            WRITE_RGBA(dataptr, alpha, alpha, alpha,
-                                       (char)0xff);
-                            dataptr++;
-                         }
+                          *dataptr++ = PIXEL_ARGB(alpha, red, red, red);
                        break;
                     }
                }                /* end if (RLE packet) */
@@ -437,34 +417,24 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
                        switch (bpp)
                          {
-
-                            /* 32-bit BGRA pixels */
-                         case 32:
-                            WRITE_RGBA(dataptr, *(bufptr + 2),  /* R */
-                                       *(bufptr + 1),   /* G */
-                                       *(bufptr + 0),   /* B */
-                                       *(bufptr + 3)    /* A */
-                               );
-                            dataptr++;
+                         case 32:      /* 32-bit BGRA pixels */
+                            *dataptr++ =
+                               PIXEL_ARGB(bufptr[3], bufptr[2], bufptr[1],
+                                          bufptr[0]);
                             bufptr += 4;
                             break;
 
-                            /* 24-bit BGR pixels */
-                         case 24:
-                            WRITE_RGBA(dataptr, *(bufptr + 2),  /* R */
-                                       *(bufptr + 1),   /* G */
-                                       *(bufptr + 0),   /* B */
-                                       (char)0xff       /* A */
-                               );
-                            dataptr++;
+                         case 24:      /* 24-bit BGR pixels */
+                            *dataptr++ =
+                               PIXEL_ARGB(0xff, bufptr[2], bufptr[1],
+                                          bufptr[0]);
                             bufptr += 3;
                             break;
 
-                            /* 8-bit grayscale */
-                         case 8:
-                            WRITE_RGBA(dataptr, *bufptr,        /* pseudo-grayscale */
-                                       *bufptr, *bufptr, (char)0xff);
-                            dataptr++;
+                         case 8:       /* 8-bit grayscale */
+                            *dataptr++ =
+                               PIXEL_ARGB(0xff, bufptr[0], bufptr[0],
+                                          bufptr[0]);
                             bufptr += 1;
                             break;
                          }
