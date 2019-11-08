@@ -343,7 +343,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         rgba_image.progress_granularity = progress_granularity;
         rast = (uint32 *) _TIFFmalloc(sizeof(uint32) * num_pixels);
 
-        if ((!rast) || (!__imlib_AllocateData(im, im->w, im->h)))     /* Error checking */
+        if ((!rast) || (!__imlib_AllocateData(im, im->w, im->h)))       /* Error checking */
           {
              fprintf(stderr, "imlib2-tiffloader: Out of memory\n");
 

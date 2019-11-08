@@ -104,7 +104,7 @@ context_create(const char *filename)
         goto fail_close;
      }
    node->id = ptr->id + 1;
-   if (UNLIKELY(! !last))
+   if (UNLIKELY(!!last))
      {
         node->next = last->next;
         last->next = node;

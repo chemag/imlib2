@@ -20,12 +20,11 @@ typedef struct _imlibloader ImlibLoader;
 typedef struct _imlibimagetag ImlibImageTag;
 typedef enum _imlib_load_error ImlibLoadError;
 
-typedef int         (*ImlibProgressFunction) (ImlibImage * im, char percent,
-                                              int update_x, int update_y,
-                                              int update_w, int update_h);
-typedef void        (*ImlibDataDestructorFunction) (ImlibImage * im,
-                                                    void *data);
-typedef void       *(*ImlibImageDataMemoryFunction) (void *, size_t size);
+typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
+                                             int update_x, int update_y,
+                                             int update_w, int update_h);
+typedef void        (*ImlibDataDestructorFunction)(ImlibImage * im, void *data);
+typedef void       *(*ImlibImageDataMemoryFunction)(void *, size_t size);
 
 enum _iflags {
    F_NONE = 0,
@@ -50,7 +49,7 @@ struct _imlibimagetag {
    char               *key;
    int                 val;
    void               *data;
-   void                (*destructor) (ImlibImage * im, void *data);
+   void                (*destructor)(ImlibImage * im, void *data);
    ImlibImageTag      *next;
 };
 
@@ -96,12 +95,12 @@ struct _imlibloader {
    int                 num_formats;
    char              **formats;
    void               *handle;
-   char                (*load) (ImlibImage * im,
-                                ImlibProgressFunction progress,
-                                char progress_granularity, char immediate_load);
-   char                (*save) (ImlibImage * im,
-                                ImlibProgressFunction progress,
-                                char progress_granularity);
+   char                (*load)(ImlibImage * im,
+                               ImlibProgressFunction progress,
+                               char progress_granularity, char immediate_load);
+   char                (*save)(ImlibImage * im,
+                               ImlibProgressFunction progress,
+                               char progress_granularity);
    ImlibLoader        *next;
 };
 

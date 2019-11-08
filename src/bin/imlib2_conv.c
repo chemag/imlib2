@@ -33,7 +33,8 @@ main(int argc, char **argv)
    im = imlib_load_image_with_error_return(argv[1], &lerr);
    if (!im)
      {
-        fprintf(stderr, PROG_NAME ": Error %d loading image: %s\n", lerr, argv[1]);
+        fprintf(stderr, PROG_NAME ": Error %d loading image: %s\n",
+                lerr, argv[1]);
         return lerr;
      }
 
@@ -80,9 +81,10 @@ main(int argc, char **argv)
         break;
      case IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT:
         fprintf(stderr, "No saver for format: %s\n", imlib_image_format());
-	/* FALLTHROUGH */
+        /* FALLTHROUGH */
      default:
-        fprintf(stderr, "%s: Error %d saving image: %s\n", PROG_NAME, lerr, argv[2]);
+        fprintf(stderr, "%s: Error %d saving image: %s\n",
+                PROG_NAME, lerr, argv[2]);
         break;
      }
 

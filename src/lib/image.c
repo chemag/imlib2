@@ -27,8 +27,8 @@ static ImlibImagePixmap *pixmaps = NULL;
 static ImlibLoader *loaders = NULL;
 static int          cache_size = 4096 * 1024;
 
-__EXPORT__ DATA32 *
-__imlib_AllocateData(ImlibImage *im, int w, int h)
+__EXPORT__ DATA32  *
+__imlib_AllocateData(ImlibImage * im, int w, int h)
 {
    if (im->data_memory_func)
       im->data = im->data_memory_func(NULL, w * h * sizeof(DATA32));
@@ -44,7 +44,7 @@ __imlib_AllocateData(ImlibImage *im, int w, int h)
 }
 
 __EXPORT__ void
-__imlib_FreeData(ImlibImage *im)
+__imlib_FreeData(ImlibImage * im)
 {
    if (im->data)
      {
@@ -60,7 +60,7 @@ __imlib_FreeData(ImlibImage *im)
 }
 
 __EXPORT__ void
-__imlib_ReplaceData(ImlibImage *im, unsigned int *new_data)
+__imlib_ReplaceData(ImlibImage * im, unsigned int *new_data)
 {
    if (im->data)
      {
@@ -612,7 +612,7 @@ static ImlibLoader *
 __imlib_ProduceLoader(char *file)
 {
    ImlibLoader        *l;
-   void                (*l_formats) (ImlibLoader * l);
+   void                (*l_formats)(ImlibLoader * l);
 
    l = malloc(sizeof(ImlibLoader));
    l->num_formats = 0;

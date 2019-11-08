@@ -129,7 +129,7 @@ loadchunks(char *name, ILBM * ilbm, int full)
                           break;        /* Out of memory. */
 
                        s = fread(c->data, 1, c->size, f);
-                       if (s != (size_t) c->size)
+                       if (s != (size_t)c->size)
                           break;        /* Error or short file. */
 
                        seek = 0;

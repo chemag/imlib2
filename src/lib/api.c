@@ -69,9 +69,9 @@ if (!(param)) \
 }
 
 /* internal typedefs for function pointers */
-typedef void        (*Imlib_Internal_Progress_Function) (void *, char, int, int,
-                                                         int, int);
-typedef void        (*Imlib_Internal_Data_Destructor_Function) (void *, void *);
+typedef void        (*Imlib_Internal_Progress_Function)(void *, char, int, int,
+                                                        int, int);
+typedef void        (*Imlib_Internal_Data_Destructor_Function)(void *, void *);
 
 struct _imlibcontext;
 typedef struct _imlibcontext ImlibContext;
@@ -1029,7 +1029,8 @@ imlib_context_get_color_range(void)
  * Sets the image data memory management function.
  */
 EAPI void
-imlib_context_set_image_data_memory_function(Imlib_Image_Data_Memory_Function memory_function)
+imlib_context_set_image_data_memory_function(Imlib_Image_Data_Memory_Function
+                                             memory_function)
 {
    CHECK_CONTEXT(ctx);
    ctx->image_data_memory_func = memory_function;
@@ -2123,13 +2124,14 @@ imlib_create_image_using_data(int width, int height, DATA32 * data)
  *
  **/
 EAPI                Imlib_Image
-imlib_create_image_using_data_and_memory_function(int width, int height, DATA32 * data, Imlib_Image_Data_Memory_Function func)
+   imlib_create_image_using_data_and_memory_function
+   (int width, int height, DATA32 * data, Imlib_Image_Data_Memory_Function func)
 {
    ImlibImage         *im;
 
    CHECK_CONTEXT(ctx);
-   CHECK_PARAM_POINTER_RETURN("imlib_create_image_using_data_and_memory_function", "data", data,
-                              NULL);
+   CHECK_PARAM_POINTER_RETURN
+      ("imlib_create_image_using_data_and_memory_function", "data", data, NULL);
    if (!IMAGE_DIMENSIONS_OK(width, height))
       return NULL;
    im = __imlib_CreateImage(width, height, data);

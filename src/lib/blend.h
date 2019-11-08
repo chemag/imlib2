@@ -385,8 +385,8 @@ enum _imlibop {
 
 typedef enum _imlibop ImlibOp;
 
-typedef void        (*ImlibBlendFunction) (DATA32 *, int, DATA32 *, int, int,
-                                           int, ImlibColorModifier *);
+typedef void        (*ImlibBlendFunction)(DATA32 *, int, DATA32 *, int, int,
+                                          int, ImlibColorModifier *);
 
 ImlibBlendFunction  __imlib_GetBlendFunction(ImlibOp op, char merge_alpha,
                                              char blend, char rgb_src,

@@ -123,7 +123,7 @@ Imlib_Hash         *__imlib_hash_add(Imlib_Hash * hash, const char *key,
 void               *__imlib_hash_find(Imlib_Hash * hash, const char *key);
 void                __imlib_hash_free(Imlib_Hash * hash);
 void                __imlib_hash_foreach(Imlib_Hash * hash,
-                                         int (*func) (Imlib_Hash * hash,
-                                                      const char *key,
-                                                      void *data, void *fdata),
+                                         int (*func)(Imlib_Hash * hash,
+                                                     const char *key,
+                                                     void *data, void *fdata),
                                          const void *fdata);
