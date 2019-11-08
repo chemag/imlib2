@@ -192,7 +192,7 @@ char
 load(ImlibImage * im, ImlibProgressFunction progress,
      char progress_granularity, char immediate_load)
 {
-   int                 fd;
+   int                 fd, rc;
    void               *seg, *filedata;
    struct stat         ss;
    int                 bpp, vinverted = 0;
@@ -201,28 +201,29 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    tga_header         *header;
    tga_footer         *footer;
 
+   unsigned long       datasize;
+   unsigned char      *bufptr, *bufend;
+   DATA32             *dataptr;
+
+   int                 y;
+
    fd = open(im->real_file, O_RDONLY);
    if (fd < 0)
       return 0;
 
+   rc = 0;                      /* Error */
+   seg = MAP_FAILED;
+
    if (fstat(fd, &ss) < 0)
-     {
-        close(fd);
-        return 0;
-     }
+      goto quit;
 
    if (ss.st_size < (long)(sizeof(tga_header) + sizeof(tga_footer)) ||
        (uintmax_t) ss.st_size > SIZE_MAX)
-     {
-        close(fd);
-        return 0;
-     }
+      goto quit;
+
    seg = mmap(0, ss.st_size, PROT_READ, MAP_SHARED, fd, 0);
    if (seg == MAP_FAILED)
-     {
-        close(fd);
-        return 0;
-     }
+      goto quit;
 
    filedata = seg;
    header = (tga_header *) filedata;
@@ -238,11 +239,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    if ((size_t)ss.st_size < sizeof(tga_header) + header->idLength +
        (footer_present ? sizeof(tga_footer) : 0))
-     {
-        munmap(seg, ss.st_size);
-        close(fd);
-        return 0;
-     }
+      goto quit;
 
    /* skip over header */
    filedata = (char *)filedata + sizeof(tga_header);
@@ -269,97 +266,175 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         break;
 
      default:
-        munmap(seg, ss.st_size);
-        close(fd);
-        return 0;
+        goto quit;
      }
 
    /* bits per pixel */
    bpp = header->bpp;
 
    if (!((bpp == 32) || (bpp == 24) || (bpp == 8)))
-     {
-        munmap(seg, ss.st_size);
-        close(fd);
-        return 0;
-     }
+      goto quit;
 
    /* endian-safe loading of 16-bit sizes */
    im->w = (header->widthHi << 8) | header->widthLo;
    im->h = (header->heightHi << 8) | header->heightLo;
 
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
-     {
-        munmap(seg, ss.st_size);
-        im->w = 0;
-        close(fd);
-        return 0;
-     }
+      goto quit;
 
    if (bpp == 32)
       SET_FLAG(im->flags, F_HAS_ALPHA);
    else
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
-   /* if we need to actually read the pixel data... */
-   if (im->loader || immediate_load || progress)
+   if (!(im->loader || immediate_load || progress))
      {
-        unsigned long       datasize;
-        unsigned char      *bufptr, *bufend;
-        DATA32             *dataptr;
+        rc = 1;
+        goto quit;
+     }
 
-        int                 y;
+   /* Load data */
 
-        /* allocate the destination buffer */
-        if (!__imlib_AllocateData(im, im->w, im->h))
-          {
-             munmap(seg, ss.st_size);
-             im->w = 0;
-             close(fd);
-             return 0;
-          }
+   /* allocate the destination buffer */
+   if (!__imlib_AllocateData(im, im->w, im->h))
+      goto quit;
 
-        /* first we read the file data into a buffer for parsing */
-        /* then we decode from RAM */
+   /* first we read the file data into a buffer for parsing */
+   /* then we decode from RAM */
 
-        /* find out how much data must be read from the file */
-        /* (this is NOT simply width*height*4, due to compression) */
+   /* find out how much data must be read from the file */
+   /* (this is NOT simply width*height*4, due to compression) */
 
-        datasize = ss.st_size - sizeof(tga_header) - header->idLength -
-           (footer_present ? sizeof(tga_footer) : 0);
+   datasize = ss.st_size - sizeof(tga_header) - header->idLength -
+      (footer_present ? sizeof(tga_footer) : 0);
 
-        /* buffer is ready for parsing */
+   /* buffer is ready for parsing */
 
-        /* bufptr is the next byte to be read from the buffer */
-        bufptr = filedata;
-        bufend = bufptr + datasize;
+   /* bufptr is the next byte to be read from the buffer */
+   bufptr = filedata;
+   bufend = bufptr + datasize;
 
-        /* dataptr is the next 32-bit pixel to be filled in */
-        dataptr = im->data;
+   /* dataptr is the next 32-bit pixel to be filled in */
+   dataptr = im->data;
 
+   if (!rle)
+     {
         /* decode uncompressed BGRA data */
-        if (!rle)
+        for (y = 0; y < im->h; y++)     /* for each row */
           {
-             for (y = 0; y < im->h; y++)        /* for each row */
+             int                 x;
+
+             /* point dataptr at the beginning of the row */
+             if (vinverted)
+                /* some TGA's are stored upside-down! */
+                dataptr = im->data + ((im->h - y - 1) * im->w);
+             else
+                dataptr = im->data + (y * im->w);
+
+             for (x = 0; (x < im->w); x++)      /* for each pixel in the row */
                {
-                  int                 x;
+                  if (bufptr + bpp / 8 > bufend)
+                     goto quit;
 
-                  /* point dataptr at the beginning of the row */
-                  if (vinverted)
-                     /* some TGA's are stored upside-down! */
-                     dataptr = im->data + ((im->h - y - 1) * im->w);
-                  else
-                     dataptr = im->data + (y * im->w);
-
-                  for (x = 0; (x < im->w); x++) /* for each pixel in the row */
+                  switch (bpp)
                     {
-                       if (bufptr + bpp / 8 > bufend)
+
+                       /* 32-bit BGRA pixels */
+                    case 32:
+                       WRITE_RGBA(dataptr, *(bufptr + 2),       /* R */
+                                  *(bufptr + 1),        /* G */
+                                  *(bufptr + 0),        /* B */
+                                  *(bufptr + 3) /* A */
+                          );
+                       dataptr++;
+                       bufptr += 4;
+                       break;
+
+                       /* 24-bit BGR pixels */
+                    case 24:
+                       WRITE_RGBA(dataptr, *(bufptr + 2),       /* R */
+                                  *(bufptr + 1),        /* G */
+                                  *(bufptr + 0),        /* B */
+                                  (char)0xff    /* A */
+                          );
+                       dataptr++;
+                       bufptr += 3;
+                       break;
+
+                       /* 8-bit grayscale */
+                    case 8:
+                       WRITE_RGBA(dataptr,      /* grayscale */
+                                  *bufptr, *bufptr, *bufptr, (char)0xff);
+                       dataptr++;
+                       bufptr += 1;
+                       break;
+                    }
+
+               }                /* end for (each pixel) */
+          }
+     }
+   else
+     {
+        /* decode RLE compressed data */
+        unsigned char       curbyte, red, green, blue, alpha;
+        DATA32             *final_pixel = dataptr + im->w * im->h;
+
+        /* loop until we've got all the pixels or run out of input */
+        while ((dataptr < final_pixel))
+          {
+             int                 i, count;
+
+             if ((bufptr + 1 + (bpp / 8)) > bufend)
+                goto quit;
+
+             curbyte = *bufptr++;
+             count = (curbyte & 0x7F) + 1;
+
+             if (curbyte & 0x80)        /* RLE packet */
+               {
+                  switch (bpp)
+                    {
+                    case 32:
+                       blue = *bufptr++;
+                       green = *bufptr++;
+                       red = *bufptr++;
+                       alpha = *bufptr++;
+                       for (i = 0; (i < count) && (dataptr < final_pixel); i++)
                          {
-                            munmap(seg, ss.st_size);
-                            __imlib_FreeData(im);
-                            close(fd);
-                            return 0;
+                            WRITE_RGBA(dataptr, red, green, blue, alpha);
+                            dataptr++;
                          }
+                       break;
+
+                    case 24:
+                       blue = *bufptr++;
+                       green = *bufptr++;
+                       red = *bufptr++;
+                       for (i = 0; (i < count) && (dataptr < final_pixel); i++)
+                         {
+                            WRITE_RGBA(dataptr, red, green, blue, (char)0xff);
+                            dataptr++;
+                         }
+                       break;
+
+                    case 8:
+                       alpha = *bufptr++;
+                       for (i = 0; (i < count) && (dataptr < final_pixel); i++)
+                         {
+                            WRITE_RGBA(dataptr, alpha, alpha, alpha,
+                                       (char)0xff);
+                            dataptr++;
+                         }
+                       break;
+                    }
+               }                /* end if (RLE packet) */
+             else               /* raw packet */
+               {
+                  for (i = 0; (i < count) && (dataptr < final_pixel); i++)
+                    {
+                       if ((bufptr + bpp / 8) > bufend)
+                          goto quit;
+
                        switch (bpp)
                          {
 
@@ -387,153 +462,35 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
                             /* 8-bit grayscale */
                          case 8:
-                            WRITE_RGBA(dataptr, /* grayscale */
-                                       *bufptr, *bufptr, *bufptr, (char)0xff);
+                            WRITE_RGBA(dataptr, *bufptr,        /* pseudo-grayscale */
+                                       *bufptr, *bufptr, (char)0xff);
                             dataptr++;
                             bufptr += 1;
                             break;
                          }
-
-                    }           /* end for (each pixel) */
-               }
-             if (progress)
-               {
-                  progress(im, 100, 0, 0, im->w, im->h);
-               }                /* end for (each row) */
-          }
-        /* end if (!RLE) */
-        /* decode RLE compressed data */
-        else
-          {
-             unsigned char       curbyte, red, green, blue, alpha;
-             DATA32             *final_pixel = dataptr + im->w * im->h;
-
-             /* loop until we've got all the pixels or run out of input */
-             while ((dataptr < final_pixel))
-               {
-                  int                 count;
-
-                  if ((bufptr + 1 + (bpp / 8)) > bufend)
-                    {
-                       munmap(seg, ss.st_size);
-                       __imlib_FreeData(im);
-                       close(fd);
-                       return 0;
                     }
+               }                /* end if (raw packet) */
+          }                     /* end for (each packet) */
 
-                  curbyte = *bufptr++;
-                  count = (curbyte & 0x7F) + 1;
-
-                  if (curbyte & 0x80)   /* RLE packet */
-                    {
-                       int                 i;
-
-                       switch (bpp)
-                         {
-                         case 32:
-                            blue = *bufptr++;
-                            green = *bufptr++;
-                            red = *bufptr++;
-                            alpha = *bufptr++;
-                            for (i = 0; (i < count) && (dataptr < final_pixel);
-                                 i++)
-                              {
-                                 WRITE_RGBA(dataptr, red, green, blue, alpha);
-                                 dataptr++;
-                              }
-                            break;
-
-                         case 24:
-                            blue = *bufptr++;
-                            green = *bufptr++;
-                            red = *bufptr++;
-                            for (i = 0; (i < count) && (dataptr < final_pixel);
-                                 i++)
-                              {
-                                 WRITE_RGBA(dataptr, red, green, blue,
-                                            (char)0xff);
-                                 dataptr++;
-                              }
-                            break;
-
-                         case 8:
-                            alpha = *bufptr++;
-                            for (i = 0; (i < count) && (dataptr < final_pixel);
-                                 i++)
-                              {
-                                 WRITE_RGBA(dataptr, alpha, alpha, alpha,
-                                            (char)0xff);
-                                 dataptr++;
-                              }
-                            break;
-                         }
-
-                    }           /* end if (RLE packet) */
-
-                  else          /* raw packet */
-                    {
-                       int                 i;
-
-                       for (i = 0; (i < count) && (dataptr < final_pixel); i++)
-                         {
-                            if ((bufptr + bpp / 8) > bufend)
-                              {
-                                 munmap(seg, ss.st_size);
-                                 __imlib_FreeData(im);
-                                 close(fd);
-                                 return 0;
-                              }
-                            switch (bpp)
-                              {
-
-                                 /* 32-bit BGRA pixels */
-                              case 32:
-                                 WRITE_RGBA(dataptr, *(bufptr + 2),     /* R */
-                                            *(bufptr + 1),      /* G */
-                                            *(bufptr + 0),      /* B */
-                                            *(bufptr + 3)       /* A */
-                                    );
-                                 dataptr++;
-                                 bufptr += 4;
-                                 break;
-
-                                 /* 24-bit BGR pixels */
-                              case 24:
-                                 WRITE_RGBA(dataptr, *(bufptr + 2),     /* R */
-                                            *(bufptr + 1),      /* G */
-                                            *(bufptr + 0),      /* B */
-                                            (char)0xff  /* A */
-                                    );
-                                 dataptr++;
-                                 bufptr += 3;
-                                 break;
-
-                                 /* 8-bit grayscale */
-                              case 8:
-                                 WRITE_RGBA(dataptr, *bufptr,   /* pseudo-grayscale */
-                                            *bufptr, *bufptr, (char)0xff);
-                                 dataptr++;
-                                 bufptr += 1;
-                                 break;
-                              }
-                         }
-                    }           /* end if (raw packet) */
-               }                /* end for (each packet) */
-             /* must now flip a bottom-up image */
-             if (vinverted)
-                tgaflip(im->data, im->w, im->h);
-             if (progress)
-               {
-                  progress(im, 100, 0, 0, im->w, im->h);
-               }                /* end for (each row) */
-          }
-        /* end if (image is RLE) */
+        /* must now flip a bottom-up image */
+        if (vinverted)
+           tgaflip(im->data, im->w, im->h);
      }
-   /* end if (loading pixel data) */
 
-   munmap(seg, ss.st_size);
+   if (progress)
+     {
+        progress(im, 100, 0, 0, im->w, im->h);
+     }
+
+   rc = 1;                      /* Success */
+
+ quit:
+   if (rc == 0)
+      __imlib_FreeData(im);
+   if (seg != MAP_FAILED)
+      munmap(seg, ss.st_size);
    close(fd);
-   return 1;
+   return rc;
 }
 
 void
