@@ -94,6 +94,7 @@ struct _imlibcontext {
    Imlib_Text_Direction direction;
    double              angle;
    Imlib_Color         color;
+   DATA32              pixel;
    Imlib_Color_Range   color_range;
    Imlib_Image         image;
    Imlib_Image_Data_Memory_Function image_data_memory_func;
@@ -187,6 +188,7 @@ imlib_context_new(void)
    context->color.red = 255;
    context->color.green = 255;
    context->color.blue = 255;
+   context->pixel = 0xffffffff;
    context->color_range = NULL;
    context->image = NULL;
    context->image_data_memory_func = NULL;
@@ -842,11 +844,21 @@ imlib_context_get_direction(void)
 EAPI void
 imlib_context_set_color(int red, int green, int blue, int alpha)
 {
+   DATA8               r, g, b, a;
+
    CHECK_CONTEXT(ctx);
-   ctx->color.red = red;
-   ctx->color.green = green;
-   ctx->color.blue = blue;
-   ctx->color.alpha = alpha;
+
+   r = red;
+   g = green;
+   b = blue;
+   a = alpha;
+
+   ctx->color.red = r;
+   ctx->color.green = g;
+   ctx->color.blue = b;
+   ctx->color.alpha = a;
+
+   ctx->pixel = PIXEL_ARGB(a, r, g, b);
 }
 
 /**
@@ -973,11 +985,21 @@ imlib_context_get_color_hlsa(float *hue, float *lightness, float *saturation,
 EAPI void
 imlib_context_set_color_cmya(int cyan, int magenta, int yellow, int alpha)
 {
+   DATA8               r, g, b, a;
+
    CHECK_CONTEXT(ctx);
-   ctx->color.red = 255 - cyan;
-   ctx->color.green = 255 - magenta;
-   ctx->color.blue = 255 - yellow;
-   ctx->color.alpha = alpha;
+
+   r = 255 - cyan;
+   g = 255 - magenta;
+   b = 255 - yellow;
+   a = alpha;
+
+   ctx->color.red = r;
+   ctx->color.green = g;
+   ctx->color.blue = b;
+   ctx->color.alpha = a;
+
+   ctx->pixel = PIXEL_ARGB(a, r, g, b);
 }
 
 /**
@@ -4028,7 +4050,6 @@ EAPI                Imlib_Updates
 imlib_image_draw_pixel(int x, int y, char make_updates)
 {
    ImlibImage         *im;
-   DATA32              color;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_image_draw_pixel", "image", ctx->image,
@@ -4037,11 +4058,7 @@ imlib_image_draw_pixel(int x, int y, char make_updates)
    if (__imlib_LoadImageData(im))
       return NULL;
    __imlib_DirtyImage(im);
-   A_VAL(&color) = (DATA8) ctx->color.alpha;
-   R_VAL(&color) = (DATA8) ctx->color.red;
-   G_VAL(&color) = (DATA8) ctx->color.green;
-   B_VAL(&color) = (DATA8) ctx->color.blue;
-   return (Imlib_Updates) __imlib_Point_DrawToImage(x, y, color, im,
+   return (Imlib_Updates) __imlib_Point_DrawToImage(x, y, ctx->pixel, im,
                                                     ctx->cliprect.x,
                                                     ctx->cliprect.y,
                                                     ctx->cliprect.w,
@@ -4068,7 +4085,6 @@ EAPI                Imlib_Updates
 imlib_image_draw_line(int x1, int y1, int x2, int y2, char make_updates)
 {
    ImlibImage         *im;
-   DATA32              color;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_image_draw_line", "image", ctx->image,
@@ -4077,12 +4093,8 @@ imlib_image_draw_line(int x1, int y1, int x2, int y2, char make_updates)
    if (__imlib_LoadImageData(im))
       return NULL;
    __imlib_DirtyImage(im);
-   A_VAL(&color) = (DATA8) ctx->color.alpha;
-   R_VAL(&color) = (DATA8) ctx->color.red;
-   G_VAL(&color) = (DATA8) ctx->color.green;
-   B_VAL(&color) = (DATA8) ctx->color.blue;
-   return (Imlib_Updates) __imlib_Line_DrawToImage(x1, y1, x2, y2, color, im,
-                                                   ctx->cliprect.x,
+   return (Imlib_Updates) __imlib_Line_DrawToImage(x1, y1, x2, y2, ctx->pixel,
+                                                   im, ctx->cliprect.x,
                                                    ctx->cliprect.y,
                                                    ctx->cliprect.w,
                                                    ctx->cliprect.h,
@@ -4106,7 +4118,6 @@ EAPI void
 imlib_image_draw_rectangle(int x, int y, int width, int height)
 {
    ImlibImage         *im;
-   DATA32              color;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_draw_rectangle", "image", ctx->image);
@@ -4114,11 +4125,7 @@ imlib_image_draw_rectangle(int x, int y, int width, int height)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   A_VAL(&color) = (DATA8) ctx->color.alpha;
-   R_VAL(&color) = (DATA8) ctx->color.red;
-   G_VAL(&color) = (DATA8) ctx->color.green;
-   B_VAL(&color) = (DATA8) ctx->color.blue;
-   __imlib_Rectangle_DrawToImage(x, y, width, height, color,
+   __imlib_Rectangle_DrawToImage(x, y, width, height, ctx->pixel,
                                  im, ctx->cliprect.x, ctx->cliprect.y,
                                  ctx->cliprect.w, ctx->cliprect.h,
                                  ctx->operation, ctx->blend);
@@ -4138,7 +4145,6 @@ EAPI void
 imlib_image_fill_rectangle(int x, int y, int width, int height)
 {
    ImlibImage         *im;
-   DATA32              color;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_fill_rectangle", "image", ctx->image);
@@ -4146,11 +4152,7 @@ imlib_image_fill_rectangle(int x, int y, int width, int height)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   A_VAL(&color) = (DATA8) ctx->color.alpha;
-   R_VAL(&color) = (DATA8) ctx->color.red;
-   G_VAL(&color) = (DATA8) ctx->color.green;
-   B_VAL(&color) = (DATA8) ctx->color.blue;
-   __imlib_Rectangle_FillToImage(x, y, width, height, color,
+   __imlib_Rectangle_FillToImage(x, y, width, height, ctx->pixel,
                                  im, ctx->cliprect.x, ctx->cliprect.y,
                                  ctx->cliprect.w, ctx->cliprect.h,
                                  ctx->operation, ctx->blend);
@@ -5290,7 +5292,6 @@ EAPI void
 imlib_image_draw_polygon(ImlibPolygon poly, unsigned char closed)
 {
    ImlibImage         *im;
-   DATA32              color;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_draw_polygon", "image", ctx->image);
@@ -5298,11 +5299,7 @@ imlib_image_draw_polygon(ImlibPolygon poly, unsigned char closed)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   A_VAL(&color) = (DATA8) ctx->color.alpha;
-   R_VAL(&color) = (DATA8) ctx->color.red;
-   G_VAL(&color) = (DATA8) ctx->color.green;
-   B_VAL(&color) = (DATA8) ctx->color.blue;
-   __imlib_Polygon_DrawToImage((ImlibPoly) poly, closed, color,
+   __imlib_Polygon_DrawToImage((ImlibPoly) poly, closed, ctx->pixel,
                                im, ctx->cliprect.x, ctx->cliprect.y,
                                ctx->cliprect.w, ctx->cliprect.h,
                                ctx->operation, ctx->blend, ctx->anti_alias);
@@ -5318,7 +5315,6 @@ EAPI void
 imlib_image_fill_polygon(ImlibPolygon poly)
 {
    ImlibImage         *im;
-   DATA32              color;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_fill_polygon", "image", ctx->image);
@@ -5326,11 +5322,7 @@ imlib_image_fill_polygon(ImlibPolygon poly)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   A_VAL(&color) = (DATA8) ctx->color.alpha;
-   R_VAL(&color) = (DATA8) ctx->color.red;
-   G_VAL(&color) = (DATA8) ctx->color.green;
-   B_VAL(&color) = (DATA8) ctx->color.blue;
-   __imlib_Polygon_FillToImage((ImlibPoly) poly, color,
+   __imlib_Polygon_FillToImage((ImlibPoly) poly, ctx->pixel,
                                im, ctx->cliprect.x, ctx->cliprect.y,
                                ctx->cliprect.w, ctx->cliprect.h,
                                ctx->operation, ctx->blend, ctx->anti_alias);
@@ -5372,7 +5364,6 @@ EAPI void
 imlib_image_draw_ellipse(int xc, int yc, int a, int b)
 {
    ImlibImage         *im;
-   DATA32              color;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_draw_ellipse", "image", ctx->image);
@@ -5380,11 +5371,7 @@ imlib_image_draw_ellipse(int xc, int yc, int a, int b)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   A_VAL(&color) = (DATA8) ctx->color.alpha;
-   R_VAL(&color) = (DATA8) ctx->color.red;
-   G_VAL(&color) = (DATA8) ctx->color.green;
-   B_VAL(&color) = (DATA8) ctx->color.blue;
-   __imlib_Ellipse_DrawToImage(xc, yc, a, b, color,
+   __imlib_Ellipse_DrawToImage(xc, yc, a, b, ctx->pixel,
                                im, ctx->cliprect.x, ctx->cliprect.y,
                                ctx->cliprect.w, ctx->cliprect.h,
                                ctx->operation, ctx->blend, ctx->anti_alias);
@@ -5407,7 +5394,6 @@ EAPI void
 imlib_image_fill_ellipse(int xc, int yc, int a, int b)
 {
    ImlibImage         *im;
-   DATA32              color;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_fill_ellipse", "image", ctx->image);
@@ -5415,11 +5401,7 @@ imlib_image_fill_ellipse(int xc, int yc, int a, int b)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   A_VAL(&color) = (DATA8) ctx->color.alpha;
-   R_VAL(&color) = (DATA8) ctx->color.red;
-   G_VAL(&color) = (DATA8) ctx->color.green;
-   B_VAL(&color) = (DATA8) ctx->color.blue;
-   __imlib_Ellipse_FillToImage(xc, yc, a, b, color,
+   __imlib_Ellipse_FillToImage(xc, yc, a, b, ctx->pixel,
                                im, ctx->cliprect.x, ctx->cliprect.y,
                                ctx->cliprect.w, ctx->cliprect.h,
                                ctx->operation, ctx->blend, ctx->anti_alias);
