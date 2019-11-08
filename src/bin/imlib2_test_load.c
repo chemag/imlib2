@@ -56,7 +56,7 @@ main(int argc, char **argv)
           }
      }
 
-   if (argc <= 1)
+   if (argc < 1)
       usage(0);
 
    imlib_context_set_progress_function(progress);
