@@ -19,21 +19,6 @@
 
 #endif
 
-/* FIXME: endian dependent */
-#define READ_RGB(p, r, g, b)  \
-   (r) = R_VAL(p); \
-   (g) = G_VAL(p); \
-   (b) = B_VAL(p);
-
-#define READ_ALPHA(p, a) \
-   (a) = A_VAL(p);
-
-#define READ_RGBA(p, r, g, b, a) \
-   (r) = R_VAL(p); \
-   (g) = G_VAL(p); \
-   (b) = B_VAL(p); \
-   (a) = A_VAL(p);
-
 #define INTERSECTS(x, y, w, h, xx, yy, ww, hh) \
    ((x < (xx + ww)) && \
        (y < (yy + hh)) && \
