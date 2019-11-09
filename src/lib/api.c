@@ -3299,9 +3299,7 @@ imlib_text_draw_with_return_metrics(int x, int y, const char *text,
    if (ctx->direction == IMLIB_TEXT_TO_ANGLE && ctx->angle == 0.0)
       dir = IMLIB_TEXT_TO_RIGHT;
 
-   __imlib_render_str(im, fn, x, y, text, (DATA8) ctx->color.red,
-                      (DATA8) ctx->color.green, (DATA8) ctx->color.blue,
-                      (DATA8) ctx->color.alpha, (char)dir,
+   __imlib_render_str(im, fn, x, y, text, ctx->pixel, dir,
                       ctx->angle, width_return, height_return, 0,
                       horizontal_advance_return, vertical_advance_return,
                       ctx->operation,

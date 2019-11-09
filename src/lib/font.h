@@ -104,8 +104,7 @@ int                 __imlib_font_query_text_at_pos(ImlibFont * fn,
 Imlib_Font_Glyph   *__imlib_font_cache_glyph_get(ImlibFont * fn, FT_UInt index);
 void                __imlib_render_str(ImlibImage * im, ImlibFont * f,
                                        int drx, int dry, const char *text,
-                                       DATA8 r, DATA8 g, DATA8 b, DATA8 a,
-                                       char dir, double angle,
+                                       DATA32 pixel, int dir, double angle,
                                        int *retw, int *reth, int blur,
                                        int *nextx, int *nexty, ImlibOp op,
                                        int clx, int cly, int clw, int clh);
