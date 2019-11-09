@@ -122,27 +122,17 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    for (y = 0; y < im->h; y++)
      {
         int                 x;
-        unsigned char       r, g, b, a;
 
         /* for each pixel in the row */
         for (x = 0; x < im->w; x++)
           {
+             DATA32              pixel = *dataptr++;
+
+             *bufptr++ = PIXEL_B(pixel);
+             *bufptr++ = PIXEL_G(pixel);
+             *bufptr++ = PIXEL_R(pixel);
              if (im->flags & F_HAS_ALPHA)
-               {
-                  READ_RGBA(dataptr, r, g, b, a);
-                  *bufptr++ = b;
-                  *bufptr++ = g;
-                  *bufptr++ = r;
-                  *bufptr++ = a;
-               }
-             else
-               {
-                  READ_RGB(dataptr, r, g, b);
-                  *bufptr++ = b;
-                  *bufptr++ = g;
-                  *bufptr++ = r;
-               }
-             dataptr++;
+                *bufptr++ = PIXEL_A(pixel);
           }                     /* end for (each pixel in row) */
 
         /* report progress every row */

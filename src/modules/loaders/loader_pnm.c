@@ -467,12 +467,13 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
              bptr = buf;
              for (x = 0; x < im->w; x++)
                {
-                  bptr[0] = ((*ptr) >> 16) & 0xff;
-                  bptr[1] = ((*ptr) >> 8) & 0xff;
-                  bptr[2] = ((*ptr)) & 0xff;
-                  bptr[3] = ((*ptr) >> 24) & 0xff;
+                  DATA32              pixel = *ptr++;
+
+                  bptr[0] = PIXEL_R(pixel);
+                  bptr[1] = PIXEL_G(pixel);
+                  bptr[2] = PIXEL_B(pixel);
+                  bptr[3] = PIXEL_A(pixel);
                   bptr += 4;
-                  ptr++;
                }
              fwrite(buf, im->w * 4, 1, f);
              if (progress &&
@@ -495,11 +496,12 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
              bptr = buf;
              for (x = 0; x < im->w; x++)
                {
-                  bptr[0] = ((*ptr) >> 16) & 0xff;
-                  bptr[1] = ((*ptr) >> 8) & 0xff;
-                  bptr[2] = ((*ptr)) & 0xff;
+                  DATA32              pixel = *ptr++;
+
+                  bptr[0] = PIXEL_R(pixel);
+                  bptr[1] = PIXEL_G(pixel);
+                  bptr[2] = PIXEL_B(pixel);
                   bptr += 3;
-                  ptr++;
                }
              fwrite(buf, im->w * 3, 1, f);
              if (progress &&

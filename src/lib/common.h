@@ -40,6 +40,11 @@
 
 #define PIXEL_ARGB(a, r, g, b)  ((a) << 24) | ((r) << 16) | ((g) << 8) | (b)
 
+#define PIXEL_A(argb)  (((argb) >> 24) & 0xff)
+#define PIXEL_R(argb)  (((argb) >> 16) & 0xff)
+#define PIXEL_G(argb)  (((argb) >>  8) & 0xff)
+#define PIXEL_B(argb)  (((argb)      ) & 0xff)
+
 #ifdef DO_MMX_ASM
 int                 __imlib_get_cpuid(void);
 

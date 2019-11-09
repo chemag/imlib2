@@ -347,13 +347,16 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
                {
                   for (j = 0, x = 0; x < im->w; x++)
                     {
-                       data[j++] = (ptr[x] >> 16) & 0xff;
-                       data[j++] = (ptr[x] >> 8) & 0xff;
-                       data[j++] = (ptr[x]) & 0xff;
+                       DATA32              pixel = ptr[x];
+
+                       data[j++] = PIXEL_R(pixel);
+                       data[j++] = PIXEL_G(pixel);
+                       data[j++] = PIXEL_B(pixel);
                     }
                   row_ptr = (png_bytep) data;
                }
              png_write_rows(png_ptr, &row_ptr, 1);
+
              if (progress)
                {
                   char                per;

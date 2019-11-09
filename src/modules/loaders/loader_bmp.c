@@ -941,9 +941,9 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
         for (j = 0; j < im->w; j++)
           {
              pixel = im->data[im->w * (im->h - i - 1) + j];
-             WriteleByte(f, pixel & 0xff);
-             WriteleByte(f, (pixel >> 8) & 0xff);
-             WriteleByte(f, (pixel >> 16) & 0xff);
+             WriteleByte(f, PIXEL_B(pixel));
+             WriteleByte(f, PIXEL_G(pixel));
+             WriteleByte(f, PIXEL_R(pixel));
           }
         for (j = 0; j < pad; j++)
            WriteleByte(f, 0);

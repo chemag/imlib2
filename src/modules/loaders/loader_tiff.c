@@ -524,13 +524,13 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
           {
              pixel = data[(y * im->w) + x];
 
-             r = (pixel >> 16) & 0xff;
-             g = (pixel >> 8) & 0xff;
-             b = pixel & 0xff;
+             r = PIXEL_R(pixel);
+             g = PIXEL_G(pixel);
+             b = PIXEL_B(pixel);
              if (has_alpha)
                {
                   /* TIFF makes you pre-mutiply the rgb components by alpha */
-                  a = (pixel >> 24) & 0xff;
+                  a = PIXEL_A(pixel);
                   alpha_factor = ((double)a / 255.0);
                   r *= alpha_factor;
                   g *= alpha_factor;

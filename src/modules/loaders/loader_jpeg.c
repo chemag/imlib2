@@ -286,10 +286,11 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
         /* convcert scaline from ARGB to RGB packed */
         for (j = 0, i = 0; i < im->w; i++)
           {
-             buf[j++] = ((*ptr) >> 16) & 0xff;
-             buf[j++] = ((*ptr) >> 8) & 0xff;
-             buf[j++] = ((*ptr)) & 0xff;
-             ptr++;
+             DATA32              pixel = *ptr++;
+
+             buf[j++] = PIXEL_R(pixel);
+             buf[j++] = PIXEL_G(pixel);
+             buf[j++] = PIXEL_B(pixel);
           }
         /* write scanline */
         jbuf = (JSAMPROW *) (&buf);
