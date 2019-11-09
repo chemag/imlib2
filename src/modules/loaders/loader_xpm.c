@@ -125,13 +125,14 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    if (!f)
       return 0;
 
-   if (fread(s, 1, 9, f) != 9)
+   if (fread(s, 1, sizeof(s) - 1, f) < 9)
+      goto quit;
+
+   s[sizeof(s) - 1] = '\0';
+   if (!strstr(s, " XPM */"))
       goto quit;
 
    rewind(f);
-   s[9] = 0;
-   if (strcmp("/* XPM */", s))
-      goto quit;
 
    i = 0;
    j = 0;
