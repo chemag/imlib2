@@ -118,7 +118,7 @@ main(int argc, char **argv)
    char               *s;
    Imlib_Image        *im = NULL;
    char               *file = NULL;
-   int                 no = 1;
+   int                 no = 1, inc;
 
    for (no = 1; no < argc; no++)
      {
@@ -202,6 +202,9 @@ main(int argc, char **argv)
         XNextEvent(disp, &ev);
         switch (ev.type)
           {
+          default:
+             break;
+
           case ClientMessage:
              if (ev.xclient.message_type == ATOM_WM_PROTOCOLS &&
                  (Atom) ev.xclient.data.l[0] == ATOM_WM_DELETE_WINDOW)
@@ -211,6 +214,10 @@ main(int argc, char **argv)
              key = XLookupKeysym(&ev.xkey, 0);
              if (key == XK_q)
                 return 0;
+             if (key == XK_Right)
+                goto show_next;
+             if (key == XK_Left)
+                goto show_prev;
              break;
           case ButtonPress:
              b = ev.xbutton.button;
@@ -239,51 +246,9 @@ main(int argc, char **argv)
              if (b == 3)
                 zoom_mode = 0;
              if (b == 1)
-               {
-                  no++;
-                  if (no == argc)
-                     no = argc - 1;
-                  file = argv[no];
-                  image_width = 0;
-                  zoom = 1.0;
-                  zoom_mode = 0;
-                  imlib_context_set_image(im);
-                  imlib_free_image_and_decache();
-                  im = imlib_load_image(file);
-                  while (!im)
-                    {
-                       no++;
-                       if (no == argc)
-                          exit(0);
-                       file = argv[no];
-                       image_width = 0;
-                       im = imlib_load_image(file);
-                    }
-                  imlib_context_set_image(im);
-               }
+                goto show_next;
              if (b == 2)
-               {
-                  no--;
-                  if (no == 0)
-                     no = 1;
-                  file = argv[no];
-                  image_width = 0;
-                  zoom = 1.0;
-                  zoom_mode = 0;
-                  imlib_context_set_image(im);
-                  imlib_free_image_and_decache();
-                  im = imlib_load_image(file);
-                  while (!im)
-                    {
-                       no--;
-                       if (no == 0)
-                          no = 1;
-                       file = argv[no];
-                       image_width = 0;
-                       im = imlib_load_image(file);
-                    }
-                  imlib_context_set_image(im);
-               }
+                goto show_prev;
              break;
           case MotionNotify:
              while (XCheckTypedWindowEvent(disp, win, MotionNotify, &ev));
@@ -334,7 +299,32 @@ main(int argc, char **argv)
                   XFlush(disp);
                   timeout = 1;
                }
-          default:
+             break;
+
+           show_next:
+             inc = 1;
+             goto show_next_prev;
+           show_prev:
+             inc = -1;
+             goto show_next_prev;
+           show_next_prev:
+             zoom = 1.0;
+             zoom_mode = 0;
+             imlib_context_set_image(im);
+             imlib_free_image_and_decache();
+             im = NULL;
+             for (; !im;)
+               {
+                  no += inc;
+                  if (no >= argc)
+                     no = argc - 1;
+                  else if (no <= 0)
+                     no = 1;
+                  file = argv[no];
+                  image_width = 0;
+                  im = imlib_load_image(file);
+               }
+             imlib_context_set_image(im);
              break;
           }
         t1 = 0.2;
