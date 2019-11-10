@@ -327,6 +327,10 @@ main(int argc, char **argv)
              imlib_context_set_image(im);
              break;
           }
+
+        if (XPending(disp))
+           continue;
+
         t1 = 0.2;
         tval.tv_sec = (long)t1;
         tval.tv_usec = (long)((t1 - ((double)tval.tv_sec)) * 1000000);
@@ -334,10 +338,12 @@ main(int argc, char **argv)
         fdsize = xfd + 1;
         FD_ZERO(&fdset);
         FD_SET(xfd, &fdset);
+
         if (timeout)
            count = select(fdsize, &fdset, NULL, NULL, &tval);
         else
            count = select(fdsize, &fdset, NULL, NULL, NULL);
+
         if (count < 0)
           {
              if ((errno == ENOMEM) || (errno == EINVAL) || (errno == EBADF))
