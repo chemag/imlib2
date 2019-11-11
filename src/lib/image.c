@@ -12,9 +12,13 @@
 #endif
 
 #include "Imlib2.h"
+#include "debug.h"
 #include "file.h"
 #include "image.h"
 #include "loaders.h"
+
+#define DBG_PFX "IMG"
+#define DP(fmt...) DC(DBG_LOAD, fmt)
 
 /* Imlib loader context */
 struct _imlibldctx {
@@ -503,6 +507,13 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
 {
    int                 rc;
 
+   DP("%s: fmt='%s' file='%s'(%s), imm=%d\n", __func__,
+      l->formats[0], im->file, im->real_file, load_data);
+
+#if IMLIB2_DEBUG
+   unsigned int        t0 = __imlib_time_us();
+#endif
+
    if (l->load2)
      {
         FILE               *fp = NULL;
@@ -530,19 +541,28 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
         return LOAD_FAIL;
      }
 
+   DP("%s: %-4s: %s: Elapsed time: %.3f ms\n", __func__,
+      l->formats[0], im->file, 1e-3 * (__imlib_time_us() - t0));
+
    if (rc <= LOAD_FAIL)
      {
         /* Failed - clean up */
+        DP("%s: Failed\n", __func__);
+
         if (im->w != 0 || im->h != 0)
           {
+             DP("%s: Loader %s: Didn't clear w/h=%d/%d\n", __func__,
+                l->formats[0], im->w, im->h);
              im->w = im->h = 0;
           }
         if (im->data)
           {
+             DP("%s: Loader %s: Free im->data\n", __func__, l->formats[0]);
              __imlib_FreeData(im);
           }
         if (im->format)
           {
+             DP("%s: Loader %s: Free im->format\n", __func__, l->formats[0]);
              free(im->format);
              im->format = NULL;
           }

@@ -5,9 +5,13 @@
 #include <string.h>
 #include <time.h>
 
+#include "debug.h"
 #include "file.h"
 #include "image.h"
 #include "loaders.h"
+
+#define DBG_PFX "LOAD"
+#define DP(fmt...) DC(DBG_LOAD, fmt)
 
 static ImlibLoader *loaders = NULL;
 
@@ -24,6 +28,8 @@ __imlib_ProduceLoader(char *file)
 {
    ImlibLoader        *l;
    void                (*l_formats)(ImlibLoader * l);
+
+   DP("%s: %s\n", __func__, file);
 
    l = malloc(sizeof(ImlibLoader));
    l->num_formats = 0;
@@ -93,6 +99,8 @@ __imlib_LoadAllLoaders(void)
    int                 i, num;
    char              **list;
 
+   DP("%s\n", __func__);
+
    if (loaders)
       return;
 
@@ -124,6 +132,8 @@ __EXPORT__ ImlibLoader *
 __imlib_FindBestLoaderForFormat(const char *format, int for_save)
 {
    ImlibLoader        *l;
+
+   DP("%s: fmt='%s'\n", __func__, format);
 
    if (!format || format[0] == '\0')
       return NULL;
@@ -159,6 +169,7 @@ __imlib_FindBestLoaderForFormat(const char *format, int for_save)
      }
 
  done:
+   DP("%s: fmt='%s': %s\n", __func__, format, l ? l->file : "-");
    return l;
 }
 
@@ -166,6 +177,8 @@ __EXPORT__ ImlibLoader *
 __imlib_FindBestLoaderForFile(const char *file, int for_save)
 {
    ImlibLoader        *l;
+
+   DP("%s: file='%s'\n", __func__, file);
 
    l = __imlib_FindBestLoaderForFormat(__imlib_FileExtension(file), for_save);
 
@@ -176,6 +189,8 @@ ImlibLoader        *
 __imlib_FindBestLoaderForFileFormat(const char *file, const char *format,
                                     int for_save)
 {
+   DP("%s: file='%s' ext='%s'\n", __func__, file, format);
+
    /* if the format is provided ("png" "jpg" etc.) use that */
    /* otherwise us the file extension */
    if (format)
