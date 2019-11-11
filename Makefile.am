@@ -2,7 +2,11 @@ AUTOMAKE_OPTIONS = foreign
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src data doc
+if BUILD_TEST
+SUBDIRS_TEST = test
+endif
+
+SUBDIRS = src data doc $(SUBDIRS_TEST)
 
 CLEANFILES = $(PACKAGE).spec
 

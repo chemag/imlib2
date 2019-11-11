@@ -4,7 +4,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 
-AM_INIT_AUTOMAKE(1.6 dist-xz)
+AM_INIT_AUTOMAKE(1.6 dist-xz -Wno-portability)
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AM_CONDITIONAL(SRC_IS_GIT, test -d $srcdir/.git)
@@ -12,6 +12,7 @@ AM_CONDITIONAL(SRC_IS_GIT, test -d $srcdir/.git)
 AC_C_BIGENDIAN
 AC_PROG_CC
 AM_PROG_AS
+AC_PROG_CXX
 
 AC_C_CONST
 
@@ -388,6 +389,7 @@ else
 fi
 AM_CONDITIONAL(BUILD_ID3_LOADER, test "$id3_ok" = yes)
 
+AM_CONDITIONAL(BUILD_TEST, false)
 
 EC_C_WARNINGS()
 EC_C_VISIBILITY(yes)
@@ -407,6 +409,7 @@ data/Makefile
 data/fonts/Makefile
 data/images/Makefile
 doc/Makefile
+test/Makefile
 README
 ])
 AC_OUTPUT

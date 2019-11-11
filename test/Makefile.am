@@ -1,0 +1,53 @@
+# Unit test makefile
+#
+noinst_PROGRAMS = $(GTESTS)
+
+ GTEST_LIBS = -lgtest -lstdc++
+
+ GTESTS  = test_file
+ GTESTS += test_load
+ GTESTS += test_save
+
+ AM_CFLAGS  = -Wall -Wextra -Werror -Wno-unused-parameter
+ AM_CFLAGS += $(CFLAGS_ASAN)
+
+ AM_CXXFLAGS = $(AM_CFLAGS)
+
+ AM_CPPFLAGS  = -I $(top_builddir) -I $(top_srcdir)/src/lib
+ AM_CPPFLAGS += -D SRC_DIR='"$(top_srcdir)"'
+ AM_CPPFLAGS += -D BUILD_TEST=1
+
+# Must have proper -lImlib2 on all progs
+ LIBS  = -L$(top_builddir)/src/lib -lImlib2
+ LIBS += $(GTEST_LIBS)
+
+vpath %.c   $(top_srcdir)/src/lib
+
+test_file_SOURCES = test_file.cpp file.c
+test_file_LDADD = $(LIBS)
+
+test_load_SOURCES = test_load.cpp
+test_load_LDADD = $(LIBS)
+
+test_save_SOURCES = test_save.cpp
+test_save_LDADD = $(LIBS)
+
+ TESTS_RUN = $(addprefix run-, $(GTESTS))
+
+ TEST_ENV = IMLIB2_LOADER_PATH=$(top_builddir)/src/modules/loaders/.libs
+
+ VG_PROG = valgrind --leak-check=full
+
+all-local: run
+
+.PHONY: run $(TESTS_RUN)
+run: $(TESTS_RUN)
+$(TESTS_RUN): run-%: %
+	$(TEST_ENV) ./$* $(RUN_OPTS)
+
+ TESTS_RUN_VG = $(addprefix run-vg-, $(GTESTS))
+
+.PHONY: run-vg $(TESTS_RUN_VG)
+run-vg: $(TESTS_RUN_VG)
+$(TESTS_RUN_VG): run-vg-%: %
+	$(TEST_ENV) $(VG_PROG) ./$* $(RUN_OPTS)
