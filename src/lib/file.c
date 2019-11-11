@@ -12,6 +12,14 @@
 
 #include "file.h"
 
+int
+__imlib_IsRealFile(const char *s)
+{
+   struct stat         st;
+
+   return (stat(s, &st) != -1) && (S_ISREG(st.st_mode));
+}
+
 char               *
 __imlib_FileKey(const char *file)
 {
@@ -104,129 +112,82 @@ __imlib_FileExtension(const char *file)
    return *p != '\0' ? p : NULL;
 }
 
+static int
+__imlib_FileStat(const char *file, struct stat *st)
+{
+   int                 err = 0;
+   char               *fl;
+
+   if ((!file) || (!*file))
+      return -1;
+
+   if (__imlib_IsRealFile(file))
+      fl = strdup(file);
+   else
+      fl = __imlib_FileRealFile(file);
+   if (!fl)
+      return -1;
+
+   if (stat(fl, st) < 0)
+      err = -1;
+
+   free(fl);
+   return err;
+}
+
 int
 __imlib_FileExists(const char *s)
 {
    struct stat         st;
-   char               *fl;
 
-   if ((!s) || (!*s))
-      return 0;
-   if (__imlib_IsRealFile(s))
-      fl = strdup(s);
-   else
-      fl = __imlib_FileRealFile(s);
-   if (!fl)
-      return 0;
-   if (stat(fl, &st) < 0)
-     {
-        free(fl);
-        return 0;
-     }
-   free(fl);
-   return 1;
+   return __imlib_FileStat(s, &st) == 0;
 }
 
 int
 __imlib_FileIsFile(const char *s)
 {
    struct stat         st;
-   char               *fl;
 
-   if ((!s) || (!*s))
+   if (__imlib_FileStat(s, &st))
       return 0;
-   if (__imlib_IsRealFile(s))
-      fl = strdup(s);
-   else
-      fl = __imlib_FileRealFile(s);
-   if (!fl)
-      return 0;
-   if (stat(fl, &st) < 0)
-     {
-        free(fl);
-        return 0;
-     }
-   if (S_ISREG(st.st_mode))
-     {
-        free(fl);
-        return 1;
-     }
-   free(fl);
-   return 0;
+
+   return (S_ISREG(st.st_mode)) ? 1 : 0;
 }
 
 int
 __imlib_FileIsDir(const char *s)
 {
    struct stat         st;
-   char               *fl;
 
-   if ((!s) || (!*s))
+   if (__imlib_FileStat(s, &st))
       return 0;
-   if (__imlib_IsRealFile(s))
-      fl = strdup(s);
-   else
-      fl = __imlib_FileRealFile(s);
-   if (!fl)
-      return 0;
-   if (stat(fl, &st) < 0)
-     {
-        free(fl);
-        return 0;
-     }
-   if (S_ISDIR(st.st_mode))
-     {
-        free(fl);
-        return 1;
-     }
-   free(fl);
-   return 0;
+
+   return (S_ISDIR(st.st_mode)) ? 1 : 0;
 }
 
-int
-__imlib_FilePermissions(const char *s)
+time_t
+__imlib_FileModDate(const char *s)
 {
    struct stat         st;
-   char               *fl;
 
-   if ((!s) || (!*s))
+   if (__imlib_FileStat(s, &st))
       return 0;
-   if (__imlib_IsRealFile(s))
-      fl = strdup(s);
-   else
-      fl = __imlib_FileRealFile(s);
-   if (!fl)
-      return 0;
-   if (stat(fl, &st) < 0)
-     {
-        free(fl);
-        return 0;
-     }
-   free(fl);
-   return st.st_mode;
+
+   return (st.st_mtime > st.st_ctime) ? st.st_mtime : st.st_ctime;
 }
 
 int
 __imlib_FileCanRead(const char *s)
 {
-   char               *fl;
-   int                 val;
+   struct stat         st;
 
-   if (__imlib_IsRealFile(s))
-      fl = strdup(s);
-   else
-      fl = __imlib_FileRealFile(s);
-   if (!fl)
+   if (__imlib_FileStat(s, &st))
       return 0;
-   if (!(__imlib_FilePermissions(fl) & (S_IRUSR | S_IRGRP | S_IROTH)))
-     {
-        free(fl);
-        return 0;
-     }
 
-   val = (1 + access(fl, R_OK));
-   free(fl);
-   return val;
+   if (!(st.st_mode & (S_IRUSR | S_IRGRP | S_IROTH)))
+      return 0;
+
+   return access(s, R_OK) == 0 ? 1 : 0; // ??? TBD
 }
 
 char              **
@@ -313,42 +274,6 @@ __imlib_FileDel(const char *s)
    if ((!s) || (!*s))
       return;
    unlink(s);
-}
-
-int
-__imlib_IsRealFile(const char *s)
-{
-   struct stat         st;
-
-   return (stat(s, &st) != -1) && (S_ISREG(st.st_mode));
-}
-
-time_t
-__imlib_FileModDate(const char *s)
-{
-   struct stat         st;
-   char               *fl;
-
-   if ((!s) || (!*s))
-      return 0;
-   if (__imlib_IsRealFile(s))
-      fl = strdup(s);
-   else
-      fl = __imlib_FileRealFile(s);
-   if (!fl)
-      return 0;
-   if (stat(fl, &st) < 0)
-     {
-        free(fl);
-        return 0;
-     }
-   if (st.st_mtime > st.st_ctime)
-     {
-        free(fl);
-        return st.st_mtime;
-     }
-   free(fl);
-   return st.st_ctime;
 }
 
 char               *
