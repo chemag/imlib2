@@ -788,14 +788,9 @@ __imlib_FindBestLoaderForFormat(const char *format, int for_save)
 __EXPORT__ ImlibLoader *
 __imlib_FindBestLoaderForFile(const char *file, int for_save)
 {
-   char               *extension;
    ImlibLoader        *l;
 
-   extension = __imlib_FileExtension(file);
-
-   l = __imlib_FindBestLoaderForFormat(extension, for_save);
-
-   free(extension);
+   l = __imlib_FindBestLoaderForFormat(__imlib_FileExtension(file), for_save);
 
    return l;
 }

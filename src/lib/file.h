@@ -5,7 +5,7 @@
 
 char               *__imlib_FileKey(const char *file);
 char               *__imlib_FileRealFile(const char *file);
-char               *__imlib_FileExtension(const char *file);
+const char         *__imlib_FileExtension(const char *file);
 int                 __imlib_FileExists(const char *s);
 int                 __imlib_FileIsFile(const char *s);
 int                 __imlib_FileIsDir(const char *s);

@@ -92,26 +92,16 @@ __imlib_FileRealFile(const char *file)
    return newfile;
 }
 
-char               *
+const char         *
 __imlib_FileExtension(const char *file)
 {
-   char               *p;
-   char               *fl;
+   const char         *p;
 
-   fl = __imlib_FileRealFile(file);
-   if (!fl)
-      return strdup("");
    p = strrchr(file, '.');
-   if (p)
-     {
-        char               *ret;
-
-        ret = strdup(p + 1);
-        free(fl);
-        return ret;
-     }
-   free(fl);
-   return strdup("");
+   if (!p)
+      return NULL;
+   p++;
+   return *p != '\0' ? p : NULL;
 }
 
 int
