@@ -877,12 +877,12 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
    ImlibLoader        *best_loader;
    char                loader_ret = 0;
 
-   if (!file)
+   if (!file || file[0] == '\0')
       return NULL;
-   if (file[0] == 0)
-      return NULL;
+
    /* see if we already have the image cached */
    im = __imlib_FindCachedImage(file);
+
    /* if we found a cached image and we should always check that it is */
    /* accurate to the disk conents if they changed since we last loaded */
    /* and that it is still a valid image */
@@ -913,10 +913,12 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
              return im;
           }
      }
+
    /* either image in cache is invalid or we dont even have it in cache */
    /* so produce a new one and load an image into that */
    im = __imlib_ProduceImage();
    im->file = strdup(file);
+
    if (__imlib_IsRealFile(file))
      {
         im->real_file = strdup(im->file);
@@ -927,9 +929,12 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
         im->real_file = __imlib_FileRealFile(file);
         im->key = __imlib_FileKey(file);
      }
+
    im->moddate = __imlib_FileModDate(file);
+
    /* ok - just check all our loaders are up to date */
    __imlib_RescanLoaders();
+
    /* take a guess by extension on the best loader to use */
    best_loader = __imlib_FindBestLoaderForFile(im->real_file, 0);
    errno = 0;
@@ -938,6 +943,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
          __imlib_LoadImageWrapper(best_loader, im,
                                   progress, progress_granularity,
                                   immediate_load);
+
    /* width is still 0 - the loader didn't manage to do anything */
    if (im->w == 0)
      {
@@ -976,6 +982,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
      }
    else
       im->loader = best_loader;
+
    /* all loaders have been tried and they all failed. free the skeleton */
    /* image struct we had and return NULL */
    if (im->w == 0)
@@ -1175,8 +1182,10 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
            *er = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
         return;
      }
+
    /* ok - just check all our loaders are up to date */
    __imlib_RescanLoaders();
+
    /* set the filename to the saved one */
    pfile = im->file;
    im->file = strdup(file);
@@ -1198,12 +1207,14 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
         im->file = pfile;
         return;
      }
+
    /* if they want an error returned - assume none by default */
    if (er)
       *er = IMLIB_LOAD_ERROR_NONE;
 
    /* call the saver */
    e = l->save(im, progress, progress_granularity);
+
    /* set the filename back to the laoder image filename */
    free(im->file);
    im->file = pfile;
