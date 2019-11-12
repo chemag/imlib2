@@ -115,24 +115,10 @@ __imlib_FileExtension(const char *file)
 static int
 __imlib_FileStat(const char *file, struct stat *st)
 {
-   int                 err = 0;
-   char               *fl;
-
    if ((!file) || (!*file))
       return -1;
 
-   if (__imlib_IsRealFile(file))
-      fl = strdup(file);
-   else
-      fl = __imlib_FileRealFile(file);
-   if (!fl)
-      return -1;
-
-   if (stat(fl, st) < 0)
-      err = -1;
-
-   free(fl);
-   return err;
+   return stat(file, st);
 }
 
 int
