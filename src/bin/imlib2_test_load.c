@@ -56,19 +56,14 @@ main(int argc, char **argv)
           }
      }
 
-   if (argc < 1)
+   if (argc <= 0)
       usage(0);
 
    imlib_context_set_progress_function(progress);
    imlib_context_set_progress_granularity(10);
 
-   for (;;)
+   for (; argc > 0; argc--, argv++)
      {
-        argc--;
-        argv++;
-        if (argc <= 0)
-           break;
-
         progress_called = 0;
 
         printf("Loading image: '%s'\n", argv[0]);
