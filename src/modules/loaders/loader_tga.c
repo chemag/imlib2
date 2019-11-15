@@ -196,6 +196,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    DATA32             *dataptr;
 
    int                 y, palcnt = 0, palbpp = 0;
+   unsigned char       a, r, g, b;
 
    fd = open(im->real_file, O_RDONLY);
    if (fd < 0)
@@ -347,36 +348,37 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                   switch (bpp)
                     {
                     case 32:   /* 32-bit BGRA pixels */
-                       *dataptr++ =
-                          PIXEL_ARGB(bufptr[3], bufptr[2], bufptr[1],
-                                     bufptr[0]);
-                       bufptr += 4;
+                       b = *bufptr++;
+                       g = *bufptr++;
+                       r = *bufptr++;
+                       a = *bufptr++;
+                       *dataptr++ = PIXEL_ARGB(a, r, g, b);
                        break;
 
                     case 24:   /* 24-bit BGR pixels */
-                       *dataptr++ =
-                          PIXEL_ARGB(0xff, bufptr[2], bufptr[1], bufptr[0]);
-                       bufptr += 3;
+                       b = *bufptr++;
+                       g = *bufptr++;
+                       r = *bufptr++;
+                       a = 0xff;
+                       *dataptr++ = PIXEL_ARGB(a, r, g, b);
                        break;
 
                     case 8:    /* 8-bit grayscale or palette */
-                       if (!palette)
+                       b = *bufptr++;
+                       a = 0xff;
+                       if (palette)
                          {
-                            *dataptr++ =
-                               PIXEL_ARGB(0xff, bufptr[0], bufptr[0],
-                                          bufptr[0]);
+                            if (b >= palcnt)
+                               goto quit;
+                            r = palette[b * palbpp + 2];
+                            g = palette[b * palbpp + 1];
+                            b = palette[b * palbpp + 0];
                          }
                        else
                          {
-                            if (*bufptr >= palcnt)
-                               goto quit;
-                            *dataptr++ =
-                               PIXEL_ARGB(0xff,
-                                          palette[*bufptr * palbpp + 2],
-                                          palette[*bufptr * palbpp + 1],
-                                          palette[*bufptr * palbpp + 0]);
+                            r = g = b;
                          }
-                       bufptr += 1;
+                       *dataptr++ = PIXEL_ARGB(a, r, g, b);
                        break;
                     }
 
@@ -386,13 +388,13 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    else
      {
         /* decode RLE compressed data */
-        unsigned char       curbyte, red, green, blue, alpha;
         DATA32             *final_pixel = dataptr + im->w * im->h;
 
         /* loop until we've got all the pixels or run out of input */
         while ((dataptr < final_pixel))
           {
              int                 i, count;
+             unsigned char       curbyte;
 
              if ((bufptr + 1 + (bpp / 8)) > bufend)
                 goto quit;
@@ -405,43 +407,40 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                   switch (bpp)
                     {
                     case 32:
-                       blue = *bufptr++;
-                       green = *bufptr++;
-                       red = *bufptr++;
-                       alpha = *bufptr++;
+                       b = *bufptr++;
+                       g = *bufptr++;
+                       r = *bufptr++;
+                       a = *bufptr++;
                        for (i = 0; (i < count) && (dataptr < final_pixel); i++)
-                          *dataptr++ = PIXEL_ARGB(alpha, red, green, blue);
+                          *dataptr++ = PIXEL_ARGB(a, r, g, b);
                        break;
 
                     case 24:
-                       blue = *bufptr++;
-                       green = *bufptr++;
-                       red = *bufptr++;
-                       alpha = 0xff;
+                       b = *bufptr++;
+                       g = *bufptr++;
+                       r = *bufptr++;
+                       a = 0xff;
                        for (i = 0; (i < count) && (dataptr < final_pixel); i++)
-                          *dataptr++ = PIXEL_ARGB(alpha, red, green, blue);
+                          *dataptr++ = PIXEL_ARGB(a, r, g, b);
                        break;
 
                     case 8:
-                       red = *bufptr++;
-                       alpha = 0xff;
-                       if (palette && red >= palcnt)
-                          goto quit;
-
+                       b = *bufptr++;
+                       a = 0xff;
+                       if (palette)
+                         {
+                            if (b >= palcnt)
+                               goto quit;
+                            r = palette[b * palbpp + 2];
+                            g = palette[b * palbpp + 1];
+                            b = palette[b * palbpp + 0];
+                         }
+                       else
+                         {
+                            r = g = b;
+                         }
                        for (i = 0; (i < count) && (dataptr < final_pixel); i++)
-                          if (!palette)
-                            {
-                               *dataptr++ = PIXEL_ARGB(alpha, red, red, red);
-                            }
-                          else
-                            {
-                               *dataptr++ =
-                                  PIXEL_ARGB(alpha,
-                                             palette[red * palbpp + 2],
-                                             palette[red * palbpp + 1],
-                                             palette[red * palbpp + 0]);
-                            }
-
+                          *dataptr++ = PIXEL_ARGB(a, r, g, b);
                        break;
                     }
                }                /* end if (RLE packet) */
@@ -455,37 +454,37 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                        switch (bpp)
                          {
                          case 32:      /* 32-bit BGRA pixels */
-                            *dataptr++ =
-                               PIXEL_ARGB(bufptr[3], bufptr[2], bufptr[1],
-                                          bufptr[0]);
-                            bufptr += 4;
+                            b = *bufptr++;
+                            g = *bufptr++;
+                            r = *bufptr++;
+                            a = *bufptr++;
+                            *dataptr++ = PIXEL_ARGB(a, r, g, b);
                             break;
 
                          case 24:      /* 24-bit BGR pixels */
-                            *dataptr++ =
-                               PIXEL_ARGB(0xff, bufptr[2], bufptr[1],
-                                          bufptr[0]);
-                            bufptr += 3;
+                            b = *bufptr++;
+                            g = *bufptr++;
+                            r = *bufptr++;
+                            a = 0xff;
+                            *dataptr++ = PIXEL_ARGB(a, r, g, b);
                             break;
 
                          case 8:       /* 8-bit grayscale or palette */
-                            if (!palette)
+                            b = *bufptr++;
+                            a = 0xff;
+                            if (palette)
                               {
-                                 *dataptr++ =
-                                    PIXEL_ARGB(0xff, bufptr[0], bufptr[0],
-                                               bufptr[0]);
+                                 if (b >= palcnt)
+                                    goto quit;
+                                 r = palette[b * palbpp + 2];
+                                 g = palette[b * palbpp + 1];
+                                 b = palette[b * palbpp + 0];
                               }
                             else
                               {
-                                 if (bufptr[0] >= palcnt)
-                                    goto quit;
-                                 *dataptr++ =
-                                    PIXEL_ARGB(0xff,
-                                               palette[*bufptr * palbpp + 2],
-                                               palette[*bufptr * palbpp + 1],
-                                               palette[*bufptr * palbpp + 0]);
+                                 r = g = b;
                               }
-                            bufptr += 1;
+                            *dataptr++ = PIXEL_ARGB(a, r, g, b);
                             break;
                          }
                     }
