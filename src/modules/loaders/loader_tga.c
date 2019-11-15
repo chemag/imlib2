@@ -188,12 +188,13 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    tga_header         *header;
    tga_footer         *footer;
    int                 footer_present;
-   int                 rle, bpp, hasa, fliph, flipv;
+   int                 rle, bpp, hasa, hasc, fliph, flipv;
    unsigned long       datasize;
    unsigned char      *bufptr, *bufend, *palette = 0;
    DATA32             *dataptr;
    int                 palcnt = 0, palbpp = 0;
    unsigned char       a, r, g, b;
+   unsigned int        pix16;
 
    fd = open(im->real_file, O_RDONLY);
    if (fd < 0)
@@ -240,6 +241,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    flipv = !(header->descriptor & TGA_DESC_VERTICAL);
 
    rle = 0;                     /* RLE compressed */
+   hasc = 0;                    /* Has color */
 
    switch (header->imageType)
      {
@@ -247,12 +249,20 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         goto quit;
 
      case TGA_TYPE_MAPPED:
+        break;
      case TGA_TYPE_COLOR:
+        hasc = 1;
+        break;
      case TGA_TYPE_GRAY:
         break;
 
      case TGA_TYPE_MAPPED_RLE:
+        rle = 1;
+        break;
      case TGA_TYPE_COLOR_RLE:
+        hasc = 1;
+        rle = 1;
+        break;
      case TGA_TYPE_GRAY_RLE:
         rle = 1;
         break;
@@ -270,6 +280,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
            hasa = 1;
         break;
      case 24:
+        break;
+     case 16:
+        if (header->descriptor & TGA_DESC_ABITS)
+           hasa = 1;
         break;
      case 8:
         break;
@@ -367,6 +381,24 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                        *dataptr++ = PIXEL_ARGB(a, r, g, b);
                        break;
 
+                    case 16:
+                       b = *bufptr++;
+                       a = *bufptr++;
+                       if (hasc)
+                         {
+                            pix16 = b | ((unsigned short)a << 8);
+                            r = (pix16 >> 7) & 0xf8;
+                            g = (pix16 >> 2) & 0xf8;
+                            b = (pix16 << 3) & 0xf8;
+                            a = (hasa && !(pix16 & 0x8000)) ? 0x00 : 0xff;
+                         }
+                       else
+                         {
+                            r = g = b;
+                         }
+                       *dataptr++ = PIXEL_ARGB(a, r, g, b);
+                       break;
+
                     case 8:    /* 8-bit grayscale or palette */
                        b = *bufptr++;
                        a = 0xff;
@@ -431,6 +463,25 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                           *dataptr++ = PIXEL_ARGB(a, r, g, b);
                        break;
 
+                    case 16:
+                       b = *bufptr++;
+                       a = *bufptr++;
+                       if (hasc)
+                         {
+                            pix16 = b | ((unsigned short)a << 8);
+                            r = (pix16 >> 7) & 0xf8;
+                            g = (pix16 >> 2) & 0xf8;
+                            b = (pix16 << 3) & 0xf8;
+                            a = (hasa && !(pix16 & 0x8000)) ? 0x00 : 0xff;
+                         }
+                       else
+                         {
+                            r = g = b;
+                         }
+                       for (i = 0; (i < count) && (dataptr < final_pixel); i++)
+                          *dataptr++ = PIXEL_ARGB(a, r, g, b);
+                       break;
+
                     case 8:
                        b = *bufptr++;
                        a = 0xff;
@@ -473,6 +524,24 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                             g = *bufptr++;
                             r = *bufptr++;
                             a = 0xff;
+                            *dataptr++ = PIXEL_ARGB(a, r, g, b);
+                            break;
+
+                         case 16:
+                            b = *bufptr++;
+                            a = *bufptr++;
+                            if (hasc)
+                              {
+                                 pix16 = b | ((unsigned short)a << 8);
+                                 r = (pix16 >> 7) & 0xf8;
+                                 g = (pix16 >> 2) & 0xf8;
+                                 b = (pix16 << 3) & 0xf8;
+                                 a = (hasa && !(pix16 & 0x8000)) ? 0x00 : 0xff;
+                              }
+                            else
+                              {
+                                 r = g = b;
+                              }
                             *dataptr++ = PIXEL_ARGB(a, r, g, b);
                             break;
 
