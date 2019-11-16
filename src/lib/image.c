@@ -208,10 +208,11 @@ __imlib_ConsumeImage(ImlibImage * im)
 #endif
 
    __imlib_FreeAllTags(im);
+
+   if (im->real_file && im->real_file != im->file)
+      free(im->real_file);
    if (im->file)
       free(im->file);
-   if (im->real_file)
-      free(im->real_file);
    if (im->key)
       free(im->key);
    if ((IMAGE_FREE_DATA(im)) && (im->data))
@@ -911,7 +912,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
 
    if (__imlib_IsRealFile(file))
      {
-        im->real_file = strdup(im->file);
+        im->real_file = im->file;
         im->key = NULL;
      }
    else
