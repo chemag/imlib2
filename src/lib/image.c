@@ -194,14 +194,8 @@ __imlib_ProduceImage(void)
    ImlibImage         *im;
 
    im = calloc(1, sizeof(ImlibImage));
-   im->data = NULL;
-   im->file = NULL;
-   im->real_file = NULL;
-   im->key = NULL;
    im->flags = F_FORMAT_IRRELEVANT | F_BORDER_IRRELEVANT | F_ALPHA_IRRELEVANT;
-   im->loader = NULL;
-   im->next = NULL;
-   im->tags = NULL;
+
    return im;
 }
 
@@ -444,11 +438,7 @@ __imlib_ProduceImagePixmap(void)
    ImlibImagePixmap   *ip;
 
    ip = calloc(1, sizeof(ImlibImagePixmap));
-   ip->display = NULL;
-   ip->visual = NULL;
-   ip->image = NULL;
-   ip->next = NULL;
-   ip->file = NULL;
+
    return ip;
 }
 
