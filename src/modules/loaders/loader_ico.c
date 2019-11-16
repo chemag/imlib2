@@ -274,7 +274,7 @@ ico_data_get_nibble(DATA8 * data, int w, int x, int y)
 }
 
 static int
-ico_load(ico_t * ico, ImlibImage * im)
+ico_load(ico_t * ico, ImlibImage * im, int load_data)
 {
    int                 ic, x, y, w, h, d;
    DATA32             *cmap;
@@ -312,15 +312,21 @@ ico_load(ico_t * ico, ImlibImage * im)
 
    w = ie->w;
    h = ie->h;
-   if (w <= 0 || h <= 0)
+   if (!IMAGE_DIMENSIONS_OK(w, h))
       return 0;
+
+   im->w = w;
+   im->h = h;
+
+   SET_FLAG(im->flags, F_HAS_ALPHA);
+
+   if (!load_data)
+      return 1;
 
    if (!__imlib_AllocateData(im, w, h))
       return 0;
 
    D("Loading icon %d: WxHxD=%dx%dx%d\n", ic, w, h, ie->bih.bpp);
-
-   SET_FLAG(im->flags, F_HAS_ALPHA);
 
    cmap = ie->cmap;
    pxls = ie->pxls;
@@ -404,29 +410,23 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
      char immediate_load)
 {
    ico_t              *ico;
+   int                 ok, load_data;
 
    ico = ico_read(im->real_file);
    if (!ico)
       return 0;
 
-   if (im->loader || immediate_load || progress)
+   load_data = im->loader || immediate_load || progress;
+   ok = ico_load(ico, im, load_data);
+   if (ok)
      {
-        if (!ico_load(ico, im))
-           goto error;
-
         if (progress)
            progress(im, 100, 0, 0, im->w, im->h);
      }
 
    ico_delete(ico);
 
-   return 1;
-
- error:
-   ico_delete(ico);
-   __imlib_FreeData(im);
-
-   return 0;
+   return ok;
 }
 
 void
