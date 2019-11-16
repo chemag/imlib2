@@ -17,7 +17,7 @@
 #include "blend.h"
 
 /* flip an inverted image - see RLE reading below */
-static void         tgaflip(DATA32 * in, int w, int h);
+static void         tgaflip(DATA32 * in, int w, int h, int fliph, int flipv);
 
 /* TGA pixel formats */
 #define TGA_TYPE_MAPPED      1
@@ -188,7 +188,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    tga_header         *header;
    tga_footer         *footer;
    int                 footer_present;
-   int                 rle, bpp, hasa, vinverted;
+   int                 rle, bpp, hasa, fliph, flipv;
    unsigned long       datasize;
    unsigned char      *bufptr, *bufend, *palette = 0;
    DATA32             *dataptr;
@@ -234,8 +234,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    /* now parse the header */
 
-   /* this flag indicated bottom-up pixel storage */
-   vinverted = !(header->descriptor & TGA_DESC_VERTICAL);
+   /* this flag indicates right-to-left pixel storage */
+   fliph = !!(header->descriptor & TGA_DESC_HORIZONTAL);
+   /* this flag indicates bottom-up pixel storage */
+   flipv = !(header->descriptor & TGA_DESC_VERTICAL);
 
    rle = 0;                     /* RLE compressed */
 
@@ -336,7 +338,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         for (y = 0; y < im->h; y++)     /* for each row */
           {
              /* point dataptr at the beginning of the row */
-             if (vinverted)
+             if (flipv)
                 /* some TGA's are stored upside-down! */
                 dataptr = im->data + ((im->h - y - 1) * im->w);
              else
@@ -386,6 +388,9 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
                }                /* end for (each pixel) */
           }
+
+        if (fliph)
+           tgaflip(im->data, im->w, im->h, fliph, 0);
      }
    else
      {
@@ -493,9 +498,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                }                /* end if (raw packet) */
           }                     /* end for (each packet) */
 
-        /* must now flip a bottom-up image */
-        if (vinverted)
-           tgaflip(im->data, im->w, im->h);
+        if (fliph || flipv)
+           tgaflip(im->data, im->w, im->h, fliph, flipv);
      }
 
    if (progress)
@@ -529,28 +533,27 @@ formats(ImlibLoader * l)
 
 /**********************/
 
-/* flip a DATA32 image block vertically in place */
-
-static void
-tgaflip(DATA32 * in, int w, int h)
+/* flip a DATA32 image block in place */
+void
+tgaflip(DATA32 * in, int w, int h, int fliph, int flipv)
 {
-   DATA32             *adv, *adv2;
-   int                 x, y;
+   DATA32              tmp;
+   int                 x, y, x2, y2, dx, dy, nx, ny;
 
-   adv = in;
-   adv2 = in + (w * (h - 1));
+   dx = fliph ? -1 : 1;
+   dy = flipv ? -1 : 1;
+   nx = fliph ? w / 2 : w;
+   ny = flipv && !fliph ? h / 2 : h;
 
-   for (y = 0; y < (h / 2); y++)
+   y2 = flipv ? h - 1 : 0;
+   for (y = 0; y < ny; y++, y2 += dy)
      {
-        DATA32              tmp;
-
-        for (x = 0; x < w; x++)
+        x2 = fliph ? w - 1 : 0;
+        for (x = 0; x < nx; x++, x2 += dx)
           {
-             tmp = adv[x];
-             adv[x] = adv2[x];
-             adv2[x] = tmp;
+             tmp = in[y * h + x];
+             in[y * h + x] = in[y2 * h + x2];
+             in[y2 * h + x2] = tmp;
           }
-        adv2 -= w;
-        adv += w;
      }
 }
