@@ -8,12 +8,7 @@
 #include "loader_common.h"
 #include <limits.h>
 
-#define DEBUG 0
-#if DEBUG
-#define D(fmt...) fprintf(stdout, "ICO loader: " fmt)
-#else
-#define D(fmt...)
-#endif
+#define DBG_PFX "LDR-ico"
 
 /* The ICONDIR */
 typedef struct {

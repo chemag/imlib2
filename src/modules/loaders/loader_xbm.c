@@ -3,12 +3,7 @@
  */
 #include "loader_common.h"
 
-#define DEBUG 0
-#if DEBUG
-#define D(fmt...) fprintf(stdout, "XBM loader: " fmt)
-#else
-#define D(fmt...)
-#endif
+#define DBG_PFX "LDR-xbm"
 
 static const DATA32 _bitmap_colors[2] = { 0xffffffff, 0xff000000 };
 

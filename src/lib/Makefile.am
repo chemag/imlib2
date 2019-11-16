@@ -25,6 +25,8 @@ colormod.h \
 common.h \
 context.c \
 context.h \
+debug.c \
+debug.h \
 draw.c \
 draw.h \
 dynamic_filters.c \
@@ -90,6 +92,9 @@ EXTRA_DIST = $(MMX_SRCS) $(AMD64_SRCS) asm_loadimmq.S
 MY_LIBS = $(FREETYPE_LIBS) $(DLOPEN_LIBS) -lm
 if BUILD_X11
 MY_LIBS += -lXext -lX11 @X_SHM_FD_LIBS@
+endif
+if BUILD_DEBUG
+MY_LIBS += $(CLOCK_LIBS)
 endif
 
 if BUILD_MMX

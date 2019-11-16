@@ -379,6 +379,16 @@ AM_CONDITIONAL(BUILD_ID3_LOADER, test "$id3_ok" = yes)
 
 AM_CONDITIONAL(BUILD_TEST, false)
 
+AC_ARG_ENABLE([debug],
+  [AS_HELP_STRING([--enable-debug], [Enable debug features @<:@default=no@:>@])],
+  [
+    if test x$enableval = xyes; then
+      AC_DEFINE(IMLIB2_DEBUG, 1, [Enable debug features])
+    fi
+  ]
+)
+AM_CONDITIONAL(BUILD_DEBUG, test "$enable_debug" = "yes")
+
 EC_C_WARNINGS()
 EC_C_VISIBILITY(yes)
 EC_C_ASAN()

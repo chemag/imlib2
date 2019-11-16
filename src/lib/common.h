@@ -10,6 +10,14 @@
 #include <math.h>
 #include <time.h>
 
+#if __GNUC__
+#define __PRINTF_N__(no)  __attribute__((__format__(__printf__, (no), (no)+1)))
+#else
+#define __PRINTF_N__(no)
+#endif
+#define __PRINTF__   __PRINTF_N__(1)
+#define __PRINTF_2__ __PRINTF_N__(2)
+
 #define DATABIG unsigned long long
 #define DATA64  unsigned long long
 #define DATA32  unsigned int

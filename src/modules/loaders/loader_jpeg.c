@@ -3,12 +3,7 @@
 #include <setjmp.h>
 #include "exif.h"
 
-#define DEBUG 0
-#if DEBUG
-#define D(fmt...) fprintf(stdout, "JPEG loader: " fmt)
-#else
-#define D(fmt...)
-#endif
+#define DBG_PFX "LDR-jpg"
 
 typedef struct {
    struct jpeg_error_mgr jem;

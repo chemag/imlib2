@@ -10,12 +10,7 @@
 #include "loader_common.h"
 #include <sys/stat.h>
 
-#define DEBUG 0
-#if DEBUG
-#define D(fmt...) fprintf(stdout, "BMP loader: " fmt)
-#else
-#define D(fmt...)
-#endif
+#define DBG_PFX "LDR-bmp"
 #define Dx(fmt...)
 
 /* The BITMAPFILEHEADER (size 14) */
