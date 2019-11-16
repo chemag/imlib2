@@ -306,6 +306,12 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!TIFFRGBAImageBegin((TIFFRGBAImage *) & rgba_image, tif, 1, txt))
       goto quit1;
 
+   if (!rgba_image.rgba.put.any)
+     {
+        fprintf(stderr, "imlib2-tiffloader: No put function");
+        goto quit2;
+     }
+
    rgba_image.image = im;
    switch (rgba_image.rgba.orientation)
      {
@@ -341,23 +347,14 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         rgba_image.progress = progress;
         rgba_image.pper = rgba_image.py = 0;
         rgba_image.progress_granularity = progress_granularity;
-        rast = (uint32 *) _TIFFmalloc(sizeof(uint32) * num_pixels);
 
-        if ((!rast) || (!__imlib_AllocateData(im, im->w, im->h)))       /* Error checking */
+        if (!__imlib_AllocateData(im, im->w, im->h))
+           goto quit2;
+
+        rast = (uint32 *) _TIFFmalloc(sizeof(uint32) * num_pixels);
+        if (!rast)
           {
              fprintf(stderr, "imlib2-tiffloader: Out of memory\n");
-
-             if (rast)
-                _TIFFfree(rast);
-             __imlib_FreeData(im);
-             goto quit2;
-          }
-
-        if (!rgba_image.rgba.put.any)
-          {
-             fprintf(stderr, "imlib2-tiffloader: No put function");
-
-             _TIFFfree(rast);
              __imlib_FreeData(im);
              goto quit2;
           }
