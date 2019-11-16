@@ -404,7 +404,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!buffer)
       goto quit_err;
 
-   if (!__imlib_AllocateData(im, w, h))
+   if (!__imlib_AllocateData(im))
       goto quit_err;
 
    if (fread(buffer, imgsize, 1, f) != 1)

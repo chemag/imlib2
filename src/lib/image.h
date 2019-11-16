@@ -104,7 +104,7 @@ struct _imlibloader {
    ImlibLoader        *next;
 };
 
-DATA32             *__imlib_AllocateData(ImlibImage * im, int w, int h);
+DATA32             *__imlib_AllocateData(ImlibImage * im);
 void                __imlib_FreeData(ImlibImage * im);
 void                __imlib_ReplaceData(ImlibImage * im, DATA32 * new_data);
 

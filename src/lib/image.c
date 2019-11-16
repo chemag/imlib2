@@ -28,18 +28,19 @@ static ImlibLoader *loaders = NULL;
 static int          cache_size = 4096 * 1024;
 
 __EXPORT__ DATA32  *
-__imlib_AllocateData(ImlibImage * im, int w, int h)
+__imlib_AllocateData(ImlibImage * im)
 {
+   int                 w = im->w;
+   int                 h = im->h;
+
+   if (w <= 0 || h <= 0)
+      return NULL;
+
    if (im->data_memory_func)
       im->data = im->data_memory_func(NULL, w * h * sizeof(DATA32));
    else
       im->data = malloc(w * h * sizeof(DATA32));
 
-   if (im->data)
-     {
-        im->w = w;
-        im->h = h;
-     }
    return im->data;
 }
 

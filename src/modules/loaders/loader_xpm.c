@@ -215,9 +215,9 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
 
                   if (im->loader || immediate_load || progress)
                     {
-                       if (!__imlib_AllocateData(im, im->w, im->h))
+                       ptr = __imlib_AllocateData(im);
+                       if (!ptr)
                           goto quit;
-                       ptr = im->data;
                        pixels = w * h;
                     }
                   else

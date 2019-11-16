@@ -98,7 +98,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
      {
         size_t              webp_buffer_size = sizeof(DATA32) * im->w * im->h;
 
-        __imlib_AllocateData(im, im->w, im->h);
+        __imlib_AllocateData(im);
         if (WebPDecodeBGRAInto(encoded_data, stats.st_size,
                                (uint8_t *) im->data, webp_buffer_size,
                                im->w * 4) == NULL)

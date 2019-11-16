@@ -323,7 +323,7 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
    if (!load_data)
       return 1;
 
-   if (!__imlib_AllocateData(im, w, h))
+   if (!__imlib_AllocateData(im))
       return 0;
 
    D("Loading icon %d: WxHxD=%dx%dx%d\n", ic, w, h, ie->bih.bpp);

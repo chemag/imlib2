@@ -151,10 +151,10 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                    colormap[bg] & 0x00ffffff : 0x00000000;
           }
 
-        if (!__imlib_AllocateData(im, w, h))
+        ptr = __imlib_AllocateData(im);
+        if (!ptr)
            goto quit;
 
-        ptr = im->data;
         per_inc = 100.0 / (float)h;
         for (i = 0; i < h; i++)
           {

@@ -542,7 +542,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    plane[0] = NULL;
    gran = nexty = 0;
 
-   __imlib_AllocateData(im, im->w, im->h);
+   __imlib_AllocateData(im);
    n = ilbm.depth;
    if (ilbm.mask == 1)
       n++;

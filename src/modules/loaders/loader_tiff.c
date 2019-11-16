@@ -348,7 +348,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         rgba_image.pper = rgba_image.py = 0;
         rgba_image.progress_granularity = progress_granularity;
 
-        if (!__imlib_AllocateData(im, im->w, im->h))
+        if (!__imlib_AllocateData(im))
            goto quit2;
 
         rast = (uint32 *) _TIFFmalloc(sizeof(uint32) * num_pixels);

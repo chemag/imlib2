@@ -137,9 +137,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         int                 i, j, x, y, pl = 0;
         char                pper = 0;
 
-        /* must set the im->data member before callign progress function */
-        ptr2 = __imlib_AllocateData(im, w, h);
-        if (!im->data)
+        ptr2 = __imlib_AllocateData(im);
+        if (!ptr2)
            goto quit_error;
 
         /* start reading the data */

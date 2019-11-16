@@ -88,8 +88,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    else
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
-   /* if its the second phase load OR its immediate load or a progress */
-   /* callback is set then load the data */
    if (im->loader || immediate_load || progress)
      {
         unsigned char     **lines;
@@ -134,7 +132,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
            png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
 #endif
 
-        if (!__imlib_AllocateData(im, w, h))
+        if (!__imlib_AllocateData(im))
           {
              png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
              fclose(f);

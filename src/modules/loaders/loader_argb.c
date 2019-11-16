@@ -40,6 +40,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       else
          UNSET_FLAG(im->flags, F_HAS_ALPHA);
    }
+
    if (im->loader || immediate_load || progress)
      {
         DATA32             *ptr;
@@ -47,8 +48,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         char                pper = 0;
 
         /* must set the im->data member before callign progress function */
-        ptr = __imlib_AllocateData(im, w, h);
-        if (!im->data)
+        ptr = __imlib_AllocateData(im);
+        if (!ptr)
           {
              im->w = 0;
              fclose(f);

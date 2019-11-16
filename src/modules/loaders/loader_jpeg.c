@@ -109,8 +109,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
            goto quit_error;
 
         /* must set the im->data member before callign progress function */
-        ptr2 = __imlib_AllocateData(im, w, h);
-        if (!im->data)
+        ptr2 = __imlib_AllocateData(im);
+        if (!ptr2)
            goto quit_error;
 
         count = 0;

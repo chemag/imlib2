@@ -307,12 +307,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         goto quit;
      }
 
-   /* Load data */
-
-   /* allocate the destination buffer */
-   if (!__imlib_AllocateData(im, im->w, im->h))
-      goto quit;
-
    /* find out how much data must be read from the file */
    /* (this is NOT simply width*height*4, due to compression) */
 
@@ -340,6 +334,12 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    /* bufptr is the next byte to be read from the buffer */
    bufptr = filedata;
    bufend = bufptr + datasize;
+
+   /* Load data */
+
+   /* allocate the destination buffer */
+   if (!__imlib_AllocateData(im))
+      goto quit;
 
    /* dataptr is the next 32-bit pixel to be filled in */
    dataptr = im->data;
