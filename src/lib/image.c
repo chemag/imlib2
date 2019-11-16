@@ -883,7 +883,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
           {
              time_t              current_modified_time;
 
-             current_modified_time = __imlib_FileModDate(file);
+             current_modified_time = __imlib_FileModDate(im->real_file);
              /* if the file on disk is newer than the cached one */
              if (current_modified_time != im->moddate)
                {
@@ -921,7 +921,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
         im->key = __imlib_FileKey(file);
      }
 
-   im->moddate = __imlib_FileModDate(file);
+   im->moddate = __imlib_FileModDate(im->real_file);
 
    /* ok - just check all our loaders are up to date */
    __imlib_RescanLoaders();
