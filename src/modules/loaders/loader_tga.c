@@ -185,17 +185,14 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    int                 fd, rc;
    void               *seg, *filedata;
    struct stat         ss;
-   int                 bpp, vinverted = 0;
-   int                 rle = 0, footer_present = 0;
-
    tga_header         *header;
    tga_footer         *footer;
-
+   int                 footer_present;
+   int                 rle, bpp, hasa, vinverted;
    unsigned long       datasize;
    unsigned char      *bufptr, *bufend, *palette = 0;
    DATA32             *dataptr;
-
-   int                 y, palcnt = 0, palbpp = 0;
+   int                 palcnt = 0, palbpp = 0;
    unsigned char       a, r, g, b;
 
    fd = open(im->real_file, O_RDONLY);
@@ -221,12 +218,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    footer = (tga_footer *) ((char *)filedata + ss.st_size - sizeof(tga_footer));
 
    /* check the footer to see if we have a v2.0 TGA file */
-   if (memcmp(footer->signature, TGA_SIGNATURE, sizeof(footer->signature)) == 0)
-      footer_present = 1;
-
-   if (!footer_present)
-     {
-     }
+   footer_present =
+      memcmp(footer->signature, TGA_SIGNATURE, sizeof(footer->signature)) == 0;
 
    if ((size_t)ss.st_size < sizeof(tga_header) + header->idLength +
        (footer_present ? sizeof(tga_footer) : 0))
@@ -244,29 +237,41 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    /* this flag indicated bottom-up pixel storage */
    vinverted = !(header->descriptor & TGA_DESC_VERTICAL);
 
+   rle = 0;                     /* RLE compressed */
+
    switch (header->imageType)
      {
+     default:
+        goto quit;
+
+     case TGA_TYPE_MAPPED:
+     case TGA_TYPE_COLOR:
+     case TGA_TYPE_GRAY:
+        break;
+
      case TGA_TYPE_MAPPED_RLE:
      case TGA_TYPE_COLOR_RLE:
      case TGA_TYPE_GRAY_RLE:
         rle = 1;
         break;
-
-     case TGA_TYPE_MAPPED:
-     case TGA_TYPE_COLOR:
-     case TGA_TYPE_GRAY:
-        rle = 0;
-        break;
-
-     default:
-        goto quit;
      }
 
-   /* bits per pixel */
-   bpp = header->bpp;
+   bpp = header->bpp;           /* Bits per pixel */
+   hasa = 0;                    /* Has alpha */
 
-   if (!((bpp == 32) || (bpp == 24) || (bpp == 8)))
-      goto quit;
+   switch (bpp)
+     {
+     default:
+        goto quit;
+     case 32:
+        if (header->descriptor & TGA_DESC_ABITS)
+           hasa = 1;
+        break;
+     case 24:
+        break;
+     case 8:
+        break;
+     }
 
    /* endian-safe loading of 16-bit sizes */
    im->w = (header->widthHi << 8) | header->widthLo;
@@ -275,7 +280,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   if (bpp == 32)
+   if (hasa)
       SET_FLAG(im->flags, F_HAS_ALPHA);
    else
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
@@ -291,9 +296,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    /* allocate the destination buffer */
    if (!__imlib_AllocateData(im, im->w, im->h))
       goto quit;
-
-   /* first we read the file data into a buffer for parsing */
-   /* then we decode from RAM */
 
    /* find out how much data must be read from the file */
    /* (this is NOT simply width*height*4, due to compression) */
@@ -328,11 +330,11 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    if (!rle)
      {
+        int                 x, y;
+
         /* decode uncompressed BGRA data */
         for (y = 0; y < im->h; y++)     /* for each row */
           {
-             int                 x;
-
              /* point dataptr at the beginning of the row */
              if (vinverted)
                 /* some TGA's are stored upside-down! */
