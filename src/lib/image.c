@@ -1176,25 +1176,13 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
    /* ok - just check all our loaders are up to date */
    __imlib_RescanLoaders();
 
-   /* set the filename to the saved one */
-   pfile = im->file;
-   im->file = strdup(file);
-
-   if (im->real_file)
-      free(im->real_file);
-
-   im->real_file = strdup(im->file);
-
    /* find the laoder for the format - if its null use the extension */
-   l = __imlib_FindBestLoaderForFileFormat(im->real_file, im->format, 1);
+   l = __imlib_FindBestLoaderForFileFormat(file, im->format, 1);
    /* no loader - abort */
    if (!l)
      {
         if (er)
            *er = IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
-        /* set the filename back to the laoder image filename */
-        free(im->file);
-        im->file = pfile;
         return;
      }
 
@@ -1202,12 +1190,16 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
    if (er)
       *er = IMLIB_LOAD_ERROR_NONE;
 
+   /* set the filename to the user supplied one */
+   pfile = im->real_file;
+   im->real_file = strdup(file);
+
    /* call the saver */
    e = l->save(im, progress, progress_granularity);
 
    /* set the filename back to the laoder image filename */
-   free(im->file);
-   im->file = pfile;
+   free(im->real_file);
+   im->real_file = pfile;
 
    /* if there's an error return and the save faile (e = 0) figure it out */
    if ((er) && (e == 0))
