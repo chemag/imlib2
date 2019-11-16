@@ -118,11 +118,18 @@ main(int argc, char **argv)
    char               *s;
    Imlib_Image        *im = NULL;
    char               *file = NULL;
-   int                 no = 1, inc;
+   int                 no, inc;
+   int                 verbose;
 
-   for (no = 1; no < argc; no++)
+   verbose = 0;
+
+   for (;;)
      {
-        s = argv[no];
+        argv++;
+        argc--;
+        if (argc <= 0)
+           break;
+        s = argv[0];
         if (*s++ != '-')
            break;
         switch (*s)
@@ -130,13 +137,18 @@ main(int argc, char **argv)
           default:
              break;
           case 's':            /* Scale (window size wrt. image size) */
-             if (++no < argc)
-                scale_x = scale_y = atof(argv[no]);
+             if (argc-- < 2)
+                break;
+             argv++;
+             scale_x = scale_y = atof(argv[0]);
+             break;
+          case 'v':
+             verbose += 1;
              break;
           }
      }
 
-   if (no >= argc)
+   if (argc <= 0)
      {
         fprintf(stderr, "imlib2_view [-s <scale factor>] file...\n");
         return 1;
@@ -167,26 +179,24 @@ main(int argc, char **argv)
    imlib_context_set_progress_granularity(10);
    imlib_context_set_drawable(win);
 
-   file = argv[no];
-   im = imlib_load_image(file);
-   while (!im)
+   no = -1;
+   for (im = NULL; !im;)
      {
         no++;
         if (no == argc)
           {
-             fprintf(stderr, "Image format not available\n");
+             fprintf(stderr, "No loadable image\n");
              exit(0);
           }
         file = argv[no];
+        if (verbose)
+           printf("Show  %d: '%s'\n", no, file);
         image_width = 0;
         im = imlib_load_image(file);
-        imlib_context_set_image(im);
      }
-   if (!im)
-     {
-        fprintf(stderr, "Image format not available\n");
-        exit(0);
-     }
+
+   imlib_context_set_image(im);
+
    for (;;)
      {
         int                 x, y, b, count, fdsize, xfd, timeout = 0;
@@ -212,7 +222,7 @@ main(int argc, char **argv)
              break;
           case KeyPress:
              key = XLookupKeysym(&ev.xkey, 0);
-             if (key == XK_q)
+             if (key == XK_q || key == XK_Escape)
                 return 0;
              if (key == XK_Right)
                 goto show_next;
@@ -312,15 +322,16 @@ main(int argc, char **argv)
              zoom_mode = 0;
              imlib_context_set_image(im);
              imlib_free_image_and_decache();
-             im = NULL;
-             for (; !im;)
+             for (im = NULL; !im;)
                {
                   no += inc;
                   if (no >= argc)
                      no = argc - 1;
                   else if (no <= 0)
-                     no = 1;
+                     no = 0;
                   file = argv[no];
+                  if (verbose)
+                     printf("Show  %d: '%s'\n", no, file);
                   image_width = 0;
                   im = imlib_load_image(file);
                }
