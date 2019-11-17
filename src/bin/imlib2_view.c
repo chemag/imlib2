@@ -326,9 +326,15 @@ main(int argc, char **argv)
                {
                   no += inc;
                   if (no >= argc)
-                     no = argc - 1;
-                  else if (no <= 0)
-                     no = 0;
+                    {
+                       inc = -1;
+                       continue;
+                    }
+                  else if (no < 0)
+                    {
+                       inc = 1;
+                       continue;
+                    }
                   file = argv[no];
                   if (verbose)
                      printf("Show  %d: '%s'\n", no, file);
