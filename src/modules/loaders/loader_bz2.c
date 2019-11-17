@@ -55,8 +55,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    char               *real_ext;
 
    /* make sure this file ends in ".bz2" and that there's another ext
-    * (e.g. "foo.png.bz2"
-    */
+    * (e.g. "foo.png.bz2") */
    p = strrchr(im->real_file, '.');
    q = strchr(im->real_file, '.');
    if (!p || p == im->real_file || strcasecmp(p + 1, "bz2") || p == q)
@@ -65,22 +64,17 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!(real_ext = strndup(q + 1, p - q - 1)))
       return 0;
 
-   if (!(loader = __imlib_FindBestLoaderForFormat(real_ext, 0)))
-     {
-        free(real_ext);
-        return 0;
-     }
+   loader = __imlib_FindBestLoaderForFormat(real_ext, 0);
+   free(real_ext);
+   if (!loader)
+      return 0;
 
    if (!(fp = fopen(im->real_file, "rb")))
-     {
-        free(real_ext);
-        return 0;
-     }
+      return 0;
 
    if ((dest = mkstemp(tmp)) < 0)
      {
         fclose(fp);
-        free(real_ext);
         return 0;
      }
 
@@ -90,21 +84,19 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    if (!res)
      {
-        free(real_ext);
         unlink(tmp);
         return 0;
      }
 
    /* remember the original filename */
-   file = strdup(im->real_file);
-
-   free(im->real_file);
+   file = im->real_file;
    im->real_file = strdup(tmp);
+
    loader->load(im, progress, progress_granularity, immediate_load);
 
    free(im->real_file);
    im->real_file = file;
-   free(real_ext);
+
    unlink(tmp);
 
    return 1;
