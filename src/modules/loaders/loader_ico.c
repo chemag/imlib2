@@ -214,7 +214,7 @@ ico_read(char *filename)
 
    ico->fp = fopen(filename, "rb");
    if (!ico->fp)
-      return NULL;
+      goto bail;
 
    nr = fread(&ico->idir, 1, sizeof(ico->idir), ico->fp);
    if (nr != sizeof(ico->idir))
