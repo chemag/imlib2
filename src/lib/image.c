@@ -903,7 +903,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
 {
    ImlibImage         *im;
    ImlibLoader        *best_loader;
-   char                loader_ret = 0;
+   int                 loader_ret;
 
    if (!file || file[0] == '\0')
       return NULL;
@@ -963,6 +963,8 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
    /* ok - just check all our loaders are up to date */
    __imlib_RescanLoaders();
 
+   loader_ret = 0;
+
    /* take a guess by extension on the best loader to use */
    best_loader = __imlib_FindBestLoaderForFile(im->real_file, 0);
    errno = 0;
@@ -972,48 +974,47 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
                                   progress, progress_granularity,
                                   immediate_load);
 
-   /* width is still 0 - the loader didn't manage to do anything */
-   if (im->w == 0)
+   if (loader_ret > 0)
      {
-        ImlibLoader        *l, *previous_l = NULL;
+        im->loader = best_loader;
+     }
+   else
+     {
+        ImlibLoader        *l, *previous_l;
 
         errno = 0;
-        l = loaders;
         /* run through all loaders and try load until one succeeds */
-        while ((l) && (im->w == 0))
+        for (l = loaders, previous_l = NULL; l; previous_l = l, l = l->next)
           {
              /* if its not the best loader that already failed - try load */
-             if (l != best_loader)
-                loader_ret =
-                   __imlib_LoadImageWrapper(l, im,
-                                            progress, progress_granularity,
-                                            immediate_load);
-             /* if it failed - advance */
-             if (im->w == 0)
-               {
-                  previous_l = l;
-                  l = l->next;
-               }
+             if (l == best_loader)
+                continue;
+             loader_ret =
+                __imlib_LoadImageWrapper(l, im,
+                                         progress, progress_granularity,
+                                         immediate_load);
+             if (loader_ret > 0)
+                break;
           }
+
         /* if we have a loader then its the loader that succeeded */
         /* move the successful loader to the head of the list */
         /* as long as it's not already at the head of the list */
-        if ((l) && (previous_l))
+        if (l)
           {
              im->loader = l;
-             previous_l->next = l->next;
-             l->next = loaders;
-             loaders = l;
+             if (previous_l)
+               {
+                  previous_l->next = l->next;
+                  l->next = loaders;
+                  loaders = l;
+               }
           }
-        if (im->w > 0)
-           im->loader = l;
      }
-   else
-      im->loader = best_loader;
 
    /* all loaders have been tried and they all failed. free the skeleton */
    /* image struct we had and return NULL */
-   if (im->w == 0)
+   if (loader_ret <= 0)
      {
         /* if the caller wants an error return */
         if (er)
