@@ -37,11 +37,12 @@ __imlib_ProduceLoader(char *file)
         return NULL;
      }
    l->load = dlsym(l->handle, "load");
+   l->load2 = dlsym(l->handle, "load2");
    l->save = dlsym(l->handle, "save");
    l_formats = dlsym(l->handle, "formats");
 
    /* each loader must provide formats() and at least load() or save() */
-   if (!l_formats || (!l->load && !l->save))
+   if (!l_formats || !(l->load2 || l->load || l->save))
      {
         dlclose(l->handle);
         free(l);
@@ -188,7 +189,8 @@ __imlib_FindBestLoaderForFormat(const char *format, int for_save)
              if (strcasecmp(l->formats[i], format) == 0)
                {
                   /* does it provide the function we need? */
-                  if ((for_save && l->save) || (!for_save && l->load))
+                  if ((for_save && l->save) ||
+                      (!for_save && (l->load || l->load2)))
                      goto done;
                }
           }

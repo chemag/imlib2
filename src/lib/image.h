@@ -70,6 +70,7 @@ struct _imlibimage {
    char               *key;
    ImlibImageDataMemoryFunction data_memory_func;
    ImlibLdCtx         *lc;
+   FILE               *fp;
 };
 
 #ifdef BUILD_X11

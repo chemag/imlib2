@@ -7,6 +7,7 @@
 
 __EXPORT__ char     load(ImlibImage * im, ImlibProgressFunction progress,
                          char progress_granularity, char load_data);
+__EXPORT__ int      load2(ImlibImage * im, int load_data);
 __EXPORT__ char     save(ImlibImage * im, ImlibProgressFunction progress,
                          char progress_granularity);
 __EXPORT__ void     formats(ImlibLoader * l);

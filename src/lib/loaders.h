@@ -15,6 +15,7 @@ struct _imlibloader {
                                ImlibProgressFunction progress,
                                char progress_granularity);
    ImlibLoader        *next;
+   int                 (*load2)(ImlibImage * im, int load_data);
 };
 
 #endif /* __LOADERS */

@@ -547,10 +547,32 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
 {
    int                 rc;
 
-   if (im->lc)
-      rc = l->load(im, im->lc->progress, im->lc->granularity, 1);
+   if (l->load2)
+     {
+        FILE               *fp = NULL;
+
+        if (!im->fp)
+          {
+             fp = im->fp = fopen(im->real_file, "rb");
+             if (!im->fp)
+                return 0;
+          }
+        rc = l->load2(im, load_data);
+
+        if (fp)
+           fclose(fp);
+     }
+   else if (l->load)
+     {
+        if (im->lc)
+           rc = l->load(im, im->lc->progress, im->lc->granularity, 1);
+        else
+           rc = l->load(im, NULL, 0, load_data);
+     }
    else
-      rc = l->load(im, NULL, 0, load_data);
+     {
+        return 0;
+     }
 
    if (rc == 0)
      {
@@ -597,6 +619,7 @@ __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
 {
    int                 rc;
    char               *file_save;
+   FILE               *fp_save;
 
    if (!l || !im)
       return 0;
@@ -604,9 +627,12 @@ __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
    /* remember the original filename */
    file_save = im->real_file;
    im->real_file = strdup(file);
+   fp_save = im->fp;
+   im->fp = NULL;
 
    rc = __imlib_LoadImageWrapper(l, im, load_data);
 
+   im->fp = fp_save;
    free(im->real_file);
    im->real_file = file_save;
 
@@ -676,12 +702,24 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
         im->key = __imlib_FileKey(file);
      }
 
+   im->fp = fopen(im->real_file, "rb");
+   if (!im->fp)
+     {
+        if (er)
+           *er = __imlib_ErrorFromErrno(errno, 0);
+        __imlib_ConsumeImage(im);
+        return NULL;
+     }
+
    im->moddate = __imlib_FileModDate(im->real_file);
 
    im->data_memory_func = imlib_context_get_image_data_memory_function();
 
    if (progress)
-      __imlib_LoadCtxInit(im, &ilc, progress, progress_granularity);
+     {
+        __imlib_LoadCtxInit(im, &ilc, progress, progress_granularity);
+        immediate_load = 1;
+     }
 
    /* ok - just check all our loaders are up to date */
    __imlib_RescanLoaders();
@@ -710,6 +748,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
              /* if its not the best loader that already failed - try load */
              if (l == best_loader)
                 continue;
+             rewind(im->fp);
              loader_ret = __imlib_LoadImageWrapper(l, im, immediate_load);
              if (loader_ret > 0)
                 break;
@@ -731,6 +770,9 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
      }
 
    im->lc = NULL;
+
+   fclose(im->fp);
+   im->fp = NULL;
 
    /* all loaders have been tried and they all failed. free the skeleton */
    /* image struct we had and return NULL */
@@ -759,7 +801,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
 int
 __imlib_LoadImageData(ImlibImage * im)
 {
-   if ((!(im->data)) && (im->loader) && (im->loader->load))
+   if (!im->data && im->loader)
       if (__imlib_LoadImageWrapper(im->loader, im, 1) == 0)
          return 1;              /* Load failed */
    return im->data == NULL;
