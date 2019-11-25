@@ -44,14 +44,20 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    ImlibLoader        *loader;
    FILE               *fp;
    int                 dest, res;
-   char               *file, *p, *q, tmp[] = "/tmp/imlib2_loader_zlib-XXXXXX";
-   char               *real_ext;
+   const char         *s, *p, *q;
+   char                tmp[] = "/tmp/imlib2_loader_zlib-XXXXXX";
+   char               *file, *real_ext;
 
    /* make sure this file ends in ".gz" and that there's another ext
     * (e.g. "foo.png.gz") */
-   p = strrchr(im->real_file, '.');
-   q = strchr(im->real_file, '.');
-   if (!p || p == im->real_file || strcasecmp(p + 1, "gz") || p == q)
+   for (s = im->real_file, p = q = NULL; *s; s++)
+     {
+        if (*s != '.')
+           continue;
+        q = p;
+        p = s;
+     }
+   if (!q || q == im->real_file || strcasecmp(p + 1, "gz"))
       return 0;
 
    if (!(real_ext = strndup(q + 1, p - q - 1)))
