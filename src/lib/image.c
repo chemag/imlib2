@@ -590,6 +590,28 @@ __imlib_LoadCtxInit(ImlibImage * im, ImlibLdCtx * lc,
    lc->n_pass = 1;
 }
 
+__EXPORT__ int
+__imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
+                     int load_data)
+{
+   int                 rc;
+   char               *file_save;
+
+   if (!l || !im)
+      return 0;
+
+   /* remember the original filename */
+   file_save = im->real_file;
+   im->real_file = strdup(file);
+
+   rc = __imlib_LoadImageWrapper(l, im, load_data);
+
+   free(im->real_file);
+   im->real_file = file_save;
+
+   return rc;
+}
+
 ImlibImage         *
 __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
                   char progress_granularity, char immediate_load,

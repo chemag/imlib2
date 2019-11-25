@@ -123,6 +123,8 @@ ImlibImage         *__imlib_LoadImage(const char *file,
                                       char progress_granularity,
                                       char immediate_load, char dont_cache,
                                       ImlibLoadError * er);
+int                 __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im,
+                                         const char *file, int load_data);
 int                 __imlib_LoadImageData(ImlibImage * im);
 void                __imlib_DirtyImage(ImlibImage * im);
 void                __imlib_FreeImage(ImlibImage * im);

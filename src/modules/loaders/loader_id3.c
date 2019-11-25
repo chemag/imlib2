@@ -505,7 +505,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    if (loader)
      {
-        char               *ofile, tmp[] = "/tmp/imlib2_loader_id3-XXXXXX";
+        char                tmp[] = "/tmp/imlib2_loader_id3-XXXXXX";
         int                 dest;
 
         if ((dest = mkstemp(tmp)) < 0)
@@ -513,6 +513,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              fprintf(stderr, "Unable to create a temporary file\n");
              goto fail_context;
           }
+
         res = extract_pic(id3_tag_get_frame(opt.ctx->tag, opt.index - 1), dest);
         close(dest);
 
@@ -522,11 +523,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              goto fail_context;
           }
 
-        ofile = im->real_file;
-        im->real_file = strdup(tmp);
-        res = loader->load(im, progress, progress_granularity, load_data);
-        free(im->real_file);
-        im->real_file = ofile;
+        res = __imlib_LoadEmbedded(loader, im, tmp, load_data);
 
         unlink(tmp);
      }
@@ -539,7 +536,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         union id3_field    *field;
         id3_length_t        length;
         char const         *data;
-        char               *url, *file, *ofile;
+        char               *url, *file;
 
         field = id3_frame_field
            (id3_tag_get_frame(opt.ctx->tag, opt.index - 1), 4);
@@ -559,14 +556,13 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              free(url);
              goto fail_context;
           }
-        ofile = im->real_file;
-        im->real_file = file;
-        res = loader->load(im, progress, progress_granularity, load_data);
+
+        res = __imlib_LoadEmbedded(loader, im, file, load_data);
+
         if (!im->loader)
            __imlib_AttachTag(im, "id3-link-url", 0, url, destructor_data);
         else
            free(url);
-        im->real_file = ofile;
      }
 
    if (!im->loader)

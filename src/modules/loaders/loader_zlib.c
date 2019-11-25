@@ -46,7 +46,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    int                 dest, res;
    const char         *s, *p, *q;
    char                tmp[] = "/tmp/imlib2_loader_zlib-XXXXXX";
-   char               *file, *real_ext;
+   char               *real_ext;
 
    /* make sure this file ends in ".gz" and that there's another ext
     * (e.g. "foo.png.gz") */
@@ -82,23 +82,14 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    close(dest);
 
    if (!res)
-     {
-        unlink(tmp);
-        return 0;
-     }
+      goto quit;
 
-   /* remember the original filename */
-   file = im->real_file;
-   im->real_file = strdup(tmp);
+   res = __imlib_LoadEmbedded(loader, im, tmp, load_data);
 
-   loader->load(im, progress, progress_granularity, load_data);
-
-   free(im->real_file);
-   im->real_file = file;
-
+ quit:
    unlink(tmp);
 
-   return 1;
+   return res;
 }
 
 void
