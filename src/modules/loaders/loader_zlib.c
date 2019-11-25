@@ -7,13 +7,13 @@
 #define OUTBUF_SIZE 16484
 
 static int
-uncompress_file(int src, int dest)
+uncompress_file(FILE * fp, int dest)
 {
    gzFile              gf;
    DATA8               outbuf[OUTBUF_SIZE];
    int                 ret = 1, bytes;
 
-   gf = gzdopen(dup(src), "rb");
+   gf = gzdopen(dup(fileno(fp)), "rb");
    if (!gf)
       return 0;
 
@@ -42,7 +42,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
      char progress_granularity, char immediate_load)
 {
    ImlibLoader        *loader;
-   int                 src;
+   FILE               *fp;
    int                 dest, res;
    char               *file, *p, *q, tmp[] = "/tmp/imlib2_loader_zlib-XXXXXX";
    char               *real_ext;
@@ -62,17 +62,17 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!loader)
       return 0;
 
-   if ((src = open(im->real_file, O_RDONLY)) < 0)
+   if (!(fp = fopen(im->real_file, "rb")))
       return 0;
 
    if ((dest = mkstemp(tmp)) < 0)
      {
-        close(src);
+        fclose(fp);
         return 0;
      }
 
-   res = uncompress_file(src, dest);
-   close(src);
+   res = uncompress_file(fp, dest);
+   fclose(fp);
    close(dest);
 
    if (!res)
