@@ -1,18 +1,12 @@
 #include "loader_common.h"
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   FILE               *f;
    int                 w = 0, h = 0, alpha = 0;
    DATA32             *ptr;
    int                 y;
-
-   f = fopen(im->real_file, "rb");
-   if (!f)
-      return LOAD_FAIL;
 
    rc = LOAD_FAIL;
 
@@ -21,7 +15,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       char                buf[256], buf2[256];
 
       buf[0] = '\0';
-      if (!fgets(buf, 255, f))
+      if (!fgets(buf, 255, im->fp))
          goto quit;
 
       buf2[0] = '\0';
@@ -54,7 +48,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    for (y = 0; y < h; y++)
      {
-        if (fread(ptr, im->w, 4, f) != 4)
+        if (fread(ptr, im->w, 4, im->fp) != 4)
            goto quit;
 
 #ifdef WORDS_BIGENDIAN
@@ -75,7 +69,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
  quit:
    if (rc <= 0)
       __imlib_FreeData(im);
-   fclose(f);
 
    return rc;
 }

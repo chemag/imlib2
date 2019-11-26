@@ -44,12 +44,10 @@ uncompress_file(FILE * fp, int dest)
    return ret;
 }
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    ImlibLoader        *loader;
-   FILE               *fp;
    int                 dest, res;
    const char         *s, *p, *q;
    char                tmp[] = "/tmp/imlib2_loader_bz2-XXXXXX";
@@ -75,17 +73,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!loader)
       return 0;
 
-   if (!(fp = fopen(im->real_file, "rb")))
+   if ((dest = mkstemp(tmp)) < 0)
       return 0;
 
-   if ((dest = mkstemp(tmp)) < 0)
-     {
-        fclose(fp);
-        return 0;
-     }
-
-   res = uncompress_file(fp, dest);
-   fclose(fp);
+   res = uncompress_file(im->fp, dest);
    close(dest);
 
    if (!res)

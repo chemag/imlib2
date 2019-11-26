@@ -69,10 +69,9 @@ freeilbm(ILBM * ilbm)
  * Format FORMsizeILBMtag.size....tag.size....tag.size....
  *------------------------------------------------------------------------------*/
 static int
-loadchunks(char *name, ILBM * ilbm, int full)
+loadchunks(FILE * f, ILBM * ilbm, int full)
 {
    CHUNK              *c;
-   FILE               *f;
    size_t              s;
    long                formsize, pos, z;
    int                 ok, seek;
@@ -80,81 +79,76 @@ loadchunks(char *name, ILBM * ilbm, int full)
 
    ok = 0;
 
-   f = fopen(name, "rb");
-   if (f)
+   s = fread(buf, 1, 12, f);
+   if (s == 12 && !memcmp(buf, "FORM", 4) && !memcmp(buf + 8, "ILBM", 4))
      {
-        s = fread(buf, 1, 12, f);
-        if (s == 12 && !memcmp(buf, "FORM", 4) && !memcmp(buf + 8, "ILBM", 4))
+        memset(ilbm, 0, sizeof(*ilbm));
+        formsize = L2RLONG(buf + 4);
+
+        while (1)
           {
-             memset(ilbm, 0, sizeof(*ilbm));
-             formsize = L2RLONG(buf + 4);
+             pos = ftell(f);
+             if (pos < 0 || pos >= formsize + 8)
+                break;          /* Error or FORM data is finished. */
+             seek = 1;
 
-             while (1)
+             s = fread(buf, 1, 8, f);
+             if (s != 8)
+                break;          /* Error or short file. */
+
+             z = L2RLONG(buf + 4);
+             if (z < 0)
+                break;          /* Corrupt file. */
+
+             c = NULL;
+             if (!memcmp(buf, "BMHD", 4))
+                c = &(ilbm->bmhd);
+             else if (full)
                {
-                  pos = ftell(f);
-                  if (pos < 0 || pos >= formsize + 8)
-                     break;     /* Error or FORM data is finished. */
-                  seek = 1;
-
-                  s = fread(buf, 1, 8, f);
-                  if (s != 8)
-                     break;     /* Error or short file. */
-
-                  z = L2RLONG(buf + 4);
-                  if (z < 0)
-                     break;     /* Corrupt file. */
-
-                  c = NULL;
-                  if (!memcmp(buf, "BMHD", 4))
-                     c = &(ilbm->bmhd);
-                  else if (full)
-                    {
-                       if (!memcmp(buf, "CAMG", 4))
-                          c = &(ilbm->camg);
-                       else if (!memcmp(buf, "CMAP", 4))
-                          c = &(ilbm->cmap);
-                       else if (!memcmp(buf, "CTBL", 4))
-                          c = &(ilbm->ctbl);
-                       else if (!memcmp(buf, "SHAM", 4))
-                          c = &(ilbm->sham);
-                       else if (!memcmp(buf, "BODY", 4))
-                          c = &(ilbm->body);
-                    }
-
-                  if (c && !c->data)
-                    {
-                       c->size = z;
-                       c->data = malloc(c->size);
-                       if (!c->data)
-                          break;        /* Out of memory. */
-
-                       s = fread(c->data, 1, c->size, f);
-                       if (s != (size_t)c->size)
-                          break;        /* Error or short file. */
-
-                       seek = 0;
-                       if (!full)
-                         {      /* Only BMHD required. */
-                            ok = 1;
-                            break;
-                         }
-                    }
-
-                  if (pos + 8 + z >= formsize + 8)
-                     break;     /* This was last chunk. */
-
-                  if (seek && fseek(f, z, SEEK_CUR) != 0)
-                     break;
+                  if (!memcmp(buf, "CAMG", 4))
+                     c = &(ilbm->camg);
+                  else if (!memcmp(buf, "CMAP", 4))
+                     c = &(ilbm->cmap);
+                  else if (!memcmp(buf, "CTBL", 4))
+                     c = &(ilbm->ctbl);
+                  else if (!memcmp(buf, "SHAM", 4))
+                     c = &(ilbm->sham);
+                  else if (!memcmp(buf, "BODY", 4))
+                     c = &(ilbm->body);
                }
 
-             /* File may end strangely, especially if body size is uneven, but it's
-              * ok if we have the chunks we want. !full check is already done. */
-             if (ilbm->bmhd.data && ilbm->body.data)
-                ok = 1;
-             if (!ok)
-                freeilbm(ilbm);
+             if (c && !c->data)
+               {
+                  c->size = z;
+                  c->data = malloc(c->size);
+                  if (!c->data)
+                     break;     /* Out of memory. */
+
+                  s = fread(c->data, 1, c->size, f);
+                  if (s != (size_t)c->size)
+                     break;     /* Error or short file. */
+
+                  seek = 0;
+                  if (!full)
+                    {           /* Only BMHD required. */
+                       ok = 1;
+                       break;
+                    }
+               }
+
+             if (pos + 8 + z >= formsize + 8)
+                break;          /* This was last chunk. */
+
+             if (seek && fseek(f, z, SEEK_CUR) != 0)
+                break;
           }
-        fclose(f);
+
+        /* File may end strangely, especially if body size is uneven, but it's
+         * ok if we have the chunks we want. !full check is already done. */
+        if (ilbm->bmhd.data && ilbm->body.data)
+           ok = 1;
+        if (!ok)
+           freeilbm(ilbm);
      }
 
    return ok;
@@ -447,9 +441,8 @@ deplane(DATA32 * row, int w, ILBM * ilbm, unsigned char *plane[])
  *
  * Imlib2 doesn't support reading comment chunks like ANNO.
  *------------------------------------------------------------------------------*/
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 rc;
    char               *env;
@@ -461,7 +454,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    * Load the chunk(s) we're interested in. If load_data is not true, then we only
    * want the image size and format.
    *----------*/
-   rc = loadchunks(im->real_file, &ilbm, load_data);
+   rc = loadchunks(im->fp, &ilbm, load_data);
    if (rc == 0)
       return LOAD_FAIL;
 

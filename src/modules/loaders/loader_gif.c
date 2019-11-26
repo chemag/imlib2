@@ -4,9 +4,8 @@
 #include <fcntl.h>
 #include <gif_lib.h>
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    static const int    intoffset[] = { 0, 4, 2, 1 };
    static const int    intjump[] = { 8, 8, 4, 2 };
@@ -21,9 +20,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    int                 fd;
    DATA32              colormap[256];
 
-   fd = open(im->real_file, O_RDONLY);
-   if (fd < 0)
-      return LOAD_FAIL;
+   fd = dup(fileno(im->fp));
 
 #if GIFLIB_MAJOR >= 5
    gif = DGifOpenFileHandle(fd, NULL);

@@ -17,36 +17,31 @@ comment_free(ImlibImage * im, void *data)
    free(data);
 }
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 rc;
    png_uint_32         w32, h32;
    int                 w, h;
    char                hasa;
-   FILE               *f;
    png_structp         png_ptr = NULL;
    png_infop           info_ptr = NULL;
    int                 bit_depth, color_type, interlace_type;
    ImLib_PNG_data      pdata;
    int                 i;
 
-   f = fopen(im->real_file, "rb");
-   if (!f)
-      return LOAD_FAIL;
-
    /* read header */
    rc = LOAD_FAIL;
    pdata.lines = NULL;
 
-   if (fread(pdata.buf, 1, PNG_BYTES_TO_CHECK, f) != PNG_BYTES_TO_CHECK)
+   if (fread(pdata.buf, 1, PNG_BYTES_TO_CHECK, im->fp) != PNG_BYTES_TO_CHECK)
       goto quit;
 
    if (png_sig_cmp(pdata.buf, 0, PNG_BYTES_TO_CHECK))
       goto quit;
 
-   rewind(f);
+   rewind(im->fp);
+
    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
    if (!png_ptr)
       goto quit;
@@ -61,7 +56,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         goto quit;
      }
 
-   png_init_io(png_ptr, f);
+   png_init_io(png_ptr, im->fp);
    png_read_info(png_ptr, info_ptr);
    png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *) (&w32),
                 (png_uint_32 *) (&h32), &bit_depth, &color_type,
@@ -192,7 +187,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
    if (rc <= 0)
       __imlib_FreeData(im);
-   fclose(f);
 
    return rc;
 }

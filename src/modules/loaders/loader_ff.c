@@ -6,26 +6,20 @@
 
 #define LEN(x) (sizeof((x)) / sizeof(*(x)))
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   FILE               *f;
    size_t              rowlen, i, j;
    uint32_t            hdr[2 + 1 + 1], w, h;
    uint16_t           *row;
    uint8_t            *dat;
 
-   f = fopen(im->real_file, "rb");
-   if (!f)
-      return LOAD_FAIL;
-
    rc = LOAD_FAIL;
    row = NULL;
 
    /* read and check the header */
-   if (fread(hdr, sizeof(uint32_t), LEN(hdr), f) != LEN(hdr) ||
+   if (fread(hdr, sizeof(uint32_t), LEN(hdr), im->fp) != LEN(hdr) ||
        memcmp("farbfeld", hdr, sizeof("farbfeld") - 1))
       goto quit;
 
@@ -58,7 +52,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    dat = (uint8_t *) im->data;
    for (i = 0; i < h; i++, dat += rowlen)
      {
-        if (fread(row, sizeof(uint16_t), rowlen, f) != rowlen)
+        if (fread(row, sizeof(uint16_t), rowlen, im->fp) != (size_t)rowlen)
            goto quit;
 
         for (j = 0; j < rowlen; j += 4)
@@ -86,7 +80,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    free(row);
    if (rc <= 0)
       __imlib_FreeData(im);
-   fclose(f);
 
    return rc;
 }

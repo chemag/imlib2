@@ -57,21 +57,15 @@ _jdata_init(ImLib_JPEG_data * jd)
    return jem;
 }
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 w, h, rc;
    struct jpeg_decompress_struct cinfo;
    ImLib_JPEG_data     jdata;
-   FILE               *f;
    DATA8              *ptr, *line[16];
    DATA32             *ptr2;
    int                 x, y, l, i, scans;
-
-   f = fopen(im->real_file, "rb");
-   if (!f)
-      return LOAD_FAIL;
 
    /* set up error handling */
    cinfo.err = _jdata_init(&jdata);
@@ -84,7 +78,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    rc = LOAD_FAIL;
 
    jpeg_create_decompress(&cinfo);
-   jpeg_stdio_src(&cinfo, f);
+   jpeg_stdio_src(&cinfo, im->fp);
    jpeg_read_header(&cinfo, TRUE);
 
    im->w = w = cinfo.image_width;
@@ -182,7 +176,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    free(jdata.data);
    if (rc <= 0)
       __imlib_FreeData(im);
-   fclose(f);
 
    return rc;
 }

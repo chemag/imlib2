@@ -127,13 +127,11 @@ xpm_cmap_lookup(const cmap_t * cmap, int nc, int cpp, const char *s)
    return cmap[i1].pixel;
 }
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 rc;
    DATA32             *ptr;
-   FILE               *f;
    int                 pc, c, i, j, k, w, h, ncolors, cpp;
    int                 comment, transp, quote, context, len, done, backslash;
    char               *line, s[256], tok[256], col[256];
@@ -143,17 +141,13 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    int                 count, pixels;
    int                 last_row = 0;
 
-   f = fopen(im->real_file, "rb");
-   if (!f)
-      return LOAD_FAIL;
-
    rc = LOAD_FAIL;
    done = 0;
    transp = -1;
    line = NULL;
    cmap = NULL;
 
-   len = fread(s, 1, sizeof(s) - 1, f);
+   len = fread(s, 1, sizeof(s) - 1, im->fp);
    if (len < 9)
       goto quit;
 
@@ -161,7 +155,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!strstr(s, " XPM */"))
       goto quit;
 
-   rewind(f);
+   rewind(im->fp);
 
    i = 0;
    j = 0;
@@ -186,7 +180,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    while (!done)
      {
         pc = c;
-        c = fgetc(f);
+        c = fgetc(im->fp);
         if (c == EOF)
            break;
 
@@ -456,7 +450,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (rc <= 0)
       __imlib_FreeData(im);
 
-   fclose(f);
    free(cmap);
    free(line);
 

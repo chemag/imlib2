@@ -74,9 +74,6 @@ ico_delete(ico_t * ico)
 {
    int                 i;
 
-   if (ico->fp)
-      fclose(ico->fp);
-
    if (ico->ie)
      {
         for (i = 0; i < ico->idir.icons; i++)
@@ -216,7 +213,7 @@ ico_read_icon(ico_t * ico, int ino)
 }
 
 static ico_t       *
-ico_read(char *filename)
+ico_read(FILE * fp)
 {
    ico_t              *ico;
    unsigned int        nr, i;
@@ -225,9 +222,7 @@ ico_read(char *filename)
    if (!ico)
       return NULL;
 
-   ico->fp = fopen(filename, "rb");
-   if (!ico->fp)
-      goto bail;
+   ico->fp = fp;
 
    nr = fread(&ico->idir, 1, sizeof(ico->idir), ico->fp);
    if (nr != sizeof(ico->idir))
@@ -418,14 +413,13 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
    return 1;
 }
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    ico_t              *ico;
    int                 ok;
 
-   ico = ico_read(im->real_file);
+   ico = ico_read(im->fp);
    if (!ico)
       return 0;
 

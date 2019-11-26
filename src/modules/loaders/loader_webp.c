@@ -31,9 +31,8 @@ webp_strerror(VP8StatusCode code)
      }
 }
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 rc;
    uint8_t            *encoded_data;
@@ -42,11 +41,11 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    WebPBitstreamFeatures features;
    VP8StatusCode       vp8return;
 
-   if (stat(im->real_file, &stats) < 0)
+   encoded_fd = fileno(im->fp);
+   if (encoded_fd < 0)
       return LOAD_FAIL;
 
-   encoded_fd = open(im->real_file, O_RDONLY);
-   if (encoded_fd < 0)
+   if (fstat(encoded_fd, &stats) < 0)
       return LOAD_FAIL;
 
    rc = LOAD_FAIL;
@@ -57,9 +56,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    if (read(encoded_fd, encoded_data, stats.st_size) < stats.st_size)
       goto quit;
-
-   close(encoded_fd);
-   encoded_fd = -1;
 
    if (WebPGetInfo(encoded_data, stats.st_size, &im->w, &im->h) == 0)
       goto quit;
@@ -104,8 +100,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (rc <= 0)
       __imlib_FreeData(im);
    free(encoded_data);
-   if (encoded_fd >= 0)
-      close(encoded_fd);
 
    return rc;
 }

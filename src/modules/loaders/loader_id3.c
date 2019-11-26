@@ -247,7 +247,7 @@ typedef struct lopt {
 } lopt;
 
 static char
-get_options(lopt * opt, const ImlibImage * im, FILE * f)
+get_options(lopt * opt, const ImlibImage * im)
 {
    unsigned int        handle = 0, index = 0, traverse = 0;
    context            *ctx;
@@ -295,7 +295,7 @@ get_options(lopt * opt, const ImlibImage * im, FILE * f)
    if (handle)
       ctx = context_get(handle);
    else if (!(ctx = context_get_by_name(im->real_file)) &&
-            !(ctx = context_create(im->real_file, f)))
+            !(ctx = context_create(im->real_file, im->fp)))
       return 0;
 
    if (!index)
@@ -495,11 +495,9 @@ write_tags(ImlibImage * im, lopt * opt)
      }
 }
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
-   FILE               *f;
    ImlibLoader        *loader;
    lopt                opt;
    int                 res;
@@ -507,11 +505,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    res = LOAD_FAIL;
    opt.ctx = NULL;
 
-   f = fopen(im->real_file, "rb");
-   if (!f)
-      return LOAD_FAIL;
-
-   if (!get_options(&opt, im, f))
+   if (!get_options(&opt, im))
       goto fail_context;
 
    if (!get_loader(&opt, &loader))
@@ -602,7 +596,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
  fail_context:
    if (opt.ctx)
       context_delref(opt.ctx);
-   fclose(f);
 
    return res;
 }

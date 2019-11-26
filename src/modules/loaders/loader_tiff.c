@@ -237,12 +237,10 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
      }
 }
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   FILE               *f;
    TIFF               *tif = NULL;
    int                 fd;
    uint16              magic_number;
@@ -250,14 +248,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    uint32             *rast = NULL;
    char                txt[1024];
 
-   f = fopen(im->real_file, "rb");
-   if (!f)
-      return LOAD_FAIL;
-
    rc = LOAD_FAIL;
    rgba_image.image = NULL;
 
-   fd = fileno(f);
+   fd = fileno(im->fp);
    if (read(fd, &magic_number, sizeof(uint16)) != sizeof(uint16))
       goto quit;
 
@@ -265,14 +259,15 @@ load(ImlibImage * im, ImlibProgressFunction progress,
        && (magic_number != TIFF_LITTLEENDIAN))
       goto quit;
 
-   fd = dup(fd);
    lseek(fd, 0, SEEK_SET);
-   fclose(f);
-   f = NULL;
 
+   fd = dup(fd);
    tif = TIFFFdOpen(fd, im->real_file, "r");
    if (!tif)
-      goto quit;
+     {
+        close(fd);
+        goto quit;
+     }
 
    strcpy(txt, "Cannot be processed by libtiff");
    if (!TIFFRGBAImageOK(tif, txt))
@@ -360,8 +355,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       TIFFRGBAImageEnd((TIFFRGBAImage *) & rgba_image);
    if (tif)
       TIFFClose(tif);
-   if (f)
-      fclose(f);
 
    return rc;
 }

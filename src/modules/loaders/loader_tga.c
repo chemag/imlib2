@@ -163,9 +163,8 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
  * There are several other (uncommon) Targa formats which this function can't currently handle
  */
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 fd, rc;
    void               *seg, *filedata;
@@ -181,9 +180,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    unsigned char       a, r, g, b;
    unsigned int        pix16;
 
-   fd = open(im->real_file, O_RDONLY);
-   if (fd < 0)
-      return LOAD_FAIL;
+   fd = fileno(im->fp);
 
    rc = LOAD_FAIL;
    seg = MAP_FAILED;
@@ -566,7 +563,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       __imlib_FreeData(im);
    if (seg != MAP_FAILED)
       munmap(seg, ss.st_size);
-   close(fd);
 
    return rc;
 }

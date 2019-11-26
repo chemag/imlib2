@@ -1,12 +1,10 @@
 #include "loader_common.h"
 #include <ctype.h>
 
-char
-load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char load_data)
+int
+load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   FILE               *f;
    char                p = ' ', numbers = 3, count = 0;
    int                 w = 0, h = 0, v = 255, c = 0;
    char                buf[256];
@@ -16,19 +14,15 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    DATA32             *ptr2, rval, gval, bval;
    int                 i, j, x, y;
 
-   f = fopen(im->real_file, "rb");
-   if (!f)
-      return LOAD_FAIL;
-
    /* read the header info */
 
    rc = LOAD_FAIL;
 
-   c = fgetc(f);
+   c = fgetc(im->fp);
    if (c != 'P')
       goto quit;
 
-   p = fgetc(f);
+   p = fgetc(im->fp);
    if (p == '1' || p == '4')
       numbers = 2;              /* bitimages don't have max value */
 
@@ -38,19 +32,19 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    count = 0;
    while (count < numbers)
      {
-        c = fgetc(f);
+        c = fgetc(im->fp);
 
         if (c == EOF)
            goto quit;
 
         /* eat whitespace */
         while (isspace(c))
-           c = fgetc(f);
+           c = fgetc(im->fp);
         /* if comment, eat that */
         if (c == '#')
           {
              do
-                c = fgetc(f);
+                c = fgetc(im->fp);
              while (c != '\n' && c != EOF);
           }
         /* no comment -> proceed */
@@ -62,7 +56,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              while (c != EOF && !isspace(c) && (i < 255))
                {
                   buf[i++] = c;
-                  c = fgetc(f);
+                  c = fgetc(im->fp);
                }
              if (i)
                {
@@ -119,7 +113,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
           {
              for (x = 0; x < w; x++)
                {
-                  j = fscanf(f, "%u", &gval);
+                  j = fscanf(im->fp, "%u", &gval);
                   if (j <= 0)
                      goto quit;
 
@@ -140,7 +134,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
           {
              for (x = 0; x < w; x++)
                {
-                  j = fscanf(f, "%u", &gval);
+                  j = fscanf(im->fp, "%u", &gval);
                   if (j <= 0)
                      goto quit;
 
@@ -165,7 +159,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
           {
              for (x = 0; x < w; x++)
                {
-                  j = fscanf(f, "%u %u %u", &rval, &gval, &bval);
+                  j = fscanf(im->fp, "%u %u %u", &rval, &gval, &bval);
                   if (j <= 2)
                      goto quit;
 
@@ -194,7 +188,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         ptr2 = im->data;
         for (y = 0; y < h; y++)
           {
-             if (!fread(data, (w + 7) / 8, 1, f))
+             if (!fread(data, (w + 7) / 8, 1, im->fp))
                 goto quit;
 
              ptr = data;
@@ -224,7 +218,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         ptr2 = im->data;
         for (y = 0; y < h; y++)
           {
-             if (!fread(data, w * 1, 1, f))
+             if (!fread(data, w * 1, 1, im->fp))
                 goto quit;
 
              ptr = data;
@@ -263,7 +257,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         ptr2 = im->data;
         for (y = 0; y < h; y++)
           {
-             if (!fread(data, w * 3, 1, f))
+             if (!fread(data, w * 3, 1, im->fp))
                 goto quit;
 
              ptr = data;
@@ -302,7 +296,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         ptr2 = im->data;
         for (y = 0; y < h; y++)
           {
-             if (!fread(data, w * 1, 1, f))
+             if (!fread(data, w * 1, 1, im->fp))
                 goto quit;
 
              ptr = data;
@@ -334,7 +328,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         ptr2 = im->data;
         for (y = 0; y < h; y++)
           {
-             if (!fread(data, w * 4, 1, f))
+             if (!fread(data, w * 4, 1, im->fp))
                 goto quit;
 
              ptr = data;
@@ -379,7 +373,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    if (rc == 0)
       __imlib_FreeData(im);
-   fclose(f);
 
    return rc;
 }
