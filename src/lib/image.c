@@ -798,6 +798,43 @@ __imlib_FindBestLoaderForFileFormat(const char *file, char *format,
       return __imlib_FindBestLoaderForFile(file, for_save);
 }
 
+static int
+__imlib_ErrorFromErrno(int err, int save)
+{
+   switch (err)
+     {
+     default:
+        return IMLIB_LOAD_ERROR_UNKNOWN;
+        /* standrad fopen() type errors translated */
+     case 0:
+        return IMLIB_LOAD_ERROR_NONE;
+     case EEXIST:
+        return IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
+     case EISDIR:
+        return IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
+     case EACCES:
+     case EROFS:
+        return (save) ? IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE :
+           IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ;
+     case ENAMETOOLONG:
+        return IMLIB_LOAD_ERROR_PATH_TOO_LONG;
+     case ENOENT:
+        return IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT;
+     case ENOTDIR:
+        return IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY;
+     case EFAULT:
+        return IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE;
+     case ELOOP:
+        return IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS;
+     case ENOMEM:
+        return IMLIB_LOAD_ERROR_OUT_OF_MEMORY;
+     case EMFILE:
+        return IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS;
+     case ENOSPC:
+        return IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE;
+     }
+}
+
 /* set or unset the alpha flag on the umage (alpha = 1 / 0 ) */
 void
 __imlib_SetImageAlphaFlag(ImlibImage * im, char alpha)
@@ -980,46 +1017,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
      {
         /* if the caller wants an error return */
         if (er)
-          {
-             /* set to a default fo no error */
-             *er = IMLIB_LOAD_ERROR_NONE;
-             /* if the errno is set */
-             if (errno != 0)
-               {
-                  /* default to unknown error */
-                  *er = IMLIB_LOAD_ERROR_UNKNOWN;
-                  /* standrad fopen() type errors translated */
-                  if (errno == EEXIST)
-                     *er = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
-                  else if (errno == EISDIR)
-                     *er = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
-                  else if (errno == EISDIR)
-                     *er = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
-                  else if (errno == EACCES)
-                     *er = IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ;
-                  else if (errno == ENAMETOOLONG)
-                     *er = IMLIB_LOAD_ERROR_PATH_TOO_LONG;
-                  else if (errno == ENOENT)
-                     *er = IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT;
-                  else if (errno == ENOTDIR)
-                     *er = IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY;
-                  else if (errno == EFAULT)
-                     *er = IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE;
-                  else if (errno == ELOOP)
-                     *er = IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS;
-                  else if (errno == ENOMEM)
-                     *er = IMLIB_LOAD_ERROR_OUT_OF_MEMORY;
-                  else if (errno == EMFILE)
-                     *er = IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS;
-                  if (*er != IMLIB_LOAD_ERROR_UNKNOWN)
-                    {
-                       /* free the stuct we created */
-                       __imlib_ConsumeImage(im);
-                       return NULL;
-                    }
-               }
-             errno = 0;
-          }
+           *er = __imlib_ErrorFromErrno(errno, 0);
         __imlib_ConsumeImage(im);
         return NULL;
      }
@@ -1187,10 +1185,6 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
         return;
      }
 
-   /* if they want an error returned - assume none by default */
-   if (er)
-      *er = IMLIB_LOAD_ERROR_NONE;
-
    /* set the filename to the user supplied one */
    pfile = im->real_file;
    im->real_file = strdup(file);
@@ -1202,35 +1196,6 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
    free(im->real_file);
    im->real_file = pfile;
 
-   /* if there's an error return and the save faile (e = 0) figure it out */
-   if ((er) && (e == 0))
-     {
-        *er = IMLIB_LOAD_ERROR_UNKNOWN;
-        if (errno == EEXIST)
-           *er = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
-        else if (errno == EISDIR)
-           *er = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
-        else if (errno == EISDIR)
-           *er = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
-        else if (errno == EACCES)
-           *er = IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE;
-        else if (errno == ENAMETOOLONG)
-           *er = IMLIB_LOAD_ERROR_PATH_TOO_LONG;
-        else if (errno == ENOENT)
-           *er = IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT;
-        else if (errno == ENOTDIR)
-           *er = IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY;
-        else if (errno == EFAULT)
-           *er = IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE;
-        else if (errno == ELOOP)
-           *er = IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS;
-        else if (errno == ENOMEM)
-           *er = IMLIB_LOAD_ERROR_OUT_OF_MEMORY;
-        else if (errno == EMFILE)
-           *er = IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS;
-        else if (errno == ENOSPC)
-           *er = IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE;
-        else if (errno == EROFS)
-           *er = IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE;
-     }
+   if (er)
+      *er = __imlib_ErrorFromErrno(e > 0 ? 0 : errno, 1);
 }
