@@ -218,12 +218,12 @@ main(int argc, char **argv)
           case ClientMessage:
              if (ev.xclient.message_type == ATOM_WM_PROTOCOLS &&
                  (Atom) ev.xclient.data.l[0] == ATOM_WM_DELETE_WINDOW)
-                return 0;
+                goto quit;
              break;
           case KeyPress:
              key = XLookupKeysym(&ev.xkey, 0);
              if (key == XK_q || key == XK_Escape)
-                return 0;
+                goto quit;
              if (key == XK_Right)
                 goto show_next;
              if (key == XK_Left)
@@ -408,5 +408,7 @@ main(int argc, char **argv)
                }
           }
      }
+
+ quit:
    return 0;
 }
