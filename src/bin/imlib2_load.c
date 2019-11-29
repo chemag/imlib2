@@ -7,7 +7,7 @@
 #endif
 #include <Imlib2.h>
 
-#define PROG_NAME "imlib2_test_load"
+#define PROG_NAME "imlib2_load"
 
 static char         progress_called;
 
