@@ -15,6 +15,14 @@
 #include "file.h"
 #include "image.h"
 
+/* Imlib loader context */
+struct _imlibldctx {
+   ImlibProgressFunction progress;
+   char                granularity;
+   int                 pct, area, row;
+   int                 pass, n_pass;
+};
+
 static ImlibImage  *images = NULL;
 
 #ifdef BUILD_X11
@@ -534,14 +542,15 @@ __imlib_CreateImage(int w, int h, DATA32 * data)
 }
 
 static int
-__imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im,
-                         ImlibProgressFunction progress,
-                         char progress_granularity, char immediate_load)
+__imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
 {
    int                 rc;
 
-   immediate_load = immediate_load || progress || im->loader;
-   rc = l->load(im, progress, progress_granularity, immediate_load);
+   if (im->lc)
+      rc = l->load(im, im->lc->progress, im->lc->granularity, 1);
+   else
+      rc = l->load(im, NULL, 0, load_data);
+
    if (rc == 0)
      {
         /* Failed - clean up */
@@ -568,6 +577,19 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im,
    return rc;
 }
 
+static void
+__imlib_LoadCtxInit(ImlibImage * im, ImlibLdCtx * lc,
+                    ImlibProgressFunction prog, int gran)
+{
+   im->lc = lc;
+   lc->progress = prog;
+   lc->granularity = gran;
+   lc->pct = lc->row = 0;
+   lc->area = 0;
+   lc->pass = 0;
+   lc->n_pass = 1;
+}
+
 ImlibImage         *
 __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
                   char progress_granularity, char immediate_load,
@@ -576,6 +598,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
    ImlibImage         *im;
    ImlibLoader        *best_loader;
    int                 loader_ret;
+   ImlibLdCtx          ilc;
 
    if (!file || file[0] == '\0')
       return NULL;
@@ -634,6 +657,9 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
 
    im->data_memory_func = imlib_context_get_image_data_memory_function();
 
+   if (progress)
+      __imlib_LoadCtxInit(im, &ilc, progress, progress_granularity);
+
    /* ok - just check all our loaders are up to date */
    __imlib_RescanLoaders();
 
@@ -643,10 +669,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
    best_loader = __imlib_FindBestLoaderForFile(im->real_file, 0);
    errno = 0;
    if (best_loader)
-      loader_ret =
-         __imlib_LoadImageWrapper(best_loader, im,
-                                  progress, progress_granularity,
-                                  immediate_load);
+      loader_ret = __imlib_LoadImageWrapper(best_loader, im, immediate_load);
 
    if (loader_ret > 0)
      {
@@ -664,10 +687,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
              /* if its not the best loader that already failed - try load */
              if (l == best_loader)
                 continue;
-             loader_ret =
-                __imlib_LoadImageWrapper(l, im,
-                                         progress, progress_granularity,
-                                         immediate_load);
+             loader_ret = __imlib_LoadImageWrapper(l, im, immediate_load);
              if (loader_ret > 0)
                 break;
           }
@@ -686,6 +706,8 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
                }
           }
      }
+
+   im->lc = NULL;
 
    /* all loaders have been tried and they all failed. free the skeleton */
    /* image struct we had and return NULL */
@@ -707,6 +729,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
       __imlib_AddImageToCache(im);
    else
       SET_FLAG(im->flags, F_UNCACHEABLE);
+
    return im;
 }
 
@@ -714,9 +737,65 @@ int
 __imlib_LoadImageData(ImlibImage * im)
 {
    if ((!(im->data)) && (im->loader) && (im->loader->load))
-      if (__imlib_LoadImageWrapper(im->loader, im, NULL, 0, 1) == 0)
+      if (__imlib_LoadImageWrapper(im->loader, im, 1) == 0)
          return 1;              /* Load failed */
    return im->data == NULL;
+}
+
+__EXPORT__ void
+__imlib_LoadProgressSetPass(ImlibImage * im, int pass, int n_pass)
+{
+   im->lc->pass = pass;
+   im->lc->n_pass = n_pass;
+
+   im->lc->row = 0;
+}
+
+__EXPORT__ int
+__imlib_LoadProgress(ImlibImage * im, int x, int y, int w, int h)
+{
+   ImlibLdCtx         *lc = im->lc;
+   int                 rc;
+
+   lc->area += w * h;
+   lc->pct = (100. * lc->area + .1) / (im->w * im->h);
+
+   rc = !lc->progress(im, lc->pct, x, y, w, h);
+
+   return rc;
+}
+
+__EXPORT__ int
+__imlib_LoadProgressRows(ImlibImage * im, int row, int nrows)
+{
+   ImlibLdCtx         *lc = im->lc;
+   int                 rc = 0;
+   int                 pct, nrtot;
+
+   if (nrows > 0)
+     {
+        /* Row index counting up */
+        nrtot = row + nrows;
+        row = lc->row;
+        nrows = nrtot - lc->row;
+     }
+   else
+     {
+        /* Row index counting down */
+        nrtot = im->h - row;
+        row = row;
+        nrows = nrtot - lc->row;
+     }
+
+   pct = (100 * nrtot * (lc->pass + 1)) / (im->h * lc->n_pass);
+   if (pct == 100 || pct >= lc->pct + lc->granularity)
+     {
+        rc = !lc->progress(im, pct, 0, row, im->w, nrows);
+        lc->row = nrtot;
+        lc->pct += lc->granularity;
+     }
+
+   return rc;
 }
 
 #ifdef BUILD_X11
@@ -840,6 +919,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
 {
    ImlibLoader        *l;
    char                e, *pfile;
+   ImlibLdCtx          ilc;
 
    if (!file)
      {
@@ -861,6 +941,9 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
         return;
      }
 
+   if (progress)
+      __imlib_LoadCtxInit(im, &ilc, progress, progress_granularity);
+
    /* set the filename to the user supplied one */
    pfile = im->real_file;
    im->real_file = strdup(file);
@@ -871,6 +954,8 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
    /* set the filename back to the laoder image filename */
    free(im->real_file);
    im->real_file = pfile;
+
+   im->lc = NULL;
 
    if (er)
       *er = __imlib_ErrorFromErrno(e > 0 ? 0 : errno, 1);

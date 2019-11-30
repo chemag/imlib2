@@ -11,6 +11,7 @@
 #endif
 
 typedef struct _imlibimage ImlibImage;
+typedef struct _imlibldctx ImlibLdCtx;
 
 #ifdef BUILD_X11
 typedef struct _imlibimagepixmap ImlibImagePixmap;
@@ -68,6 +69,7 @@ struct _imlibimage {
    char               *real_file;
    char               *key;
    ImlibImageDataMemoryFunction data_memory_func;
+   ImlibLdCtx         *lc;
 };
 
 #ifdef BUILD_X11
@@ -132,6 +134,13 @@ void                __imlib_SaveImage(ImlibImage * im, const char *file,
 DATA32             *__imlib_AllocateData(ImlibImage * im);
 void                __imlib_FreeData(ImlibImage * im);
 void                __imlib_ReplaceData(ImlibImage * im, DATA32 * new_data);
+
+void                __imlib_LoadProgressSetPass(ImlibImage * im,
+                                                int pass, int n_pass);
+int                 __imlib_LoadProgress(ImlibImage * im,
+                                         int x, int y, int w, int h);
+int                 __imlib_LoadProgressRows(ImlibImage * im,
+                                             int row, int nrows);
 
 #ifdef BUILD_X11
 ImlibImagePixmap   *__imlib_ProduceImagePixmap(void);
