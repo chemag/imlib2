@@ -6,21 +6,14 @@ do_progress(ImlibImage * im, ImlibProgressFunction progress,
             char progress_granularity, char *pper, int *py, int y)
 {
    int                 rc = 0;
-   int                 h = 0;
-   char                per;
+   int                 per;
 
-   per = (char)((100 * y) / im->h);
-   if (((per - *pper) >= progress_granularity) || (y == (im->h - 1)))
+   per = (100 * (y + 1)) / im->h;
+   if (per == 100 || per >= *pper + progress_granularity)
      {
-        h = y - *py;
-
-        /* fix off by one in case of the last line */
-        if (y == (im->h - 1))
-           h++;
-
-        rc = !progress(im, per, 0, *py, im->w, h);
-        *pper = per;
-        *py = y;
+        rc = !progress(im, per, 0, *py, im->w, y + 1 - *py);
+        *py = y + 1;
+        *pper += progress_granularity;
      }
 
    return rc;
@@ -39,8 +32,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    DATA8              *ptr = NULL;
    int                *idata = NULL;    /* for the ASCII versions */
    DATA32             *ptr2, rval, gval, bval;
-   int                 i, j, x, y, pl = 0;
-   char                pper = 0;
+   int                 i, j, x, y;
 
    f = fopen(im->real_file, "rb");
    if (!f)
@@ -156,8 +148,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                   else
                      goto quit;
                }
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
         break;
@@ -182,8 +174,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                     }
                }
 
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
         break;
@@ -208,8 +199,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                           (((gval * 255) / v) << 8) | ((bval * 255) / v);
                     }
                }
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
         break;
@@ -238,8 +229,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                     }
                   ptr++;
                }
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
         break;
@@ -277,8 +268,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                        ptr++;
                     }
                }
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
         break;
@@ -316,8 +307,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                        ptr += 3;
                     }
                }
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
         break;
@@ -348,8 +339,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                   ptr2++;
                   ptr++;
                }
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
         break;
@@ -386,8 +377,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                        ptr += 4;
                     }
                }
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
         break;

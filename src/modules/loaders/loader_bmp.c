@@ -139,8 +139,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 {
    int                 rc;
    FILE               *f;
-   char                pper = 0;
-   int                 pl = 0;
    unsigned int        offset;
    unsigned int        size, comp, imgsize;
    unsigned int        bitcount, ncols, skip;
@@ -442,26 +440,11 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                     }
                   buffer_ptr += skip;
                   ptr -= w * 2;
-                  if (progress)
-                    {
-                       char                per;
-                       int                 ll;
 
-                       per = (char)((100 * y) / im->h);
-                       if (((per - pper) >= progress_granularity) ||
-                           (y == (im->h - 1)))
-                         {
-                            ll = y - pl;
-                            if (!progress
-                                (im, per, 0, im->h - y - 1, im->w,
-                                 im->h - y + ll))
-                              {
-                                 rc = LOAD_BREAK;
-                                 goto quit;
-                              }
-                            pper = per;
-                            pl = y;
-                         }
+                  if (im->lc && __imlib_LoadProgressRows(im, h - y - 1, -1))
+                    {
+                       rc = LOAD_BREAK;
+                       goto quit;
                     }
                }
              break;
@@ -517,7 +500,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                             ptr = im->data + (h - y - 1) * w;
                             break;
                          case RLE_END:
-                            goto bail_bc4;
+                            x = 0;
+                            y = h;
+                            buffer_ptr = buffer_end_safe;
+                            break;
                          case RLE_MOVE:
                             /* Need to read two bytes */
                             if (buffer_ptr >= buffer_end_safe)
@@ -556,27 +542,17 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                             break;
                          }
                     }
-                bail_bc4:
-                  if (progress)
-                    {
-                       char                per;
-                       int                 ll;
+                  goto progress_bc4;
 
-                       per = (char)((100 * y) / im->h);
-                       if (((per - pper) >= progress_granularity) ||
-                           (y == (im->h - 1)))
-                         {
-                            ll = y - pl;
-                            if (!progress
-                                (im, per, 0, im->h - y - 1, im->w,
-                                 im->h - y + ll))
-                              {
-                                 rc = LOAD_BREAK;
-                                 goto quit;
-                              }
-                            pper = per;
-                            pl = y;
-                         }
+                bail_bc4:
+                  buffer_ptr = buffer_end_safe;
+
+                progress_bc4:
+                  if (im->lc && (x == w) &&
+                      __imlib_LoadProgressRows(im, h - y - 1, -1))
+                    {
+                       rc = LOAD_BREAK;
+                       goto quit;
                     }
                }
              break;
@@ -595,26 +571,11 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                     }
                   buffer_ptr += skip;
                   ptr -= w * 2;
-                  if (progress)
-                    {
-                       char                per;
-                       int                 ll;
 
-                       per = (char)((100 * y) / im->h);
-                       if (((per - pper) >= progress_granularity) ||
-                           (y == (im->h - 1)))
-                         {
-                            ll = y - pl;
-                            if (!progress
-                                (im, per, 0, im->h - y - 1, im->w,
-                                 im->h - y + ll))
-                              {
-                                 rc = LOAD_BREAK;
-                                 goto quit;
-                              }
-                            pper = per;
-                            pl = y;
-                         }
+                  if (im->lc && __imlib_LoadProgressRows(im, h - y - 1, -1))
+                    {
+                       rc = LOAD_BREAK;
+                       goto quit;
                     }
                }
              break;
@@ -659,7 +620,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                             ptr = im->data + ((h - y - 1) * w) + x;
                             break;
                          case RLE_END:
-                            goto bail_bc8;
+                            x = 0;
+                            y = h;
+                            buffer_ptr = buffer_end_safe;
+                            break;
                          case RLE_MOVE:
                             /* Need to read two bytes */
                             if (buffer_ptr >= buffer_end_safe)
@@ -693,29 +657,17 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                             break;
                          }
                     }
-               }
-           bail_bc8:
-             if (progress)
-               {
-                  char                per;
-                  int                 ll;
+                  goto progress_bc8;
 
-                  per = (char)((100 * y) / im->h);
-#if 0
-                  /* Always call progress() at least once */
-                  if (((per - pper) >= progress_granularity) ||
-                      (y == (im->h - 1)))
-#endif
+                bail_bc8:
+                  buffer_ptr = buffer_end_safe;
+
+                progress_bc8:
+                  if (im->lc && (x == w) &&
+                      __imlib_LoadProgressRows(im, h - y - 1, -1))
                     {
-                       ll = y - pl;
-                       if (!progress
-                           (im, per, 0, im->h - y - 1, im->w, im->h - y + ll))
-                         {
-                            rc = LOAD_BREAK;
-                            goto quit;
-                         }
-                       pper = per;
-                       pl = y;
+                       rc = LOAD_BREAK;
+                       goto quit;
                     }
                }
              break;
@@ -732,26 +684,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                   ptr -= w * 2;
                   buffer_ptr += skip;
 
-                  if (progress)
+                  if (im->lc && __imlib_LoadProgressRows(im, h - y - 1, -1))
                     {
-                       char                per;
-                       int                 ll;
-
-                       per = (char)((100 * y) / im->h);
-                       if (((per - pper) >= progress_granularity) ||
-                           (y == (im->h - 1)))
-                         {
-                            ll = y - pl;
-                            if (!progress
-                                (im, per, 0, im->h - y - 1, im->w,
-                                 im->h - y + ll))
-                              {
-                                 rc = LOAD_BREAK;
-                                 goto quit;
-                              }
-                            pper = per;
-                            pl = y;
-                         }
+                       rc = LOAD_BREAK;
+                       goto quit;
                     }
                }
              break;
@@ -781,25 +717,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              ptr -= w * 2;
              buffer_ptr += skip;
 
-             if (progress)
+             if (im->lc && __imlib_LoadProgressRows(im, h - y - 1, -1))
                {
-                  char                per;
-                  int                 ll;
-
-                  per = (char)((100 * y) / im->h);
-                  if (((per - pper) >= progress_granularity) ||
-                      (y == (im->h - 1)))
-                    {
-                       ll = y - pl;
-                       if (!progress
-                           (im, per, 0, im->h - y - 1, im->w, im->h - y + ll))
-                         {
-                            rc = LOAD_BREAK;
-                            goto quit;
-                         }
-                       pper = per;
-                       pl = y;
-                    }
+                  rc = LOAD_BREAK;
+                  goto quit;
                }
           }
         break;
@@ -820,25 +741,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              ptr -= w * 2;
              buffer_ptr += skip;
 
-             if (progress)
+             if (im->lc && __imlib_LoadProgressRows(im, h - y - 1, -1))
                {
-                  char                per;
-                  int                 ll;
-
-                  per = (char)((100 * y) / im->h);
-                  if (((per - pper) >= progress_granularity) ||
-                      (y == (im->h - 1)))
-                    {
-                       ll = y - pl;
-                       if (!progress
-                           (im, per, 0, im->h - y - 1, im->w, im->h - y + ll))
-                         {
-                            rc = LOAD_BREAK;
-                            goto quit;
-                         }
-                       pper = per;
-                       pl = y;
-                    }
+                  rc = LOAD_BREAK;
+                  goto quit;
                }
           }
         break;
@@ -866,25 +772,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              ptr -= w * 2;
              buffer_ptr += skip;
 
-             if (progress)
+             if (im->lc && __imlib_LoadProgressRows(im, h - y - 1, -1))
                {
-                  char                per;
-                  int                 ll;
-
-                  per = (char)((100 * y) / im->h);
-                  if (((per - pper) >= progress_granularity) ||
-                      (y == (im->h - 1)))
-                    {
-                       ll = y - pl;
-                       if (!progress
-                           (im, per, 0, im->h - y - 1, im->w, im->h - y + ll))
-                         {
-                            rc = LOAD_BREAK;
-                            goto quit;
-                         }
-                       pper = per;
-                       pl = y;
-                    }
+                  rc = LOAD_BREAK;
+                  goto quit;
                }
           }
         break;

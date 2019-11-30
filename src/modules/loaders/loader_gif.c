@@ -17,8 +17,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    GifRecordType       rec;
    ColorMapObject     *cmap;
    int                 i, j, done, bg, r, g, b, w = 0, h = 0;
-   float               per = 0.0, per_inc;
-   int                 last_per = 0, last_y = 0;
    int                 transp;
    int                 fd;
    DATA32              colormap[256];
@@ -150,29 +148,19 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!ptr)
       goto quit;
 
-   per_inc = 100.0 / (float)h;
    for (i = 0; i < h; i++)
      {
         for (j = 0; j < w; j++)
           {
              *ptr++ = colormap[rows[i][j]];
           }
-        per += per_inc;
-        if (progress && (((int)per) != last_per)
-            && (((int)per) % progress_granularity == 0))
+
+        if (im->lc && __imlib_LoadProgressRows(im, i, 1))
           {
-             last_per = (int)per;
-             if (!(progress(im, per, 0, last_y, w, i)))
-               {
-                  rc = LOAD_BREAK;
-                  goto quit;
-               }
-             last_y = i;
+             rc = LOAD_BREAK;
+             goto quit;
           }
      }
-
-   if (progress)
-      progress(im, 100, 0, last_y, im->w, im->h);
 
    rc = LOAD_SUCCESS;
 

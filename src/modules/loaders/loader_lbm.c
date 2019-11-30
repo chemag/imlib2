@@ -453,7 +453,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 {
    int                 rc;
    char               *env;
-   int                 i, n, y, z, gran, nexty, prevy;
+   int                 i, n, y, z;
    unsigned char      *plane[40];
    ILBM                ilbm;
 
@@ -534,8 +534,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    * from each plane are interleaved, from top to bottom. The first plane is the
    * 0 bit.
    *----------*/
-   plane[0] = NULL;
-   gran = nexty = 0;
 
    __imlib_AllocateData(im);
    if (!im->data)
@@ -553,15 +551,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    z = ((im->w + 15) / 16) * 2 * n;
 
-   if (progress)
-     {
-        prevy = 0;
-        if (progress_granularity <= 0)
-           progress_granularity = 1;
-        gran = progress_granularity;
-        nexty = ((im->h * gran) / 100);
-     }
-
    scalecmap(&ilbm);
 
    for (y = 0; y < im->h; y++)
@@ -571,17 +560,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         deplane(im->data + im->w * y, im->w, &ilbm, plane);
         ilbm.row++;
 
-        if (progress && (y >= nexty || y == im->h - 1))
+        if (im->lc && __imlib_LoadProgressRows(im, y, 1))
           {
-             if (!progress
-                 (im, (char)((100 * (y + 1)) / im->h), 0, prevy, im->w, y + 1))
-               {
-                  rc = LOAD_BREAK;
-                  goto quit;
-               }
-             prevy = y;
-             gran += progress_granularity;
-             nexty = ((im->h * gran) / 100);
+             rc = LOAD_BREAK;
+             goto quit;
           }
      }
 

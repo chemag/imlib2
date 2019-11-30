@@ -8,8 +8,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    FILE               *f;
    int                 w = 0, h = 0, alpha = 0;
    DATA32             *ptr;
-   int                 y, l;
-   int                 pper = 0, pl = 0;
+   int                 y;
 
    f = fopen(im->real_file, "rb");
    if (!f)
@@ -64,22 +63,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 #endif
         ptr += im->w;
 
-        if (progress)
+        if (im->lc && __imlib_LoadProgressRows(im, y, 1))
           {
-             char                per;
-
-             per = (char)((100 * y) / im->h);
-             if (((per - pper) >= progress_granularity) || (y == (im->h - 1)))
-               {
-                  l = y - pl;
-                  if (!progress(im, per, 0, (y - l), im->w, l))
-                    {
-                       rc = LOAD_BREAK;
-                       goto quit;
-                    }
-                  pper = per;
-                  pl = y;
-               }
+             rc = LOAD_BREAK;
+             goto quit;
           }
      }
 

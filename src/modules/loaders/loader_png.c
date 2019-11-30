@@ -134,37 +134,24 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    for (i = 0; i < h; i++)
       lines[i] = ((unsigned char *)(im->data)) + (i * w * sizeof(DATA32));
 
-   if (progress)
+   if (im->lc)
      {
-        int                 y, count, prevy, pass, number_passes, per,
-           nrows = 1;
+        int                 y, pass, n_passes, nrows = 1;
 
-        count = 0;
-        number_passes = png_set_interlace_handling(png_ptr);
-        for (pass = 0; pass < number_passes; pass++)
+        n_passes = png_set_interlace_handling(png_ptr);
+        for (pass = 0; pass < n_passes; pass++)
           {
-             prevy = 0;
-             per = 0;
+             __imlib_LoadProgressSetPass(im, pass, n_passes);
+
              for (y = 0; y < h; y += nrows)
                {
                   png_read_rows(png_ptr, &lines[y], NULL, nrows);
 
-                  per = (((pass * h) + y) * 100) / (h * number_passes);
-                  if ((per - count) >= progress_granularity)
+                  if (__imlib_LoadProgressRows(im, y, nrows))
                     {
-                       count = per;
-                       if (!progress(im, per, 0, prevy, w, y - prevy + 1))
-                         {
-                            rc = LOAD_BREAK;
-                            goto quit1;
-                         }
-                       prevy = y + 1;
+                       rc = LOAD_BREAK;
+                       goto quit1;
                     }
-               }
-             if (!progress(im, per, 0, prevy, w, y - prevy + 1))
-               {
-                  rc = LOAD_BREAK;
-                  goto quit1;
                }
           }
      }

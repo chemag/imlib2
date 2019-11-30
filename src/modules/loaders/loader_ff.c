@@ -72,10 +72,13 @@ load(ImlibImage * im, ImlibProgressFunction progress,
              dat[j + 0] = ntohs(row[j + 2]) / 257;
              dat[j + 3] = ntohs(row[j + 3]) / 257;
           }
-     }
 
-   if (progress)
-      progress(im, 100, 0, 0, im->w, im->h);
+        if (im->lc && __imlib_LoadProgressRows(im, i, 1))
+          {
+             rc = LOAD_BREAK;
+             goto quit;
+          }
+     }
 
    rc = LOAD_SUCCESS;
 

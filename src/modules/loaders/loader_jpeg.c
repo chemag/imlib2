@@ -67,7 +67,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    FILE               *f;
    DATA8              *ptr, *line[16];
    DATA32             *ptr2;
-   int                 x, y, l, i, scans, count, prevy;
+   int                 x, y, l, i, scans;
 
    f = fopen(im->real_file, "rb");
    if (!f)
@@ -114,9 +114,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    ptr2 = __imlib_AllocateData(im);
    if (!ptr2)
       goto quit;
-
-   count = 0;
-   prevy = 0;
 
    for (i = 0; i < cinfo.rec_outbuf_height; i++)
       line[i] = jdata.data + (i * w * cinfo.output_components);
@@ -165,22 +162,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                }
           }
 
-        if (progress)
+        if (im->lc && __imlib_LoadProgressRows(im, l, scans))
           {
-             int                 per;
-
-             per = (l * 100) / h;
-             if (((per - count) >= progress_granularity)
-                 || ((h - l) <= cinfo.rec_outbuf_height))
-               {
-                  count = per;
-                  if (!progress(im, per, 0, prevy, w, scans + l - prevy))
-                    {
-                       rc = LOAD_BREAK;
-                       goto done;
-                    }
-                  prevy = l + scans;
-               }
+             rc = LOAD_BREAK;
+             goto done;
           }
      }
 

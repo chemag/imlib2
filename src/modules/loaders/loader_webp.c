@@ -95,8 +95,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                           sizeof(DATA32) * im->w * im->h, im->w * 4) == NULL)
       goto quit;
 
-   if (progress)
-      progress(im, 100, 0, 0, im->w, im->h);
+   if (im->lc)
+      __imlib_LoadProgressRows(im, 0, im->h);
 
    rc = LOAD_SUCCESS;
 

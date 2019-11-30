@@ -419,8 +419,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    ok = ico_load(ico, im, load_data);
    if (ok)
      {
-        if (progress)
-           progress(im, 100, 0, 0, im->w, im->h);
+        if (im->lc)
+           __imlib_LoadProgressRows(im, 0, im->h);
      }
 
    ico_delete(ico);

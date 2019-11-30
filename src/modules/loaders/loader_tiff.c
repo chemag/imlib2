@@ -14,11 +14,6 @@ struct TIFFRGBAImage_Extra {
    tileContigRoutine   put_contig;
    tileSeparateRoutine put_separate;
    ImlibImage         *image;
-   ImlibProgressFunction progress;
-   char                pper;
-   char                progress_granularity;
-   uint32              num_pixels;
-   uint32              py;
 };
 
 typedef struct TIFFRGBAImage_Extra TIFFRGBAImage_Extra;
@@ -190,9 +185,10 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
         break;
      }
 
-   if (img->progress)
+   if (img->image->lc)
      {
-        char                per;
+        /* for tile based images, we just progress each tile because */
+        /* of laziness. Couldn't think of a good way to do this */
 
         switch (img->rgba.orientation)
           {
@@ -200,18 +196,7 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
           case ORIENTATION_TOPLEFT:
              if (w >= image_width)
                {
-                  uint32              real_y = (image_height - 1) - y;
-
-                  per = (char)(((real_y + h - 1) * 100) / image_height);
-
-                  if (((per - img->pper) >= img->progress_granularity) ||
-                      (real_y + h) >= image_height)
-                    {
-                       img->progress(img->image, per, 0, img->py, w,
-                                     (real_y + h) - img->py);
-                       img->py = real_y + h;
-                       img->pper = per;
-                    }
+                  __imlib_LoadProgressRows(img->image, image_height - y - 1, h);
                }
              else
                {
@@ -231,9 +216,7 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
              y = image_height - y - h;
              goto progress_a;
            progress_a:
-             per = (char)((w * h * 100) / img->num_pixels);
-             img->pper += per;
-             img->progress(img->image, img->pper, x, y, w, h);
+             __imlib_LoadProgress(img->image, x, y, w, h);
              break;
 
           case ORIENTATION_LEFTTOP:
@@ -248,9 +231,7 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
           case ORIENTATION_LEFTBOT:
              goto progress_b;
            progress_b:
-             per = (char)((w * h * 100) / img->num_pixels);
-             img->pper += per;
-             img->progress(img->image, img->pper, y, x, h, w);
+             __imlib_LoadProgress(img->image, y, x, h, w);
              break;
           }
      }
@@ -267,7 +248,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    uint16              magic_number;
    TIFFRGBAImage_Extra rgba_image;
    uint32             *rast = NULL;
-   uint32              num_pixels;
    char                txt[1024];
 
    f = fopen(im->real_file, "rb");
@@ -334,7 +314,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   rgba_image.num_pixels = num_pixels = im->w * im->h;
    if (rgba_image.rgba.alpha != EXTRASAMPLE_UNSPECIFIED)
       SET_FLAG(im->flags, F_HAS_ALPHA);
    else
@@ -348,14 +327,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    /* Load data */
 
-   rgba_image.progress = progress;
-   rgba_image.pper = rgba_image.py = 0;
-   rgba_image.progress_granularity = progress_granularity;
-
    if (!__imlib_AllocateData(im))
       goto quit;
 
-   rast = (uint32 *) _TIFFmalloc(sizeof(uint32) * num_pixels);
+   rast = (uint32 *) _TIFFmalloc(sizeof(uint32) * im->w * im->h);
    if (!rast)
      {
         fprintf(stderr, "imlib2-tiffloader: Out of memory\n");

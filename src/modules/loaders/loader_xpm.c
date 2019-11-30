@@ -140,9 +140,8 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    int                 lsz = 256;
    cmap_t             *cmap;
    short               lookup[128 - 32][128 - 32];
-   float               per = 0.0, per_inc = 0.0;
-   int                 last_per = 0, last_y = 0;
    int                 count, pixels;
+   int                 last_row = 0;
 
    f = fopen(im->real_file, "rb");
    if (!f)
@@ -240,8 +239,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                   cmap = calloc(ncolors, sizeof(cmap_t));
                   if (!cmap)
                      goto quit;
-
-                  per_inc = 100.0 / (((float)w) * h);
 
                   if (!load_data)
                     {
@@ -387,17 +384,16 @@ load(ImlibImage * im, ImlibProgressFunction progress,
                             count++;
                          }
                     }
-                  per += per_inc;
-                  if (progress && (((int)per) != last_per)
-                      && (((int)per) % progress_granularity == 0))
+
+                  i = count / w;
+                  if (im->lc && i > last_row)
                     {
-                       last_per = (int)per;
-                       if (!(progress(im, (int)per, 0, last_y, w, i)))
+                       if (__imlib_LoadProgressRows(im, last_row, i - last_row))
                          {
                             rc = LOAD_BREAK;
                             goto quit;
                          }
-                       last_y = i;
+                       last_row = i;
                     }
                }
           }
@@ -453,9 +449,6 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       SET_FLAG(im->flags, F_HAS_ALPHA);
    else
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
-
-   if (progress)
-      progress(im, 100, 0, last_y, w, h);
 
    rc = LOAD_SUCCESS;
 
