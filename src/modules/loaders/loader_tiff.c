@@ -258,61 +258,61 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
 
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char immediate_load)
+     char progress_granularity, char load_data)
 {
+   int                 rc;
+   FILE               *f;
    TIFF               *tif = NULL;
-   FILE               *file;
-   int                 fd, ok;
+   int                 fd;
    uint16              magic_number;
    TIFFRGBAImage_Extra rgba_image;
    uint32             *rast = NULL;
    uint32              num_pixels;
    char                txt[1024];
 
-   ok = 0;
+   f = fopen(im->real_file, "rb");
+   if (!f)
+      return LOAD_FAIL;
 
-   file = fopen(im->real_file, "rb");
-   if (!file)
-      return 0;
+   rc = LOAD_FAIL;
+   rgba_image.image = NULL;
 
-   if (fread(&magic_number, sizeof(uint16), 1, file) != 1)
-     {
-        fclose(file);
-        return 0;
-     }
+   if (fread(&magic_number, sizeof(uint16), 1, f) != 1)
+      goto quit;
+
    /* Apparently rewind(f) isn't sufficient */
-   fseek(file, (long)0, SEEK_SET);
+   fseek(f, 0, SEEK_SET);
 
    if ((magic_number != TIFF_BIGENDIAN) /* Checks if actually tiff file */
        && (magic_number != TIFF_LITTLEENDIAN))
-     {
-        fclose(file);
-        return 0;
-     }
+      goto quit;
 
-   fd = fileno(file);
+   fd = fileno(f);
    fd = dup(fd);
-   lseek(fd, (long)0, SEEK_SET);
-   fclose(file);
+   lseek(fd, 0, SEEK_SET);
+   fclose(f);
+   f = NULL;
 
    tif = TIFFFdOpen(fd, im->real_file, "r");
    if (!tif)
-      return 0;
+      goto quit;
 
    strcpy(txt, "Cannot be processed by libtiff");
    if (!TIFFRGBAImageOK(tif, txt))
-      goto quit1;
+      goto quit;
+
    strcpy(txt, "Cannot begin reading tiff");
    if (!TIFFRGBAImageBegin((TIFFRGBAImage *) & rgba_image, tif, 1, txt))
-      goto quit1;
+      goto quit;
+
+   rgba_image.image = im;
 
    if (!rgba_image.rgba.put.any)
      {
         fprintf(stderr, "imlib2-tiffloader: No put function");
-        goto quit2;
+        goto quit;
      }
 
-   rgba_image.image = im;
    switch (rgba_image.rgba.orientation)
      {
      default:
@@ -332,62 +332,66 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         break;
      }
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
-     {
-        im->w = 0;
-        goto quit2;
-     }
+      goto quit;
+
    rgba_image.num_pixels = num_pixels = im->w * im->h;
    if (rgba_image.rgba.alpha != EXTRASAMPLE_UNSPECIFIED)
       SET_FLAG(im->flags, F_HAS_ALPHA);
    else
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
-   if (im->loader || immediate_load || progress)
+   if (!load_data)
      {
-        rgba_image.progress = progress;
-        rgba_image.pper = rgba_image.py = 0;
-        rgba_image.progress_granularity = progress_granularity;
-
-        if (!__imlib_AllocateData(im))
-           goto quit2;
-
-        rast = (uint32 *) _TIFFmalloc(sizeof(uint32) * num_pixels);
-        if (!rast)
-          {
-             fprintf(stderr, "imlib2-tiffloader: Out of memory\n");
-             __imlib_FreeData(im);
-             goto quit2;
-          }
-
-        if (rgba_image.rgba.isContig)
-          {
-             rgba_image.put_contig = rgba_image.rgba.put.contig;
-             rgba_image.rgba.put.contig = put_contig_and_raster;
-          }
-        else
-          {
-             rgba_image.put_separate = rgba_image.rgba.put.separate;
-             rgba_image.rgba.put.separate = put_separate_and_raster;
-          }
-
-        if (!TIFFRGBAImageGet((TIFFRGBAImage *) & rgba_image, rast,
-                              rgba_image.rgba.width, rgba_image.rgba.height))
-          {
-             _TIFFfree(rast);
-             __imlib_FreeData(im);
-             goto quit2;
-          }
-
-        _TIFFfree(rast);
+        rc = LOAD_SUCCESS;
+        goto quit;
      }
 
-   ok = 1;
- quit2:
-   TIFFRGBAImageEnd((TIFFRGBAImage *) & rgba_image);
- quit1:
-   TIFFClose(tif);
+   /* Load data */
 
-   return ok;
+   rgba_image.progress = progress;
+   rgba_image.pper = rgba_image.py = 0;
+   rgba_image.progress_granularity = progress_granularity;
+
+   if (!__imlib_AllocateData(im))
+      goto quit;
+
+   rast = (uint32 *) _TIFFmalloc(sizeof(uint32) * num_pixels);
+   if (!rast)
+     {
+        fprintf(stderr, "imlib2-tiffloader: Out of memory\n");
+        goto quit;
+     }
+
+   if (rgba_image.rgba.isContig)
+     {
+        rgba_image.put_contig = rgba_image.rgba.put.contig;
+        rgba_image.rgba.put.contig = put_contig_and_raster;
+     }
+   else
+     {
+        rgba_image.put_separate = rgba_image.rgba.put.separate;
+        rgba_image.rgba.put.separate = put_separate_and_raster;
+     }
+
+   if (!TIFFRGBAImageGet((TIFFRGBAImage *) & rgba_image, rast,
+                         rgba_image.rgba.width, rgba_image.rgba.height))
+      goto quit;
+
+   rc = LOAD_SUCCESS;
+
+ quit:
+   if (rast)
+      _TIFFfree(rast);
+   if (rc <= 0)
+      __imlib_FreeData(im);
+   if (rgba_image.image)
+      TIFFRGBAImageEnd((TIFFRGBAImage *) & rgba_image);
+   if (tif)
+      TIFFClose(tif);
+   if (f)
+      fclose(f);
+
+   return rc;
 }
 
 /* this seems to work, except the magic number isn't written. I'm guessing */

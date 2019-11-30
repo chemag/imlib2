@@ -59,141 +59,144 @@ _jdata_init(ImLib_JPEG_data * jd)
 
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char immediate_load)
+     char progress_granularity, char load_data)
 {
    int                 w, h, rc;
    struct jpeg_decompress_struct cinfo;
    ImLib_JPEG_data     jdata;
    FILE               *f;
+   DATA8              *ptr, *line[16];
+   DATA32             *ptr2;
+   int                 x, y, l, i, scans, count, prevy;
 
    f = fopen(im->real_file, "rb");
    if (!f)
-      return 0;
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
 
    /* set up error handling */
    cinfo.err = _jdata_init(&jdata);
    if (sigsetjmp(jdata.setjmp_buffer, 1))
-      goto quit_error;
+      goto quit;
 
    jpeg_create_decompress(&cinfo);
    jpeg_stdio_src(&cinfo, f);
    jpeg_read_header(&cinfo, TRUE);
+
    im->w = w = cinfo.image_width;
    im->h = h = cinfo.image_height;
+   if (!IMAGE_DIMENSIONS_OK(w, h))
+      goto quit;
 
-   rc = 1;                      /* Ok */
+   UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
-   if ((!im->loader) && (!im->data))
+   if (!load_data)
      {
-        if (!IMAGE_DIMENSIONS_OK(w, h))
-           goto quit_error;
-        UNSET_FLAG(im->flags, F_HAS_ALPHA);
+        rc = LOAD_SUCCESS;
+        goto quit;
      }
 
-   if (im->loader || immediate_load || progress)
+   /* Load data */
+
+   cinfo.do_fancy_upsampling = FALSE;
+   cinfo.do_block_smoothing = FALSE;
+   jpeg_start_decompress(&cinfo);
+
+   if ((cinfo.rec_outbuf_height > 16) || (cinfo.output_components <= 0))
+      goto quit;
+
+   jdata.data = malloc(w * 16 * cinfo.output_components);
+   if (!jdata.data)
+      goto quit;
+
+   /* must set the im->data member before callign progress function */
+   ptr2 = __imlib_AllocateData(im);
+   if (!ptr2)
+      goto quit;
+
+   count = 0;
+   prevy = 0;
+
+   for (i = 0; i < cinfo.rec_outbuf_height; i++)
+      line[i] = jdata.data + (i * w * cinfo.output_components);
+
+   for (l = 0; l < h; l += cinfo.rec_outbuf_height)
      {
-        DATA8              *ptr, *line[16];
-        DATA32             *ptr2;
-        int                 x, y, l, i, scans, count, prevy;
+        jpeg_read_scanlines(&cinfo, line, cinfo.rec_outbuf_height);
 
-        cinfo.do_fancy_upsampling = FALSE;
-        cinfo.do_block_smoothing = FALSE;
-        jpeg_start_decompress(&cinfo);
+        scans = cinfo.rec_outbuf_height;
+        if ((h - l) < scans)
+           scans = h - l;
+        ptr = jdata.data;
 
-        if ((cinfo.rec_outbuf_height > 16) || (cinfo.output_components <= 0) ||
-            !IMAGE_DIMENSIONS_OK(w, h))
-           goto quit_error;
-
-        jdata.data = malloc(w * 16 * cinfo.output_components);
-        if (!jdata.data)
-           goto quit_error;
-
-        /* must set the im->data member before callign progress function */
-        ptr2 = __imlib_AllocateData(im);
-        if (!ptr2)
-           goto quit_error;
-
-        count = 0;
-        prevy = 0;
-
-        for (i = 0; i < cinfo.rec_outbuf_height; i++)
-           line[i] = jdata.data + (i * w * cinfo.output_components);
-
-        for (l = 0; l < h; l += cinfo.rec_outbuf_height)
+        for (y = 0; y < scans; y++)
           {
-             jpeg_read_scanlines(&cinfo, line, cinfo.rec_outbuf_height);
-             scans = cinfo.rec_outbuf_height;
-             if ((h - l) < scans)
-                scans = h - l;
-             ptr = jdata.data;
-             for (y = 0; y < scans; y++)
+             switch (cinfo.out_color_space)
                {
-                  switch (cinfo.out_color_space)
+               default:
+                  goto quit;
+               case JCS_GRAYSCALE:
+                  for (x = 0; x < w; x++)
                     {
-                    default:
-                       goto quit_error;
-                    case JCS_GRAYSCALE:
-                       for (x = 0; x < w; x++)
-                         {
-                            *ptr2 = PIXEL_ARGB(0xff, ptr[0], ptr[0], ptr[0]);
-                            ptr++;
-                            ptr2++;
-                         }
-                       break;
-                    case JCS_RGB:
-                       for (x = 0; x < w; x++)
-                         {
-                            *ptr2 = PIXEL_ARGB(0xff, ptr[0], ptr[1], ptr[2]);
-                            ptr += cinfo.output_components;
-                            ptr2++;
-                         }
-                       break;
-                    case JCS_CMYK:
-                       for (x = 0; x < w; x++)
-                         {
-                            *ptr2 = PIXEL_ARGB(0xff, ptr[0] * ptr[3] / 255,
-                                               ptr[1] * ptr[3] / 255,
-                                               ptr[2] * ptr[3] / 255);
-                            ptr += cinfo.output_components;
-                            ptr2++;
-                         }
-                       break;
+                       *ptr2 = PIXEL_ARGB(0xff, ptr[0], ptr[0], ptr[0]);
+                       ptr++;
+                       ptr2++;
                     }
-               }
-
-             if (progress)
-               {
-                  int                 per;
-
-                  per = (l * 100) / h;
-                  if (((per - count) >= progress_granularity)
-                      || ((h - l) <= cinfo.rec_outbuf_height))
+                  break;
+               case JCS_RGB:
+                  for (x = 0; x < w; x++)
                     {
-                       count = per;
-                       if (!progress(im, per, 0, prevy, w, scans + l - prevy))
-                         {
-                            rc = 2;
-                            goto done;
-                         }
-                       prevy = l + scans;
+                       *ptr2 = PIXEL_ARGB(0xff, ptr[0], ptr[1], ptr[2]);
+                       ptr += cinfo.output_components;
+                       ptr2++;
                     }
+                  break;
+               case JCS_CMYK:
+                  for (x = 0; x < w; x++)
+                    {
+                       *ptr2 = PIXEL_ARGB(0xff, ptr[0] * ptr[3] / 255,
+                                          ptr[1] * ptr[3] / 255,
+                                          ptr[2] * ptr[3] / 255);
+                       ptr += cinfo.output_components;
+                       ptr2++;
+                    }
+                  break;
                }
           }
 
-      done:
-        jpeg_finish_decompress(&cinfo);
+        if (progress)
+          {
+             int                 per;
+
+             per = (l * 100) / h;
+             if (((per - count) >= progress_granularity)
+                 || ((h - l) <= cinfo.rec_outbuf_height))
+               {
+                  count = per;
+                  if (!progress(im, per, 0, prevy, w, scans + l - prevy))
+                    {
+                       rc = LOAD_BREAK;
+                       goto done;
+                    }
+                  prevy = l + scans;
+               }
+          }
      }
+
+ done:
+   jpeg_finish_decompress(&cinfo);
+
+   rc = LOAD_SUCCESS;
 
  quit:
    jpeg_destroy_decompress(&cinfo);
    free(jdata.data);
+   if (rc <= 0)
+      __imlib_FreeData(im);
    fclose(f);
-   return rc;
 
- quit_error:
-   rc = 0;                      /* Error */
-   __imlib_FreeData(im);
-   goto quit;
+   return rc;
 }
 
 char

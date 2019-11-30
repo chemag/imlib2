@@ -2,14 +2,20 @@
 
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char immediate_load)
+     char progress_granularity, char load_data)
 {
-   int                 w = 0, h = 0, alpha = 0;
+   int                 rc;
    FILE               *f;
+   int                 w = 0, h = 0, alpha = 0;
+   DATA32             *ptr;
+   int                 y, l;
+   int                 pper = 0, pl = 0;
 
    f = fopen(im->real_file, "rb");
    if (!f)
-      return 0;
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
 
    /* header */
    {
@@ -17,22 +23,16 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
       buf[0] = '\0';
       if (!fgets(buf, 255, f))
-        {
-           fclose(f);
-           return 0;
-        }
+         goto quit;
+
       buf2[0] = '\0';
       sscanf(buf, "%s %i %i %i", buf2, &w, &h, &alpha);
       if (strcmp(buf2, "ARGB"))
-        {
-           fclose(f);
-           return 0;
-        }
+         goto quit;
+
       if (!IMAGE_DIMENSIONS_OK(w, h))
-        {
-           fclose(f);
-           return 0;
-        }
+         goto quit;
+
       im->w = w;
       im->h = h;
       if (alpha)
@@ -41,55 +41,56 @@ load(ImlibImage * im, ImlibProgressFunction progress,
          UNSET_FLAG(im->flags, F_HAS_ALPHA);
    }
 
-   if (im->loader || immediate_load || progress)
+   if (!load_data)
      {
-        DATA32             *ptr;
-        int                 y, l, pl = 0;
-        char                pper = 0;
+        rc = LOAD_SUCCESS;
+        goto quit;
+     }
 
-        /* must set the im->data member before callign progress function */
-        ptr = __imlib_AllocateData(im);
-        if (!ptr)
-          {
-             im->w = 0;
-             fclose(f);
-             return 0;
-          }
-        for (y = 0; y < h; y++)
-          {
-             if (fread(ptr, im->w, 4, f) != 4)
-               {
-                  __imlib_FreeData(im);
-                  fclose(f);
-                  return 0;
-               }
+   /* Load data */
+
+   ptr = __imlib_AllocateData(im);
+   if (!ptr)
+      goto quit;
+
+   for (y = 0; y < h; y++)
+     {
+        if (fread(ptr, im->w, 4, f) != 4)
+           goto quit;
+
 #ifdef WORDS_BIGENDIAN
-             for (l = 0; l < im->w; l++)
-                SWAP_LE_32_INPLACE(ptr[l]);
+        for (l = 0; l < im->w; l++)
+           SWAP_LE_32_INPLACE(ptr[l]);
 #endif
-             ptr += im->w;
-             if (progress)
-               {
-                  char                per;
+        ptr += im->w;
 
-                  per = (char)((100 * y) / im->h);
-                  if (((per - pper) >= progress_granularity) ||
-                      (y == (im->h - 1)))
+        if (progress)
+          {
+             char                per;
+
+             per = (char)((100 * y) / im->h);
+             if (((per - pper) >= progress_granularity) || (y == (im->h - 1)))
+               {
+                  l = y - pl;
+                  if (!progress(im, per, 0, (y - l), im->w, l))
                     {
-                       l = y - pl;
-                       if (!progress(im, per, 0, (y - l), im->w, l))
-                         {
-                            fclose(f);
-                            return 2;
-                         }
-                       pper = per;
-                       pl = y;
+                       rc = LOAD_BREAK;
+                       goto quit;
                     }
+                  pper = per;
+                  pl = y;
                }
           }
      }
+
+   rc = LOAD_SUCCESS;
+
+ quit:
+   if (rc <= 0)
+      __imlib_FreeData(im);
    fclose(f);
-   return 1;
+
+   return rc;
 }
 
 char

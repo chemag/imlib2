@@ -488,7 +488,7 @@ write_tags(ImlibImage * im, lopt * opt)
 
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char immediate_load)
+     char progress_granularity, char load_data)
 {
    ImlibLoader        *loader;
    lopt                opt;
@@ -524,7 +524,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
         ofile = im->real_file;
         im->real_file = strdup(tmp);
-        res = loader->load(im, progress, progress_granularity, immediate_load);
+        res = loader->load(im, progress, progress_granularity, load_data);
         free(im->real_file);
         im->real_file = ofile;
 
@@ -561,7 +561,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
           }
         ofile = im->real_file;
         im->real_file = file;
-        res = loader->load(im, progress, progress_granularity, immediate_load);
+        res = loader->load(im, progress, progress_granularity, load_data);
         if (!im->loader)
            __imlib_AttachTag(im, "id3-link-url", 0, url, destructor_data);
         else

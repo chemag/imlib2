@@ -406,17 +406,16 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
 }
 
 char
-load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
-     char immediate_load)
+load(ImlibImage * im, ImlibProgressFunction progress,
+     char progress_granularity, char load_data)
 {
    ico_t              *ico;
-   int                 ok, load_data;
+   int                 ok;
 
    ico = ico_read(im->real_file);
    if (!ico)
       return 0;
 
-   load_data = im->loader || immediate_load || progress;
    ok = ico_load(ico, im, load_data);
    if (ok)
      {

@@ -97,7 +97,7 @@ struct _imlibloader {
    void               *handle;
    char                (*load)(ImlibImage * im,
                                ImlibProgressFunction progress,
-                               char progress_granularity, char immediate_load);
+                               char progress_granularity, char load_data);
    char                (*save)(ImlibImage * im,
                                ImlibProgressFunction progress,
                                char progress_granularity);
@@ -184,6 +184,10 @@ void                __imlib_SaveImage(ImlibImage * im, const char *file,
 
 #define SET_FLAG(flags, f) ((flags) |= (f))
 #define UNSET_FLAG(flags, f) ((flags) &= (~f))
+
+#define LOAD_FAIL       0
+#define LOAD_SUCCESS    1
+#define LOAD_BREAK      2
 
 /* 32767 is the maximum pixmap dimension and ensures that
  * (w * h * sizeof(DATA32)) won't exceed ULONG_MAX */

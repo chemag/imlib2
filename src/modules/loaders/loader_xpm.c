@@ -128,8 +128,8 @@ xpm_cmap_lookup(const cmap_t * cmap, int nc, int cpp, const char *s)
 }
 
 char
-load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
-     char immediate_load)
+load(ImlibImage * im, ImlibProgressFunction progress,
+     char progress_granularity, char load_data)
 {
    int                 rc;
    DATA32             *ptr;
@@ -144,15 +144,15 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    int                 last_per = 0, last_y = 0;
    int                 count, pixels;
 
-   rc = 0;
+   f = fopen(im->real_file, "rb");
+   if (!f)
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
    done = 0;
    transp = -1;
    line = NULL;
    cmap = NULL;
-
-   f = fopen(im->real_file, "rb");
-   if (!f)
-      return 0;
 
    len = fread(s, 1, sizeof(s) - 1, f);
    if (len < 9)
@@ -243,18 +243,16 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
 
                   per_inc = 100.0 / (((float)w) * h);
 
-                  if (im->loader || immediate_load || progress)
+                  if (!load_data)
                     {
-                       ptr = __imlib_AllocateData(im);
-                       if (!ptr)
-                          goto quit;
-                       pixels = w * h;
-                    }
-                  else
-                    {
-                       rc = 1;
+                       rc = LOAD_SUCCESS;
                        goto quit;
                     }
+
+                  ptr = __imlib_AllocateData(im);
+                  if (!ptr)
+                     goto quit;
+                  pixels = w * h;
 
                   j = 0;
                   context++;
@@ -396,7 +394,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                        last_per = (int)per;
                        if (!(progress(im, (int)per, 0, last_y, w, i)))
                          {
-                            rc = 2;
+                            rc = LOAD_BREAK;
                             goto quit;
                          }
                        last_y = i;
@@ -452,23 +450,17 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
      }
 
    if (transp >= 0)
-     {
-        SET_FLAG(im->flags, F_HAS_ALPHA);
-     }
+      SET_FLAG(im->flags, F_HAS_ALPHA);
    else
-     {
-        UNSET_FLAG(im->flags, F_HAS_ALPHA);
-     }
+      UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
    if (progress)
-     {
-        progress(im, 100, 0, last_y, w, h);
-     }
+      progress(im, 100, 0, last_y, w, h);
 
-   rc = 1;
+   rc = LOAD_SUCCESS;
 
  quit:
-   if (rc == 0)
+   if (rc <= 0)
       __imlib_FreeData(im);
 
    fclose(f);

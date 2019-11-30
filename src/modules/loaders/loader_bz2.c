@@ -46,7 +46,7 @@ uncompress_file(FILE * fp, int dest)
 
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char immediate_load)
+     char progress_granularity, char load_data)
 {
    ImlibLoader        *loader;
    FILE               *fp;
@@ -98,7 +98,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    file = im->real_file;
    im->real_file = strdup(tmp);
 
-   loader->load(im, progress, progress_granularity, immediate_load);
+   loader->load(im, progress, progress_granularity, load_data);
 
    free(im->real_file);
    im->real_file = file;

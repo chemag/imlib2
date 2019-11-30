@@ -868,6 +868,7 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im,
 {
    int                 rc;
 
+   immediate_load = immediate_load || progress || im->loader;
    im->data_memory_func = imlib_context_get_image_data_memory_function();
    rc = l->load(im, progress, progress_granularity, immediate_load);
    if (rc == 0)

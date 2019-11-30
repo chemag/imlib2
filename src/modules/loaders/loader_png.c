@@ -14,8 +14,9 @@ comment_free(ImlibImage * im, void *data)
 
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char immediate_load)
+     char progress_granularity, char load_data)
 {
+   int                 rc;
    png_uint_32         w32, h32;
    int                 w, h;
    char                hasa;
@@ -24,59 +25,47 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    png_infop           info_ptr = NULL;
    int                 bit_depth, color_type, interlace_type;
    unsigned char       buf[PNG_BYTES_TO_CHECK];
+   unsigned char     **lines;
+   int                 i;
 
    f = fopen(im->real_file, "rb");
    if (!f)
-      return 0;
+      return LOAD_FAIL;
 
    /* read header */
+   rc = LOAD_FAIL;
    hasa = 0;
+   lines = NULL;
 
    if (fread(buf, 1, PNG_BYTES_TO_CHECK, f) != PNG_BYTES_TO_CHECK)
-     {
-        fclose(f);
-        return 0;
-     }
+      goto quit;
+
    if (png_sig_cmp(buf, 0, PNG_BYTES_TO_CHECK))
-     {
-        fclose(f);
-        return 0;
-     }
+      goto quit;
+
    rewind(f);
    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
    if (!png_ptr)
-     {
-        fclose(f);
-        return 0;
-     }
+      goto quit;
+
    info_ptr = png_create_info_struct(png_ptr);
    if (!info_ptr)
-     {
-        png_destroy_read_struct(&png_ptr, NULL, NULL);
-        fclose(f);
-        return 0;
-     }
+      goto quit;
+
    if (setjmp(png_jmpbuf(png_ptr)))
-     {
-        im->w = 0;
-        png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-        fclose(f);
-        return 0;
-     }
+      goto quit;
+
    png_init_io(png_ptr, f);
    png_read_info(png_ptr, info_ptr);
    png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *) (&w32),
                 (png_uint_32 *) (&h32), &bit_depth, &color_type,
                 &interlace_type, NULL, NULL);
    if (!IMAGE_DIMENSIONS_OK(w32, h32))
-     {
-        im->w = 0;
-        png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
-        fclose(f);
-        return 0;
-     }
+      goto quit;
+
    im->w = (int)w32;
    im->h = (int)h32;
+
    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
       hasa = 1;
    if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
@@ -88,34 +77,37 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    else
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
-   if (im->loader || immediate_load || progress)
+   if (!load_data)
      {
-        unsigned char     **lines;
-        int                 i;
+        rc = LOAD_SUCCESS;
+        goto quit;
+     }
 
-        w = im->w;
-        h = im->h;
+   /* Load data */
 
-        /* Prep for transformations...  ultimately we want ARGB */
-        /* expand palette -> RGB if necessary */
-        if (color_type == PNG_COLOR_TYPE_PALETTE)
-           png_set_palette_to_rgb(png_ptr);
-        /* expand gray (w/reduced bits) -> 8-bit RGB if necessary */
-        if ((color_type == PNG_COLOR_TYPE_GRAY) ||
-            (color_type == PNG_COLOR_TYPE_GRAY_ALPHA))
-          {
-             png_set_gray_to_rgb(png_ptr);
-             if (bit_depth < 8)
-                png_set_expand_gray_1_2_4_to_8(png_ptr);
-          }
-        /* expand transparency entry -> alpha channel if present */
-        if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-           png_set_tRNS_to_alpha(png_ptr);
-        /* reduce 16bit color -> 8bit color if necessary */
-        if (bit_depth > 8)
-           png_set_strip_16(png_ptr);
-        /* pack all pixels to byte boundaries */
-        png_set_packing(png_ptr);
+   w = im->w;
+   h = im->h;
+
+   /* Prep for transformations...  ultimately we want ARGB */
+   /* expand palette -> RGB if necessary */
+   if (color_type == PNG_COLOR_TYPE_PALETTE)
+      png_set_palette_to_rgb(png_ptr);
+   /* expand gray (w/reduced bits) -> 8-bit RGB if necessary */
+   if ((color_type == PNG_COLOR_TYPE_GRAY) ||
+       (color_type == PNG_COLOR_TYPE_GRAY_ALPHA))
+     {
+        png_set_gray_to_rgb(png_ptr);
+        if (bit_depth < 8)
+           png_set_expand_gray_1_2_4_to_8(png_ptr);
+     }
+   /* expand transparency entry -> alpha channel if present */
+   if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+      png_set_tRNS_to_alpha(png_ptr);
+   /* reduce 16bit color -> 8bit color if necessary */
+   if (bit_depth > 8)
+      png_set_strip_16(png_ptr);
+   /* pack all pixels to byte boundaries */
+   png_set_packing(png_ptr);
 
 /* note from raster:                                                         */
 /* thanks to mustapha for helping debug this on PPC Linux remotely by        */
@@ -123,84 +115,70 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 /* what the hell was up with the colors                                      */
 /* now png loading should work on big-endian machines nicely                 */
 #ifdef WORDS_BIGENDIAN
-        png_set_swap_alpha(png_ptr);
-        if (!hasa)
-           png_set_filler(png_ptr, 0xff, PNG_FILLER_BEFORE);
+   png_set_swap_alpha(png_ptr);
+   if (!hasa)
+      png_set_filler(png_ptr, 0xff, PNG_FILLER_BEFORE);
 #else
-        png_set_bgr(png_ptr);
-        if (!hasa)
-           png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
+   png_set_bgr(png_ptr);
+   if (!hasa)
+      png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
 #endif
 
-        if (!__imlib_AllocateData(im))
-          {
-             png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
-             fclose(f);
-             return 0;
-          }
-        lines = (unsigned char **)malloc(h * sizeof(unsigned char *));
+   if (!__imlib_AllocateData(im))
+      goto quit;
 
-        if (!lines)
-          {
-             __imlib_FreeData(im);
-             png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
-             fclose(f);
-             return 0;
-          }
-        for (i = 0; i < h; i++)
-           lines[i] = ((unsigned char *)(im->data)) + (i * w * sizeof(DATA32));
-        if (progress)
-          {
-             int                 y, count, prevy, pass, number_passes, per,
-                nrows = 1;
+   lines = (unsigned char **)malloc(h * sizeof(unsigned char *));
+   if (!lines)
+      goto quit;
 
-             count = 0;
-             number_passes = png_set_interlace_handling(png_ptr);
-             for (pass = 0; pass < number_passes; pass++)
+   for (i = 0; i < h; i++)
+      lines[i] = ((unsigned char *)(im->data)) + (i * w * sizeof(DATA32));
+
+   if (progress)
+     {
+        int                 y, count, prevy, pass, number_passes, per,
+           nrows = 1;
+
+        count = 0;
+        number_passes = png_set_interlace_handling(png_ptr);
+        for (pass = 0; pass < number_passes; pass++)
+          {
+             prevy = 0;
+             per = 0;
+             for (y = 0; y < h; y += nrows)
                {
-                  prevy = 0;
-                  per = 0;
-                  for (y = 0; y < h; y += nrows)
-                    {
-                       png_read_rows(png_ptr, &lines[y], NULL, nrows);
+                  png_read_rows(png_ptr, &lines[y], NULL, nrows);
 
-                       per = (((pass * h) + y) * 100) / (h * number_passes);
-                       if ((per - count) >= progress_granularity)
-                         {
-                            count = per;
-                            if (!progress(im, per, 0, prevy, w, y - prevy + 1))
-                              {
-                                 free(lines);
-                                 png_read_end(png_ptr, info_ptr);
-                                 png_destroy_read_struct(&png_ptr, &info_ptr,
-                                                         (png_infopp) NULL);
-                                 fclose(f);
-                                 return 2;
-                              }
-                            prevy = y + 1;
-                         }
-                    }
-                  if (!progress(im, per, 0, prevy, w, y - prevy + 1))
+                  per = (((pass * h) + y) * 100) / (h * number_passes);
+                  if ((per - count) >= progress_granularity)
                     {
-                       free(lines);
-                       png_read_end(png_ptr, info_ptr);
-                       png_destroy_read_struct(&png_ptr, &info_ptr,
-                                               (png_infopp) NULL);
-                       fclose(f);
-                       return 2;
+                       count = per;
+                       if (!progress(im, per, 0, prevy, w, y - prevy + 1))
+                         {
+                            rc = LOAD_BREAK;
+                            goto quit1;
+                         }
+                       prevy = y + 1;
                     }
                }
+             if (!progress(im, per, 0, prevy, w, y - prevy + 1))
+               {
+                  rc = LOAD_BREAK;
+                  goto quit1;
+               }
           }
-        else
-           png_read_image(png_ptr, lines);
-        free(lines);
-        png_read_end(png_ptr, info_ptr);
      }
+   else
+     {
+        png_read_image(png_ptr, lines);
+     }
+
+   rc = LOAD_SUCCESS;
+
 #ifdef PNG_TEXT_SUPPORTED
    {
       png_textp           text;
       int                 num;
-      int                 i;
 
       num = 0;
       png_get_text(png_ptr, info_ptr, &text, &num);
@@ -212,9 +190,17 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         }
    }
 #endif
-   png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
+
+ quit1:
+   png_read_end(png_ptr, info_ptr);
+ quit:
+   free(lines);
+   png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+   if (rc <= 0)
+      __imlib_FreeData(im);
    fclose(f);
-   return 1;
+
+   return rc;
 }
 
 char

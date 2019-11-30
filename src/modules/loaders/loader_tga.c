@@ -180,7 +180,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
-     char progress_granularity, char immediate_load)
+     char progress_granularity, char load_data)
 {
    int                 fd, rc;
    void               *seg, *filedata;
@@ -198,9 +198,9 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    fd = open(im->real_file, O_RDONLY);
    if (fd < 0)
-      return 0;
+      return LOAD_FAIL;
 
-   rc = 0;                      /* Error */
+   rc = LOAD_FAIL;
    seg = MAP_FAILED;
 
    if (fstat(fd, &ss) < 0)
@@ -301,9 +301,9 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    else
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
-   if (!(im->loader || immediate_load || progress))
+   if (!load_data)
      {
-        rc = 1;
+        rc = LOAD_SUCCESS;
         goto quit;
      }
 
@@ -572,18 +572,17 @@ load(ImlibImage * im, ImlibProgressFunction progress,
      }
 
    if (progress)
-     {
-        progress(im, 100, 0, 0, im->w, im->h);
-     }
+      progress(im, 100, 0, 0, im->w, im->h);
 
-   rc = 1;                      /* Success */
+   rc = LOAD_SUCCESS;
 
  quit:
-   if (rc == 0)
+   if (rc <= 0)
       __imlib_FreeData(im);
    if (seg != MAP_FAILED)
       munmap(seg, ss.st_size);
    close(fd);
+
    return rc;
 }
 

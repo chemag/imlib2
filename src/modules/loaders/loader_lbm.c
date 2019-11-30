@@ -442,92 +442,90 @@ deplane(DATA32 * row, int w, ILBM * ilbm, unsigned char *plane[])
 }
 
 /*------------------------------------------------------------------------------
- * Loads an image. If im->loader is non-zero, or immediate_load is non-zero, or
- * progress is non-zero, then the file is fully loaded, otherwise only the width
- * and height are read.
+ * Loads an image. If load_data is non-zero then the file is fully loaded,
+ * otherwise only the width and height are read.
  *
  * Imlib2 doesn't support reading comment chunks like ANNO.
  *------------------------------------------------------------------------------*/
 char
-load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
-     char immediate_load)
+load(ImlibImage * im, ImlibProgressFunction progress,
+     char progress_granularity, char load_data)
 {
+   int                 rc;
    char               *env;
-   int                 cancel, full, i, n, ok, y, z, gran, nexty, prevy;
+   int                 i, n, y, z, gran, nexty, prevy;
    unsigned char      *plane[40];
    ILBM                ilbm;
 
   /*----------
-   * Load the chunk(s) we're interested in. If full is not true, then we only
+   * Load the chunk(s) we're interested in. If load_data is not true, then we only
    * want the image size and format.
    *----------*/
-   full = (im->loader || immediate_load || progress);
-   ok = loadchunks(im->real_file, &ilbm, full);
-   if (!ok)
-      return 0;
+   rc = loadchunks(im->real_file, &ilbm, load_data);
+   if (rc == 0)
+      return LOAD_FAIL;
 
   /*----------
    * Use and check header.
    *----------*/
-   ok = 0;
-   if (ilbm.bmhd.size >= 20)
+   rc = LOAD_FAIL;
+   plane[0] = NULL;
+
+   if (ilbm.bmhd.size < 20)
+      goto quit;
+
+   im->w = L2RWORD(ilbm.bmhd.data);
+   im->h = L2RWORD(ilbm.bmhd.data + 2);
+   if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
+      goto quit;
+
+   ilbm.depth = ilbm.bmhd.data[8];
+   if (ilbm.depth < 1
+       || (ilbm.depth > 8 && ilbm.depth != 24 && ilbm.depth != 32))
+      goto quit;                /* Only 1 to 8, 24, or 32 planes. */
+
+   ilbm.rle = ilbm.bmhd.data[10];
+   if (ilbm.rle < 0 || ilbm.rle > 1)
+      goto quit;                /* Only NONE or RLE compression. */
+
+   ilbm.mask = ilbm.bmhd.data[9];
+
+   if (ilbm.mask || ilbm.depth == 32)
+      SET_FLAG(im->flags, F_HAS_ALPHA);
+   else
+      UNSET_FLAG(im->flags, F_HAS_ALPHA);
+
+   env = getenv("IMLIB2_LBM_NOMASK");
+   if (env
+       && (!strcmp(env, "true") || !strcmp(env, "1") || !strcmp(env, "yes")
+           || !strcmp(env, "on")))
+      UNSET_FLAG(im->flags, F_HAS_ALPHA);
+
+   if (!load_data)
      {
-        ok = 1;
-
-        im->w = L2RWORD(ilbm.bmhd.data);
-        im->h = L2RWORD(ilbm.bmhd.data + 2);
-        if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
-          {
-             ok = 0;
-          }
-
-        ilbm.depth = ilbm.bmhd.data[8];
-        if (ilbm.depth < 1
-            || (ilbm.depth > 8 && ilbm.depth != 24 && ilbm.depth != 32))
-           ok = 0;              /* Only 1 to 8, 24, or 32 planes. */
-
-        ilbm.rle = ilbm.bmhd.data[10];
-        if (ilbm.rle < 0 || ilbm.rle > 1)
-           ok = 0;              /* Only NONE or RLE compression. */
-
-        ilbm.mask = ilbm.bmhd.data[9];
-
-        if (ilbm.mask || ilbm.depth == 32)
-           SET_FLAG(im->flags, F_HAS_ALPHA);
-        else
-           UNSET_FLAG(im->flags, F_HAS_ALPHA);
-
-        env = getenv("IMLIB2_LBM_NOMASK");
-        if (env
-            && (!strcmp(env, "true") || !strcmp(env, "1") || !strcmp(env, "yes")
-                || !strcmp(env, "on")))
-           UNSET_FLAG(im->flags, F_HAS_ALPHA);
-
-        ilbm.ham = 0;
-        ilbm.hbrite = 0;
-        if (ilbm.depth <= 8)
-          {
-             if (ilbm.camg.size == 4)
-               {
-                  if (ilbm.camg.data[2] & 0x08)
-                     ilbm.ham = 1;
-                  if (ilbm.camg.data[3] & 0x80)
-                     ilbm.hbrite = 1;
-               }
-             else
-               {                /* Only guess at ham and hbrite if CMAP is present. */
-                  if (ilbm.depth == 6 && full && ilbm.cmap.size >= 3 * 16)
-                     ilbm.ham = 1;
-                  if (full && !ilbm.ham && ilbm.depth > 1
-                      && ilbm.cmap.size == 3 * (1 << (ilbm.depth - 1)))
-                     ilbm.hbrite = 1;
-               }
-          }
+        rc = LOAD_SUCCESS;
+        goto quit;
      }
-   if (!full || !ok)
+
+   ilbm.ham = 0;
+   ilbm.hbrite = 0;
+   if (ilbm.depth <= 8)
      {
-        freeilbm(&ilbm);
-        return ok;
+        if (ilbm.camg.size == 4)
+          {
+             if (ilbm.camg.data[2] & 0x08)
+                ilbm.ham = 1;
+             if (ilbm.camg.data[3] & 0x80)
+                ilbm.hbrite = 1;
+          }
+        else
+          {                     /* Only guess at ham and hbrite if CMAP is present. */
+             if (ilbm.depth == 6 && ilbm.cmap.size >= 3 * 16)
+                ilbm.ham = 1;
+             if (!ilbm.ham && ilbm.depth > 1
+                 && ilbm.cmap.size == 3 * (1 << (ilbm.depth - 1)))
+                ilbm.hbrite = 1;
+          }
      }
 
   /*----------
@@ -536,72 +534,72 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    * from each plane are interleaved, from top to bottom. The first plane is the
    * 0 bit.
    *----------*/
-   ok = 0;
-   cancel = 0;
    plane[0] = NULL;
    gran = nexty = 0;
 
    __imlib_AllocateData(im);
+   if (!im->data)
+      goto quit;
+
    n = ilbm.depth;
    if (ilbm.mask == 1)
       n++;
    plane[0] = malloc(((im->w + 15) / 16) * 2 * n);
-   if (im->data && plane[0])
+   if (!plane[0])
+      goto quit;
+
+   for (i = 1; i < n; i++)
+      plane[i] = plane[i - 1] + ((im->w + 15) / 16) * 2;
+
+   z = ((im->w + 15) / 16) * 2 * n;
+
+   if (progress)
      {
-        for (i = 1; i < n; i++)
-           plane[i] = plane[i - 1] + ((im->w + 15) / 16) * 2;
-
-        z = ((im->w + 15) / 16) * 2 * n;
-
-        if (progress)
-          {
-             prevy = 0;
-             if (progress_granularity <= 0)
-                progress_granularity = 1;
-             gran = progress_granularity;
-             nexty = ((im->h * gran) / 100);
-          }
-
-        scalecmap(&ilbm);
-
-        for (y = 0; y < im->h; y++)
-          {
-             bodyrow(plane[0], z, &ilbm);
-
-             deplane(im->data + im->w * y, im->w, &ilbm, plane);
-             ilbm.row++;
-
-             if (progress && (y >= nexty || y == im->h - 1))
-               {
-                  if (!progress
-                      (im, (char)((100 * (y + 1)) / im->h), 0, prevy, im->w,
-                       y + 1))
-                    {
-                       cancel = 1;
-                       break;
-                    }
-                  prevy = y;
-                  gran += progress_granularity;
-                  nexty = ((im->h * gran) / 100);
-               }
-          }
-
-        ok = !cancel;
+        prevy = 0;
+        if (progress_granularity <= 0)
+           progress_granularity = 1;
+        gran = progress_granularity;
+        nexty = ((im->h * gran) / 100);
      }
 
+   scalecmap(&ilbm);
+
+   for (y = 0; y < im->h; y++)
+     {
+        bodyrow(plane[0], z, &ilbm);
+
+        deplane(im->data + im->w * y, im->w, &ilbm, plane);
+        ilbm.row++;
+
+        if (progress && (y >= nexty || y == im->h - 1))
+          {
+             if (!progress
+                 (im, (char)((100 * (y + 1)) / im->h), 0, prevy, im->w, y + 1))
+               {
+                  rc = LOAD_BREAK;
+                  goto quit;
+               }
+             prevy = y;
+             gran += progress_granularity;
+             nexty = ((im->h * gran) / 100);
+          }
+     }
+
+   rc = LOAD_SUCCESS;
+
+ quit:
   /*----------
    * We either had a successful decode, the user cancelled, or we couldn't get
    * the memory for im->data or plane[0].
    *----------*/
-   if (!ok)
+   if (rc <= 0)
       __imlib_FreeData(im);
 
-   if (plane[0])
-      free(plane[0]);
+   free(plane[0]);
 
    freeilbm(&ilbm);
 
-   return (cancel) ? 2 : ok;
+   return rc;
 }
 
 /*------------------------------------------------------------------------------
