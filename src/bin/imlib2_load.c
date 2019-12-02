@@ -1,6 +1,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #ifndef X_DISPLAY_MISSING
 #define X_DISPLAY_MISSING
@@ -12,14 +13,18 @@
 static char         progress_called;
 static FILE        *fout;
 
-static void
-usage(int exit_status)
-{
-   fprintf(exit_status ? stderr : stdout,
-           PROG_NAME ": Load images to test loaders.\n"
-           "Usage: \n  " PROG_NAME " image ...\n");
+#define HELP \
+   "Usage:\n" \
+   "  imlib2_load [OPTIONS] FILE...\n" \
+   "OPTIONS:\n" \
+   "  -e  : Break on error\n" \
+   "  -p  : Check that progress is called\n" \
+   "  -x  : Print to stderr\n"
 
-   exit(exit_status);
+static void
+usage(void)
+{
+   printf(HELP);
 }
 
 static int
@@ -33,7 +38,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
 int
 main(int argc, char **argv)
 {
-   const char         *s;
+   int                 opt;
    Imlib_Image         im;
    Imlib_Load_Error    lerr;
    int                 check_progress;
@@ -43,16 +48,9 @@ main(int argc, char **argv)
    check_progress = 0;
    break_on_error = 0;
 
-   for (;;)
+   while ((opt = getopt(argc, argv, "epx")) != -1)
      {
-        argv++;
-        argc--;
-        if (argc <= 0)
-           break;
-        s = argv[0];
-        if (*s++ != '-')
-           break;
-        switch (*s++)
+        switch (opt)
           {
           case 'e':
              break_on_error += 1;
@@ -66,8 +64,14 @@ main(int argc, char **argv)
           }
      }
 
+   argc -= optind;
+   argv += optind;
+
    if (argc <= 0)
-      usage(0);
+     {
+        usage();
+        return 1;
+     }
 
    if (check_progress)
      {
