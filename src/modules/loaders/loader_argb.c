@@ -96,6 +96,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 char
 save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 {
+   int                 rc;
    FILE               *f;
    DATA32             *ptr;
    int                 y, pl = 0, alpha = 0;
@@ -105,15 +106,17 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    DATA32             *buf = (DATA32 *) malloc(im->w * 4);
 #endif
 
-   /* no image data? abort */
-   if (!im->data)
-      return 0;
    f = fopen(im->real_file, "wb");
    if (!f)
-      return 0;
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
+
    if (im->flags & F_HAS_ALPHA)
       alpha = 1;
+
    fprintf(f, "ARGB %i %i %i\n", im->w, im->h, alpha);
+
    ptr = im->data;
    for (y = 0; y < im->h; y++)
      {
@@ -141,25 +144,26 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
                   l = y - pl;
                   if (!progress(im, per, 0, (y - l), im->w, l))
                     {
-#ifdef WORDS_BIGENDIAN
-                       if (buf)
-                          free(buf);
-#endif
-                       fclose(f);
-                       return 2;
+                       rc = LOAD_BREAK;
+                       goto quit;
                     }
                   pper = per;
                   pl = y;
                }
           }
      }
+
+   rc = LOAD_SUCCESS;
+
+ quit:
    /* finish off */
 #ifdef WORDS_BIGENDIAN
    if (buf)
       free(buf);
 #endif
    fclose(f);
-   return 1;
+
+   return rc;
 }
 
 void

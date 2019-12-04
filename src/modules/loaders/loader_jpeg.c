@@ -202,6 +202,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 char
 save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 {
+   int                 rc;
    struct jpeg_compress_struct cinfo;
    ImLib_JPEG_data     jdata;
    FILE               *f;
@@ -213,31 +214,21 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    int                 i, j, pl;
    char                pper;
 
-   /* no image data? abort */
-   if (!im->data)
-      return 0;
-
    /* allocate a small buffer to convert image data */
    buf = malloc(im->w * 3 * sizeof(DATA8));
    if (!buf)
-      return 0;
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
 
    f = fopen(im->real_file, "wb");
    if (!f)
-     {
-        free(buf);
-        return 0;
-     }
+      goto quit;
 
    /* set up error handling */
    cinfo.err = _jdata_init(&jdata);
    if (sigsetjmp(jdata.setjmp_buffer, 1))
-     {
-        jpeg_destroy_compress(&cinfo);
-        free(buf);
-        fclose(f);
-        return 0;
-     }
+      goto quit;
 
    /* setup compress params */
    jpeg_create_compress(&cinfo);
@@ -310,24 +301,25 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
                   l = y - pl;
                   if (!progress(im, per, 0, (y - l), im->w, l))
                     {
-                       jpeg_finish_compress(&cinfo);
-                       jpeg_destroy_compress(&cinfo);
-                       free(buf);
-                       fclose(f);
-                       return 2;
+                       rc = LOAD_BREAK;
+                       goto quit;
                     }
                   pper = per;
                   pl = y;
                }
           }
      }
+
+   rc = LOAD_SUCCESS;
+
+ quit:
    /* finish off */
    jpeg_finish_compress(&cinfo);
    jpeg_destroy_compress(&cinfo);
    free(buf);
    fclose(f);
-   return 1;
-   progress = NULL;
+
+   return rc;
 }
 
 void

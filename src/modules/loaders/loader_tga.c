@@ -65,20 +65,19 @@ typedef struct {
 char
 save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 {
+   int                 rc;
    FILE               *f;
    DATA32             *dataptr;
    unsigned char      *buf, *bufptr;
    int                 y, pl = 0;
    char                pper = 0;
-
    tga_header          header;
-
-   if (!im->data)
-      return 0;
 
    f = fopen(im->real_file, "wb");
    if (!f)
-      return 0;
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
 
    /* assemble the TGA header information */
 
@@ -109,10 +108,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    /* allocate a buffer to receive the BGRA-swapped pixel values */
    buf = malloc(im->w * im->h * ((im->flags & F_HAS_ALPHA) ? 4 : 3));
    if (!buf)
-     {
-        fclose(f);
-        return 0;
-     }
+      goto quit;
 
    /* now we have to read from im->data into buf, swapping RGBA to BGRA */
    dataptr = im->data;
@@ -147,9 +143,8 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
                   l = y - pl;
                   if (!progress(im, per, 0, (y - l), im->w, l))
                     {
-                       free(buf);
-                       fclose(f);
-                       return 2;
+                       rc = LOAD_BREAK;
+                       goto quit;
                     }
                   pper = per;
                   pl = y;
@@ -163,9 +158,13 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    /* write the image data */
    fwrite(buf, 1, im->w * im->h * ((im->flags & F_HAS_ALPHA) ? 4 : 3), f);
 
+   rc = LOAD_SUCCESS;
+
+ quit:
    free(buf);
    fclose(f);
-   return 1;
+
+   return rc;
 }
 
 /* Load up a TGA file 

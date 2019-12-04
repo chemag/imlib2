@@ -89,42 +89,39 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 }
 
 char
-save(ImlibImage * im, ImlibProgressFunction progress, char progress_gran)
+save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 {
+   int                 rc;
    FILE               *f;
    size_t              rowlen, i, j;
    uint32_t            tmp32;
    uint16_t           *row;
    uint8_t            *dat;
 
-   /* open the file for writing */
-   if (!(f = fopen(im->real_file, "wb")))
-     {
-        return 0;
-     }
+   f = fopen(im->real_file, "wb");
+   if (!f)
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
+   row = NULL;
 
    /* write header */
    fputs("farbfeld", f);
+
    tmp32 = htonl(im->w);
    if (fwrite(&tmp32, sizeof(uint32_t), 1, f) != 1)
-     {
-        fclose(f);
-        return 0;
-     }
+      goto quit;
+
    tmp32 = htonl(im->h);
    if (fwrite(&tmp32, sizeof(uint32_t), 1, f) != 1)
-     {
-        fclose(f);
-        return 0;
-     }
+      goto quit;
 
    /* write data */
    rowlen = im->w * (sizeof("RGBA") - 1);
-   if (!(row = malloc(rowlen * sizeof(uint16_t))))
-     {
-        fclose(f);
-        return 0;
-     }
+   row = malloc(rowlen * sizeof(uint16_t));
+   if (!row)
+      goto quit;
+
    dat = (uint8_t *) im->data;
    for (i = 0; i < (uint32_t) im->h; ++i, dat += rowlen)
      {
@@ -140,20 +137,21 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_gran)
              row[j + 3] = htons(dat[j + 3] * 257);
           }
         if (fwrite(row, sizeof(uint16_t), rowlen, f) != rowlen)
-          {
-             free(row);
-             fclose(f);
-             return 0;
-          }
+           goto quit;
      }
+
    if (progress)
      {
         progress(im, 100, 0, 0, im->w, im->h);
      }
 
+   rc = LOAD_SUCCESS;
+
+ quit:
    free(row);
    fclose(f);
-   return 1;
+
+   return rc;
 }
 
 void

@@ -206,6 +206,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 char
 save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 {
+   int                 rc;
    FILE               *f;
    png_structp         png_ptr;
    png_infop           info_ptr;
@@ -216,32 +217,24 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    ImlibImageTag      *tag;
    int                 quality = 75, compression = 3, num_passes = 1, pass;
 
-   if (!im->data)
-      return 0;
-
    f = fopen(im->real_file, "wb");
    if (!f)
-      return 0;
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
+   info_ptr = NULL;
+   data = NULL;
+
    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
    if (!png_ptr)
-     {
-        fclose(f);
-        return 0;
-     }
+      goto quit;
+
    info_ptr = png_create_info_struct(png_ptr);
    if (!info_ptr)
-     {
-        fclose(f);
-        png_destroy_write_struct(&png_ptr, (png_infopp) NULL);
-        return 0;
-     }
+      goto quit;
+
    if (setjmp(png_jmpbuf(png_ptr)))
-     {
-        fclose(f);
-        png_destroy_write_struct(&png_ptr, (png_infopp) & info_ptr);
-        png_destroy_info_struct(png_ptr, (png_infopp) & info_ptr);
-        return 0;
-     }
+      goto quit;
 
    /* check whether we should use interlacing */
    interlace = PNG_INTERLACE_NONE;
@@ -252,7 +245,6 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 #endif
      }
 
-   data = NULL;
    png_init_io(png_ptr, f);
    if (im->flags & F_HAS_ALPHA)
      {
@@ -352,15 +344,8 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
                        l = y - pl;
                        if (!progress(im, per, 0, (y - l), im->w, l))
                          {
-                            if (data)
-                               free(data);
-                            png_write_end(png_ptr, info_ptr);
-                            png_destroy_write_struct(&png_ptr,
-                                                     (png_infopp) & info_ptr);
-                            png_destroy_info_struct(png_ptr,
-                                                    (png_infopp) & info_ptr);
-                            fclose(f);
-                            return 2;
+                            rc = LOAD_BREAK;
+                            goto quit;
                          }
                        pper = per;
                        pl = y;
@@ -369,14 +354,21 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
              ptr += im->w;
           }
      }
-   if (data)
-      free(data);
+
+   rc = LOAD_SUCCESS;
+
+ quit:
+   free(data);
    png_write_end(png_ptr, info_ptr);
    png_destroy_write_struct(&png_ptr, (png_infopp) & info_ptr);
-   png_destroy_info_struct(png_ptr, (png_infopp) & info_ptr);
+   if (info_ptr)
+      png_destroy_info_struct(png_ptr, (png_infopp) & info_ptr);
+   if (png_ptr)
+      png_destroy_write_struct(&png_ptr, (png_infopp) NULL);
 
    fclose(f);
-   return 1;
+
+   return rc;
 }
 
 /* fills the ImlibLoader struct with a string array of format file */

@@ -421,24 +421,22 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    int                 x, y, pl = 0;
    char                pper = 0;
 
-   /* no image data? abort */
-   if (!im->data)
-      return 0;
    f = fopen(im->real_file, "wb");
    if (!f)
-      return 0;
+      return LOAD_FAIL;
 
-   rc = 0;                      /* Error */
+   rc = LOAD_FAIL;
+
+   /* allocate a small buffer to convert image data */
+   buf = malloc(im->w * 4 * sizeof(DATA8));
+   if (!buf)
+      goto quit;
+
+   ptr = im->data;
 
    /* if the image has a useful alpha channel */
    if (im->flags & F_HAS_ALPHA)
      {
-        /* allocate a small buffer to convert image data */
-        buf = malloc(im->w * 4 * sizeof(DATA8));
-        if (!buf)
-           goto quit;
-
-        ptr = im->data;
         fprintf(f, "P8\n" "# PNM File written by Imlib2\n" "%i %i\n" "255\n",
                 im->w, im->h);
         for (y = 0; y < im->h; y++)
@@ -462,12 +460,6 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
      }
    else
      {
-        /* allocate a small buffer to convert image data */
-        buf = malloc(im->w * 3 * sizeof(DATA8));
-        if (!buf)
-           goto quit;
-
-        ptr = im->data;
         fprintf(f, "P6\n" "# PNM File written by Imlib2\n" "%i %i\n" "255\n",
                 im->w, im->h);
         for (y = 0; y < im->h; y++)
@@ -489,15 +481,17 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
           }
      }
 
-   rc = 1;                      /* Ok */
+   rc = LOAD_SUCCESS;
 
+ quit:
    /* finish off */
    free(buf);
- quit:
    fclose(f);
+
    return rc;
+
  quit_progress:
-   rc = 2;
+   rc = LOAD_BREAK;
    goto quit;
 }
 

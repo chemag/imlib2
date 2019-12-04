@@ -113,23 +113,20 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 char
 save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 {
+   int                 rc;
    int                 encoded_fd;
    ImlibImageTag      *quality_tag;
    float               quality;
    uint8_t            *encoded_data;
    ssize_t             encoded_size;
 
-   if (!im->data)
-      return 0;
-
    encoded_fd = open(im->real_file,
                      O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-
    if (encoded_fd < 0)
-     {
-        perror(im->real_file);
-        return 0;
-     }
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
+   encoded_data = NULL;
 
    quality = 75;
    quality_tag = __imlib_GetTag(im, "quality");
@@ -157,16 +154,16 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
                                  im->w * 4, quality, &encoded_data);
 
    if (write(encoded_fd, encoded_data, encoded_size) < encoded_size)
-     {
-        close(encoded_fd);
-        WebPFree(encoded_data);
-        perror(im->real_file);
-        return 0;
-     }
+      goto quit;
 
+   rc = LOAD_SUCCESS;
+
+ quit:
+   if (encoded_data)
+      WebPFree(encoded_data);
    close(encoded_fd);
-   WebPFree(encoded_data);
-   return 1;
+
+   return rc;
 }
 
 void

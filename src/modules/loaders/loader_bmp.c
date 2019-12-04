@@ -904,16 +904,16 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 char
 save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 {
+   int                 rc;
    FILE               *f;
    int                 i, j, pad;
    DATA32              pixel;
 
-   if (!im->data)
-      return 0;
-
    f = fopen(im->real_file, "wb");
    if (!f)
-      return 0;
+      return LOAD_FAIL;
+
+   rc = LOAD_SUCCESS;
 
    /* calculate number of bytes to pad on end of each row */
    pad = (4 - ((im->w * 3) % 4)) & 0x03;
@@ -951,7 +951,8 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
      }
 
    fclose(f);
-   return 1;
+
+   return rc;
 }
 
 void

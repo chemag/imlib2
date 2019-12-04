@@ -400,6 +400,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 char
 save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 {
+   int                 rc;
    TIFF               *tif = NULL;
    uint8              *buf = NULL;
    DATA32              pixel, *data = im->data;
@@ -415,13 +416,11 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    ImlibImageTag      *tag;
    int                 compression_type = COMPRESSION_DEFLATE;
 
-   if (!im->data)
-      return 0;
-
    tif = TIFFOpen(im->real_file, "w");
-
    if (!tif)
-      return 0;
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
 
    /* None of the TIFFSetFields are checked for errors, but since they */
    /* shouldn't fail, this shouldn't be a problem */
@@ -445,49 +444,27 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
         switch (compression_type)
           {
           case COMPRESSION_NONE:
-             break;
           case COMPRESSION_CCITTRLE:
-             break;
           case COMPRESSION_CCITTFAX3:
-             break;
           case COMPRESSION_CCITTFAX4:
-             break;
           case COMPRESSION_LZW:
-             break;
           case COMPRESSION_OJPEG:
-             break;
           case COMPRESSION_JPEG:
-             break;
           case COMPRESSION_NEXT:
-             break;
           case COMPRESSION_CCITTRLEW:
-             break;
           case COMPRESSION_PACKBITS:
-             break;
           case COMPRESSION_THUNDERSCAN:
-             break;
           case COMPRESSION_IT8CTPAD:
-             break;
           case COMPRESSION_IT8LW:
-             break;
           case COMPRESSION_IT8MP:
-             break;
           case COMPRESSION_IT8BL:
-             break;
           case COMPRESSION_PIXARFILM:
-             break;
           case COMPRESSION_PIXARLOG:
-             break;
           case COMPRESSION_DEFLATE:
-             break;
           case COMPRESSION_ADOBE_DEFLATE:
-             break;
           case COMPRESSION_DCS:
-             break;
           case COMPRESSION_JBIG:
-             break;
           case COMPRESSION_SGILOG:
-             break;
           case COMPRESSION_SGILOG24:
              break;
           default:
@@ -511,12 +488,8 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, 0));
 
    buf = (uint8 *) _TIFFmalloc(TIFFScanlineSize(tif));
-
    if (!buf)
-     {
-        TIFFClose(tif);
-        return 0;
-     }
+      goto quit;
 
    for (y = 0; y < im->h; y++)
      {
@@ -547,11 +520,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
           }
 
         if (!TIFFWriteScanline(tif, buf, y, 0))
-          {
-             _TIFFfree(buf);
-             TIFFClose(tif);
-             return 0;
-          }
+           goto quit;
 
         if (progress)
           {
@@ -569,10 +538,15 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
           }
      }
 
-   _TIFFfree(buf);
-   TIFFClose(tif);
+   rc = LOAD_SUCCESS;
 
-   return 1;
+ quit:
+   if (buf)
+      _TIFFfree(buf);
+   if (tif)
+      TIFFClose(tif);
+
+   return rc;
 }
 
 void
