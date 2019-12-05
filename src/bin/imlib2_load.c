@@ -82,10 +82,12 @@ main(int argc, char **argv)
         fprintf(fout, "Loading image: '%s'\n", argv[0]);
 
         lerr = 0;
+
         if (check_progress)
            im = imlib_load_image_with_error_return(argv[0], &lerr);
         else
            im = imlib_load_image(argv[0]);
+
         if (!im)
           {
              fprintf(fout, "*** Error %d loading image: %s\n", lerr, argv[0]);
@@ -95,6 +97,10 @@ main(int argc, char **argv)
           }
 
         imlib_context_set_image(im);
+
+        if (!check_progress)
+           imlib_image_get_data();
+
         imlib_free_image_and_decache();
 
         if (check_progress && !progress_called)
