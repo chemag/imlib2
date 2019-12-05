@@ -202,7 +202,8 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    png_bytep           row_ptr, data;
    png_color_8         sig_bit;
    ImlibImageTag      *tag;
-   int                 quality = 75, compression = 3, num_passes = 1, pass;
+   int                 quality = 75, compression = 3;
+   int                 pass, n_passes = 1;
 
    f = fopen(im->real_file, "wb");
    if (!f)
@@ -295,12 +296,15 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    png_set_packing(png_ptr);
 
 #ifdef PNG_WRITE_INTERLACING_SUPPORTED
-   num_passes = png_set_interlace_handling(png_ptr);
+   n_passes = png_set_interlace_handling(png_ptr);
 #endif
 
-   for (pass = 0; pass < num_passes; pass++)
+   for (pass = 0; pass < n_passes; pass++)
      {
         ptr = im->data;
+
+        if (im->lc)
+           __imlib_LoadProgressSetPass(im, pass, n_passes);
 
         for (y = 0; y < im->h; y++)
           {
@@ -320,24 +324,12 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
                }
              png_write_rows(png_ptr, &row_ptr, 1);
 
-             if (progress)
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                {
-                  char                per;
-                  int                 l, pl = 0, pper = 0;
-
-                  per = 100 * (pass + y / (float)im->h) / num_passes;
-                  if ((per - pper) >= progress_granularity)
-                    {
-                       l = y - pl;
-                       if (!progress(im, per, 0, (y - l), im->w, l))
-                         {
-                            rc = LOAD_BREAK;
-                            goto quit;
-                         }
-                       pper = per;
-                       pl = y;
-                    }
+                  rc = LOAD_BREAK;
+                  goto quit;
                }
+
              ptr += im->w;
           }
      }

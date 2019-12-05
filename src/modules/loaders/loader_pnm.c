@@ -1,24 +1,6 @@
 #include "loader_common.h"
 #include <ctype.h>
 
-static int
-do_progress(ImlibImage * im, ImlibProgressFunction progress,
-            char progress_granularity, char *pper, int *py, int y)
-{
-   int                 rc = 0;
-   int                 per;
-
-   per = (100 * (y + 1)) / im->h;
-   if (per == 100 || per >= *pper + progress_granularity)
-     {
-        rc = !progress(im, per, 0, *py, im->w, y + 1 - *py);
-        *py = y + 1;
-        *pper += progress_granularity;
-     }
-
-   return rc;
-}
-
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
      char progress_granularity, char load_data)
@@ -409,8 +391,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    FILE               *f;
    DATA8              *buf, *bptr;
    DATA32             *ptr;
-   int                 x, y, pl = 0;
-   char                pper = 0;
+   int                 x, y;
 
    f = fopen(im->real_file, "wb");
    if (!f)
@@ -444,8 +425,8 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
                   bptr += 4;
                }
              fwrite(buf, im->w * 4, 1, f);
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
      }
@@ -466,8 +447,8 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
                   bptr += 3;
                }
              fwrite(buf, im->w * 3, 1, f);
-             if (progress &&
-                 do_progress(im, progress, progress_granularity, &pper, &pl, y))
+
+             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
           }
      }

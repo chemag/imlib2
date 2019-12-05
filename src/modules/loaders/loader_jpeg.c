@@ -196,8 +196,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    JSAMPROW           *jbuf;
    int                 y, quality, compression;
    ImlibImageTag      *tag;
-   int                 i, j, pl;
-   char                pper;
+   int                 i, j;
 
    /* allocate a small buffer to convert image data */
    buf = malloc(im->w * 3 * sizeof(DATA8));
@@ -251,16 +250,13 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
       quality = 100;
 
    /* set up jepg compression parameters */
-   y = 0;
-   pl = 0;
-   pper = 0;
    jpeg_set_defaults(&cinfo);
    jpeg_set_quality(&cinfo, quality, TRUE);
    jpeg_start_compress(&cinfo, TRUE);
    /* get the start pointer */
    ptr = im->data;
    /* go one scanline at a time... and save */
-   while (cinfo.next_scanline < cinfo.image_height)
+   for (y = 0; cinfo.next_scanline < cinfo.image_height; y++)
      {
         /* convcert scaline from ARGB to RGB packed */
         for (j = 0, i = 0; i < im->w; i++)
@@ -274,24 +270,11 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
         /* write scanline */
         jbuf = (JSAMPROW *) (&buf);
         jpeg_write_scanlines(&cinfo, jbuf, 1);
-        y++;
-        if (progress)
-          {
-             char                per;
-             int                 l;
 
-             per = (char)((100 * y) / im->h);
-             if (((per - pper) >= progress_granularity) || (y == (im->h - 1)))
-               {
-                  l = y - pl;
-                  if (!progress(im, per, 0, (y - l), im->w, l))
-                    {
-                       rc = LOAD_BREAK;
-                       goto quit;
-                    }
-                  pper = per;
-                  pl = y;
-               }
+        if (im->lc && __imlib_LoadProgressRows(im, y, 1))
+          {
+             rc = LOAD_BREAK;
+             goto quit;
           }
      }
 

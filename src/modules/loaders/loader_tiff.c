@@ -383,8 +383,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    int                 x, y;
    uint8               r, g, b, a = 0;
    int                 has_alpha = IMAGE_HAS_ALPHA(im);
-   int                 i = 0, pl = 0;
-   char                pper = 0;
+   int                 i;
 
    /* By default uses patent-free use COMPRESSION_DEFLATE,
     * another lossless compression technique */
@@ -497,19 +496,10 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
         if (!TIFFWriteScanline(tif, buf, y, 0))
            goto quit;
 
-        if (progress)
+        if (im->lc && __imlib_LoadProgressRows(im, y, 1))
           {
-             char                per;
-             int                 l;
-
-             per = (char)((100 * y) / im->h);
-             if ((per - pper) >= progress_granularity)
-               {
-                  l = y - pl;
-                  (*progress) (im, per, 0, (y - l), im->w, l);
-                  pper = per;
-                  pl = y;
-               }
+             rc = LOAD_BREAK;
+             goto quit;
           }
      }
 

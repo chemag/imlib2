@@ -141,11 +141,12 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
           }
         if (fwrite(row, sizeof(uint16_t), rowlen, f) != rowlen)
            goto quit;
-     }
 
-   if (progress)
-     {
-        progress(im, 100, 0, 0, im->w, im->h);
+        if (im->lc && __imlib_LoadProgressRows(im, i, 1))
+          {
+             rc = LOAD_BREAK;
+             goto quit;
+          }
      }
 
    rc = LOAD_SUCCESS;

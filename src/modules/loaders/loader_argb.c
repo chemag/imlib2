@@ -86,8 +86,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    int                 rc;
    FILE               *f;
    DATA32             *ptr;
-   int                 y, pl = 0, alpha = 0;
-   char                pper = 0;
+   int                 y, alpha = 0;
 
 #ifdef WORDS_BIGENDIAN
    DATA32             *buf = (DATA32 *) malloc(im->w * 4);
@@ -120,23 +119,11 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
         fwrite(ptr, im->w, 4, f);
 #endif
         ptr += im->w;
-        if (progress)
-          {
-             char                per;
-             int                 l;
 
-             per = (char)((100 * y) / im->h);
-             if (((per - pper) >= progress_granularity) || (y == (im->h - 1)))
-               {
-                  l = y - pl;
-                  if (!progress(im, per, 0, (y - l), im->w, l))
-                    {
-                       rc = LOAD_BREAK;
-                       goto quit;
-                    }
-                  pper = per;
-                  pl = y;
-               }
+        if (im->lc && __imlib_LoadProgressRows(im, y, 1))
+          {
+             rc = LOAD_BREAK;
+             goto quit;
           }
      }
 

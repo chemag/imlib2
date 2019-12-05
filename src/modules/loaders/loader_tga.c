@@ -69,8 +69,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    FILE               *f;
    DATA32             *dataptr;
    unsigned char      *buf, *bufptr;
-   int                 y, pl = 0;
-   char                pper = 0;
+   int                 y;
    tga_header          header;
 
    f = fopen(im->real_file, "wb");
@@ -132,23 +131,10 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
           }                     /* end for (each pixel in row) */
 
         /* report progress every row */
-        if (progress)
+        if (im->lc && __imlib_LoadProgressRows(im, y, 1))
           {
-             char                per;
-             int                 l;
-
-             per = (char)((100 * y) / im->h);
-             if (((per - pper) >= progress_granularity) || (y == (im->h - 1)))
-               {
-                  l = y - pl;
-                  if (!progress(im, per, 0, (y - l), im->w, l))
-                    {
-                       rc = LOAD_BREAK;
-                       goto quit;
-                    }
-                  pper = per;
-                  pl = y;
-               }
+             rc = LOAD_BREAK;
+             goto quit;
           }
      }
 
