@@ -921,7 +921,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 
    /* write BMP file header */
    WriteleShort(f, 0x4d42);     /* prefix */
-   WriteleLong(f, 54 + 3 * im->w * im->h);      /* filesize */
+   WriteleLong(f, 54 + ((3 * im->w) + pad) * im->h);    /* filesize (padding should be considered) */
    WriteleShort(f, 0x0000);     /* reserved #1 */
    WriteleShort(f, 0x0000);     /* reserved #2 */
    WriteleLong(f, 54);          /* offset to image data */
@@ -933,7 +933,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    WriteleShort(f, 1);          /* one plane      */
    WriteleShort(f, 24);         /* bits per pixel */
    WriteleLong(f, 0);           /* no compression */
-   WriteleLong(f, 3 * im->w * im->h);
+   WriteleLong(f, ((3 * im->w) + pad) * im->h); /* padding should be counted */
    for (i = 0; i < 4; i++)
       WriteleLong(f, 0x0000);   /* pad to end of header */
 
