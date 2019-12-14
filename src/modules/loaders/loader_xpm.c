@@ -93,6 +93,40 @@ xpm_parse_done(void)
    rgb_txt = NULL;
 }
 
+typedef struct {
+   char                assigned;
+   unsigned char       transp;
+   char                str[6];
+   DATA32              pixel;
+} cmap_t;
+
+static int
+xpm_cmap_sort(const void *a, const void *b)
+{
+   return strcmp(((const cmap_t *)a)->str, ((const cmap_t *)b)->str);
+}
+
+static              DATA32
+xpm_cmap_lookup(const cmap_t * cmap, int nc, int cpp, const char *s)
+{
+   int                 i, i1, i2, x;
+
+   i1 = i = 0;
+   i2 = nc - 1;
+   while (i1 < i2)
+     {
+        i = (i1 + i2) / 2;
+        x = memcmp(s, cmap[i].str, cpp);
+        if (x == 0)
+           i1 = i2 = i;
+        else if (x < 0)
+           i2 = i - 1;
+        else
+           i1 = i + 1;
+     }
+   return cmap[i1].pixel;
+}
+
 char
 load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
      char immediate_load)
@@ -104,12 +138,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
    int                 comment, transp, quote, context, len, done, backslash;
    char               *line, s[256], tok[256], col[256];
    int                 lsz = 256;
-   struct _cmap {
-      char                assigned;
-      unsigned char       transp;
-      char                str[6];
-      DATA32              pixel;
-   }                  *cmap;
+   cmap_t             *cmap;
    short               lookup[128 - 32][128 - 32];
    float               per = 0.0, per_inc = 0.0;
    int                 last_per = 0, last_y = 0;
@@ -208,7 +237,7 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                   im->w = w;
                   im->h = h;
 
-                  cmap = calloc(ncolors, sizeof(struct _cmap));
+                  cmap = calloc(ncolors, sizeof(cmap_t));
                   if (!cmap)
                      goto quit;
 
@@ -319,10 +348,12 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                        if (cpp == 1)
                           for (i = 0; i < ncolors; i++)
                              lookup[(int)cmap[i].str[0] - 32][0] = i;
-                       if (cpp == 2)
+                       else if (cpp == 2)
                           for (i = 0; i < ncolors; i++)
                              lookup[(int)cmap[i].str[0] -
                                     32][(int)cmap[i].str[1] - 32] = i;
+                       else
+                          qsort(cmap, ncolors, sizeof(cmap_t), xpm_cmap_sort);
                        context++;
                     }
                }
@@ -350,19 +381,12 @@ load(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity,
                     }
                   else
                     {
-#define CMn(_j) (&cmap[_j])
                        for (i = 0; count < pixels && i < len - (cpp - 1);
                             i += cpp)
                          {
-                            for (j = 0; j < ncolors; j++)
-                              {
-                                 if (memcmp(&line[i], cmap[j].str, cpp) == 0)
-                                   {
-                                      *ptr++ = CMn(j)->pixel;
-                                      count++;
-                                      break;
-                                   }
-                              }
+                            *ptr++ =
+                               xpm_cmap_lookup(cmap, ncolors, cpp, &line[i]);
+                            count++;
                          }
                     }
                   per += per_inc;
