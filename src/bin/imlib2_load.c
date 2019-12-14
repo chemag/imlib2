@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #ifndef X_DISPLAY_MISSING
 #define X_DISPLAY_MISSING
@@ -18,6 +19,7 @@ static FILE        *fout;
    "  imlib2_load [OPTIONS] FILE...\n" \
    "OPTIONS:\n" \
    "  -e  : Break on error\n" \
+   "  -n N: Reeat load N times\n" \
    "  -p  : Check that progress is called\n" \
    "  -x  : Print to stderr\n"
 
@@ -25,6 +27,24 @@ static void
 usage(void)
 {
    printf(HELP);
+}
+
+static unsigned int
+time_us(void)
+{
+#if USE_MONOTONIC_CLOCK
+   struct timespec     ts;
+
+   clock_gettime(CLOCK_MONOTONIC, &ts);
+
+   return (unsigned int)(ts.tv_sec * 1000000 + ts.tv_nsec / 1000);
+#else
+   struct timeval      timev;
+
+   gettimeofday(&timev, NULL);
+
+   return (unsigned int)(timev.tv_sec * 1000000 + timev.tv_usec);
+#endif
 }
 
 static int
@@ -41,19 +61,28 @@ main(int argc, char **argv)
    int                 opt;
    Imlib_Image         im;
    Imlib_Load_Error    lerr;
+   unsigned int        t0;
    int                 check_progress;
    int                 break_on_error;
+   int                 show_time;
+   int                 load_cnt, cnt;
 
    fout = stdout;
    check_progress = 0;
    break_on_error = 0;
+   load_cnt = 1;
+   show_time = 0;
 
-   while ((opt = getopt(argc, argv, "epx")) != -1)
+   while ((opt = getopt(argc, argv, "en:px")) != -1)
      {
         switch (opt)
           {
           case 'e':
              break_on_error += 1;
+             break;
+          case 'n':
+             load_cnt = atoi(optarg);
+             show_time = 1;
              break;
           case 'p':
              check_progress = 1;
@@ -79,41 +108,54 @@ main(int argc, char **argv)
         imlib_context_set_progress_granularity(10);
      }
 
+   t0 = 0;
+
    for (; argc > 0; argc--, argv++)
      {
         progress_called = 0;
 
         fprintf(fout, "Loading image: '%s'\n", argv[0]);
 
-        lerr = 0;
+        if (show_time)
+           t0 = time_us();
 
-        if (check_progress)
-           im = imlib_load_image_with_error_return(argv[0], &lerr);
-        else
-           im = imlib_load_image(argv[0]);
-
-        if (!im)
+        for (cnt = 0; cnt < load_cnt; cnt++)
           {
-             fprintf(fout, "*** Error %d loading image: %s\n", lerr, argv[0]);
-             if (break_on_error & 2)
-                break;
-             continue;
+             lerr = 0;
+
+             if (check_progress)
+                im = imlib_load_image_with_error_return(argv[0], &lerr);
+             else
+                im = imlib_load_image(argv[0]);
+
+             if (!im)
+               {
+                  fprintf(fout, "*** Error %d loading image: %s\n",
+                          lerr, argv[0]);
+                  if (break_on_error & 2)
+                     goto quit;
+                  continue;
+               }
+
+             imlib_context_set_image(im);
+
+             if (!check_progress)
+                imlib_image_get_data();
+
+             imlib_free_image_and_decache();
           }
 
-        imlib_context_set_image(im);
-
-        if (!check_progress)
-           imlib_image_get_data();
-
-        imlib_free_image_and_decache();
+        if (show_time)
+           printf("Elapsed time: %.3f ms\n", 1e-3 * (time_us() - t0));
 
         if (check_progress && !progress_called)
           {
              fprintf(fout, "*** No progress during image load\n");
              if (break_on_error & 1)
-                break;
+                goto quit;
           }
      }
+ quit:
 
    return 0;
 }
