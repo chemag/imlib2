@@ -1691,7 +1691,9 @@ imlib_image_set_border(Imlib_Border * border)
    im->border.right = MAX(0, border->right);
    im->border.top = MAX(0, border->top);
    im->border.bottom = MAX(0, border->bottom);
+#ifdef BUILD_X11
    __imlib_DirtyPixmapsForImage(im);
+#endif
 }
 
 /**

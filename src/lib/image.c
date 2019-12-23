@@ -169,26 +169,8 @@ __imlib_FreeAllTags(ImlibImage * im)
      }
 }
 
-/* set the cache size */
-void
-__imlib_SetCacheSize(int size)
-{
-   cache_size = size;
-   __imlib_CleanupImageCache();
-#ifdef BUILD_X11
-   __imlib_CleanupImagePixmapCache();
-#endif
-}
-
-/* return the cache size */
-int
-__imlib_GetCacheSize(void)
-{
-   return cache_size;
-}
-
 /* create an image data struct and fill it in */
-ImlibImage         *
+static ImlibImage  *
 __imlib_ProduceImage(void)
 {
    ImlibImage         *im;
@@ -200,7 +182,7 @@ __imlib_ProduceImage(void)
 }
 
 /* free an image struct */
-void
+static void
 __imlib_ConsumeImage(ImlibImage * im)
 {
 #ifdef BUILD_X11
@@ -234,7 +216,7 @@ __imlib_ConsumeImage(ImlibImage * im)
 #endif
 }
 
-ImlibImage         *
+static ImlibImage  *
 __imlib_FindCachedImage(const char *file)
 {
    ImlibImage         *im, *previous_im;
@@ -264,7 +246,7 @@ __imlib_FindCachedImage(const char *file)
 }
 
 /* add an image to the cache of images (at the start) */
-void
+static void
 __imlib_AddImageToCache(ImlibImage * im)
 {
    im->next = images;
@@ -272,7 +254,7 @@ __imlib_AddImageToCache(ImlibImage * im)
 }
 
 /* remove (unlink) an image from the cache of images */
-void
+static void
 __imlib_RemoveImageFromCache(ImlibImage * im)
 {
    ImlibImage         *current_im, *previous_im;
@@ -385,8 +367,8 @@ __imlib_CurrentCacheSize(void)
    return current_cache;
 }
 
-/* clean out images fromthe cache if the cache is overgrown */
-void
+/* clean out images from the cache if the cache is overgrown */
+static void
 __imlib_CleanupImageCache(void)
 {
    ImlibImage         *im, *im_last;
@@ -429,6 +411,24 @@ __imlib_CleanupImageCache(void)
         if (operation)
            current_cache = __imlib_CurrentCacheSize();
      }
+}
+
+/* set the cache size */
+void
+__imlib_SetCacheSize(int size)
+{
+   cache_size = size;
+   __imlib_CleanupImageCache();
+#ifdef BUILD_X11
+   __imlib_CleanupImagePixmapCache();
+#endif
+}
+
+/* return the cache size */
+int
+__imlib_GetCacheSize(void)
+{
+   return cache_size;
 }
 
 #ifdef BUILD_X11
@@ -833,16 +833,6 @@ __imlib_ErrorFromErrno(int err, int save)
      case ENOSPC:
         return IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE;
      }
-}
-
-/* set or unset the alpha flag on the umage (alpha = 1 / 0 ) */
-void
-__imlib_SetImageAlphaFlag(ImlibImage * im, char alpha)
-{
-   if (alpha)
-      SET_FLAG(im->flags, F_HAS_ALPHA);
-   else
-      UNSET_FLAG(im->flags, F_HAS_ALPHA);
 }
 
 /* create a new image struct from data passed that is wize w x h then return */
