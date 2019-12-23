@@ -47,6 +47,7 @@ image.c \
 image.h \
 image_tags.c \
 line.c \
+loaders.c \
 modules.c \
 polygon.c \
 rectangle.c \
