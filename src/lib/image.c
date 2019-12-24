@@ -459,7 +459,7 @@ __imlib_CleanupImagePixmapCache(void)
 {
    ImlibImagePixmap   *ip, *ip_last;
    int                 current_cache;
-   char                operation = 0;
+   char                operation = 1;
 
    current_cache = __imlib_CurrentCacheSize();
    ip_last = NULL;
