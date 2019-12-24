@@ -273,7 +273,6 @@ __imlib_CleanupImageCache(void)
 {
    ImlibImage         *im, *im_last;
    int                 current_cache;
-   char                operation = 1;
 
    current_cache = __imlib_CurrentCacheSize();
    im_last = NULL;
@@ -291,10 +290,9 @@ __imlib_CleanupImageCache(void)
      }
    /* while the cache size of 0 ref coutn data is bigger than the set value */
    /* clean out the oldest members of the imaeg cache */
-   while ((current_cache > cache_size) && (operation))
+   while (current_cache > cache_size)
      {
         im_last = NULL;
-        operation = 0;
         im = images;
         while (im)
           {
@@ -302,14 +300,13 @@ __imlib_CleanupImageCache(void)
                 im_last = im;
              im = im->next;
           }
-        if (im_last)
-          {
-             __imlib_RemoveImageFromCache(im_last);
-             __imlib_ConsumeImage(im_last);
-             operation = 1;
-          }
-        if (operation)
-           current_cache = __imlib_CurrentCacheSize();
+        if (!im_last)
+           break;
+
+        __imlib_RemoveImageFromCache(im_last);
+        __imlib_ConsumeImage(im_last);
+
+        current_cache = __imlib_CurrentCacheSize();
      }
 }
 
@@ -459,7 +456,6 @@ __imlib_CleanupImagePixmapCache(void)
 {
    ImlibImagePixmap   *ip, *ip_last;
    int                 current_cache;
-   char                operation = 1;
 
    current_cache = __imlib_CurrentCacheSize();
    ip_last = NULL;
@@ -474,10 +470,9 @@ __imlib_CleanupImagePixmapCache(void)
              __imlib_ConsumeImagePixmap(ip_last);
           }
      }
-   while ((current_cache > cache_size) && (operation))
+   while (current_cache > cache_size)
      {
         ip_last = NULL;
-        operation = 0;
         ip = pixmaps;
         while (ip)
           {
@@ -485,14 +480,13 @@ __imlib_CleanupImagePixmapCache(void)
                 ip_last = ip;
              ip = ip->next;
           }
-        if (ip_last)
-          {
-             __imlib_RemoveImagePixmapFromCache(ip_last);
-             __imlib_ConsumeImagePixmap(ip_last);
-             operation = 1;
-          }
-        if (operation)
-           current_cache = __imlib_CurrentCacheSize();
+        if (!ip_last)
+           break;
+
+        __imlib_RemoveImagePixmapFromCache(ip_last);
+        __imlib_ConsumeImagePixmap(ip_last);
+
+        current_cache = __imlib_CurrentCacheSize();
      }
 }
 #endif
