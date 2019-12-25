@@ -552,7 +552,6 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im,
    int                 rc;
 
    immediate_load = immediate_load || progress || im->loader;
-   im->data_memory_func = imlib_context_get_image_data_memory_function();
    rc = l->load(im, progress, progress_granularity, immediate_load);
    if (rc == 0)
      {
@@ -643,6 +642,8 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
      }
 
    im->moddate = __imlib_FileModDate(im->real_file);
+
+   im->data_memory_func = imlib_context_get_image_data_memory_function();
 
    /* ok - just check all our loaders are up to date */
    __imlib_RescanLoaders();
