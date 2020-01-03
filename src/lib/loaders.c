@@ -218,3 +218,16 @@ __imlib_FindBestLoaderForFileFormat(const char *file, char *format,
    else
       return __imlib_FindBestLoaderForFile(file, for_save);
 }
+
+__EXPORT__ void
+__imlib_LoaderSetFormats(ImlibLoader * l,
+                         const char *const *fmt, unsigned int num)
+{
+   unsigned int        i;
+
+   l->num_formats = num;
+   l->formats = malloc(sizeof(char *) * num);
+
+   for (i = 0; i < num; i++)
+      l->formats[i] = strdup(fmt[i]);
+}

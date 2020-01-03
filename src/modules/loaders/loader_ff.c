@@ -161,7 +161,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 void
 formats(ImlibLoader * l)
 {
-   l->num_formats = 1;
-   l->formats = malloc(sizeof(char *));
-   *(l->formats) = strdup("ff");
+   static const char  *const list_formats[] = { "ff" };
+   __imlib_LoaderSetFormats(l, list_formats,
+                            sizeof(list_formats) / sizeof(char *));
 }

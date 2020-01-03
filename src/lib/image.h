@@ -116,6 +116,9 @@ ImlibLoader        *__imlib_FindBestLoaderForFormat(const char *format,
 ImlibLoader        *__imlib_FindBestLoaderForFileFormat(const char *file,
                                                         char *format,
                                                         int for_save);
+void                __imlib_LoaderSetFormats(ImlibLoader * l,
+                                             const char *const *fmt,
+                                             unsigned int num);
 
 ImlibImage         *__imlib_CreateImage(int w, int h, DATA32 * data);
 ImlibImage         *__imlib_LoadImage(const char *file,
