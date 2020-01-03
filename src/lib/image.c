@@ -203,18 +203,6 @@ __imlib_CurrentCacheSize(void)
                   im = im->next;
                   __imlib_RemoveImageFromCache(tmp_im);
                   __imlib_ConsumeImage(tmp_im);
-#ifdef BUILD_X11
-                  ip = pixmaps;
-                  while (ip)
-                    {
-                       if (ip->image == tmp_im)
-                         {
-                            ip->image = NULL;
-                            ip->dirty = 1;
-                         }
-                       ip = ip->next;
-                    }
-#endif
                   continue;
                }
              /* it's valid but has 0 ref's - append to cache size count */
@@ -223,6 +211,7 @@ __imlib_CurrentCacheSize(void)
           }
         im = im->next;
      }
+
 #ifdef BUILD_X11
    /* go through the pixmaps */
    ip = pixmaps;
