@@ -14,6 +14,7 @@
 #include "Imlib2.h"
 #include "file.h"
 #include "image.h"
+#include "loaders.h"
 
 /* Imlib loader context */
 struct _imlibldctx {

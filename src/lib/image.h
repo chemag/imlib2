@@ -92,20 +92,6 @@ struct _imlibimagepixmap {
 };
 #endif
 
-struct _imlibloader {
-   char               *file;
-   int                 num_formats;
-   char              **formats;
-   void               *handle;
-   char                (*load)(ImlibImage * im,
-                               ImlibProgressFunction progress,
-                               char progress_granularity, char load_data);
-   char                (*save)(ImlibImage * im,
-                               ImlibProgressFunction progress,
-                               char progress_granularity);
-   ImlibLoader        *next;
-};
-
 void                __imlib_RescanLoaders(void);
 void                __imlib_RemoveAllLoaders(void);
 ImlibLoader       **__imlib_GetLoaderList(void);

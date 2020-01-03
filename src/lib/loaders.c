@@ -7,6 +7,7 @@
 
 #include "file.h"
 #include "image.h"
+#include "loaders.h"
 
 static void         __imlib_LoadAllLoaders(void);
 
