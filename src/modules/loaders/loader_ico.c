@@ -7,6 +7,7 @@
  */
 #include "loader_common.h"
 
+#include <limits.h>
 #include <string.h>
 
 #define DEBUG 0
@@ -168,6 +169,8 @@ ico_read_icon(ico_t * ico, int ino)
      case 4:
      case 8:
         D("Allocating a %d slot colormap\n", ie->bih.colors);
+        if (UINT_MAX / sizeof(DATA32) < ie->bih.colors)
+           goto bail;
         size = ie->bih.colors * sizeof(DATA32);
         ie->cmap = malloc(size);
         nr = fread(ie->cmap, 1, size, ico->fp);
@@ -181,6 +184,10 @@ ico_read_icon(ico_t * ico, int ino)
      default:
         break;
      }
+
+   if (!IMAGE_DIMENSIONS_OK(ie->w, ie->h) || ie->bih.bpp == 0 ||
+       UINT_MAX / ie->bih.bpp < ie->w * ie->h)
+      goto bail;
 
    size = ((ie->bih.bpp * ie->w + 31) / 32 * 4) * ie->h;
    ie->pxls = malloc(size);
