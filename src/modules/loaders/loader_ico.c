@@ -173,6 +173,8 @@ ico_read_icon(ico_t * ico, int ino)
            goto bail;
         size = ie->bih.colors * sizeof(DATA32);
         ie->cmap = malloc(size);
+        if (ie->cmap == NULL)
+           goto bail;
         nr = fread(ie->cmap, 1, size, ico->fp);
         if (nr != size)
            goto bail;
@@ -191,6 +193,8 @@ ico_read_icon(ico_t * ico, int ino)
 
    size = ((ie->bih.bpp * ie->w + 31) / 32 * 4) * ie->h;
    ie->pxls = malloc(size);
+   if (ie->pxls == NULL)
+      goto bail;
    nr = fread(ie->pxls, 1, size, ico->fp);
    if (nr != size)
       goto bail;
@@ -198,6 +202,8 @@ ico_read_icon(ico_t * ico, int ino)
 
    size = ((ie->w + 31) / 32 * 4) * ie->h;
    ie->mask = malloc(size);
+   if (ie->mask == NULL)
+      goto bail;
    nr = fread(ie->mask, 1, size, ico->fp);
    if (nr != size)
       goto bail;
