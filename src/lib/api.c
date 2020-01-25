@@ -89,7 +89,7 @@ struct _imlibcontext {
    char                dither;
    char                blend;
    Imlib_Color_Modifier color_modifier;
-   Imlib_Operation     operation;
+   ImlibOp             operation;
    Imlib_Font          font;
    Imlib_Text_Direction direction;
    double              angle;
@@ -180,7 +180,7 @@ imlib_context_new(void)
    context->dither = 0;
    context->blend = 1;
    context->color_modifier = NULL;
-   context->operation = IMLIB_OP_COPY;
+   context->operation = (ImlibOp) IMLIB_OP_COPY;
    context->font = NULL;
    context->direction = IMLIB_TEXT_TO_RIGHT;
    context->angle = 0.0;
@@ -734,7 +734,7 @@ EAPI void
 imlib_context_set_operation(Imlib_Operation operation)
 {
    CHECK_CONTEXT(ctx);
-   ctx->operation = operation;
+   ctx->operation = (ImlibOp) operation;
 }
 
 /**
@@ -746,7 +746,7 @@ EAPI                Imlib_Operation
 imlib_context_get_operation(void)
 {
    CHECK_CONTEXT(ctx);
-   return ctx->operation;
+   return (Imlib_Operation) ctx->operation;
 }
 
 /**
@@ -2621,7 +2621,7 @@ imlib_create_cropped_image(int x, int y, int width, int height)
         SET_FLAG(im->flags, F_HAS_ALPHA);
         __imlib_BlendImageToImage(im_old, im, 0, 0, 1, x, y, abs(width),
                                   abs(height), 0, 0, width, height, NULL,
-                                  IMLIB_OP_COPY,
+                                  (ImlibOp) IMLIB_OP_COPY,
                                   ctx->cliprect.x, ctx->cliprect.y,
                                   ctx->cliprect.w, ctx->cliprect.h);
      }
@@ -2629,7 +2629,7 @@ imlib_create_cropped_image(int x, int y, int width, int height)
      {
         __imlib_BlendImageToImage(im_old, im, 0, 0, 0, x, y, abs(width),
                                   abs(height), 0, 0, width, height, NULL,
-                                  IMLIB_OP_COPY,
+                                  (ImlibOp) IMLIB_OP_COPY,
                                   ctx->cliprect.x, ctx->cliprect.y,
                                   ctx->cliprect.w, ctx->cliprect.h);
      }
@@ -2680,7 +2680,7 @@ imlib_create_cropped_scaled_image(int source_x, int source_y,
         __imlib_BlendImageToImage(im_old, im, ctx->anti_alias, 0, 1, source_x,
                                   source_y, source_width, source_height, 0, 0,
                                   destination_width, destination_height, NULL,
-                                  IMLIB_OP_COPY,
+                                  (ImlibOp) IMLIB_OP_COPY,
                                   ctx->cliprect.x, ctx->cliprect.y,
                                   ctx->cliprect.w, ctx->cliprect.h);
      }
@@ -2689,7 +2689,7 @@ imlib_create_cropped_scaled_image(int source_x, int source_y,
         __imlib_BlendImageToImage(im_old, im, ctx->anti_alias, 0, 0, source_x,
                                   source_y, source_width, source_height, 0, 0,
                                   destination_width, destination_height, NULL,
-                                  IMLIB_OP_COPY,
+                                  (ImlibOp) IMLIB_OP_COPY,
                                   ctx->cliprect.x, ctx->cliprect.y,
                                   ctx->cliprect.w, ctx->cliprect.h);
      }
