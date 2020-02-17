@@ -57,6 +57,12 @@ _jdata_init(ImLib_JPEG_data * jd)
    return jem;
 }
 
+static int
+_jjump_init(ImLib_JPEG_data * jd)
+{
+   return sigsetjmp(jd->setjmp_buffer, 1);
+}
+
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
      char progress_granularity, char load_data)
@@ -77,7 +83,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    /* set up error handling */
    cinfo.err = _jdata_init(&jdata);
-   if (sigsetjmp(jdata.setjmp_buffer, 1))
+   if (_jjump_init(&jdata))
       goto quit;
 
    jpeg_create_decompress(&cinfo);
