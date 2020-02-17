@@ -22,7 +22,6 @@ load2(ImlibImage * im, int load_data)
 {
    int                 rc;
    png_uint_32         w32, h32;
-   int                 w, h;
    char                hasa;
    png_structp         png_ptr = NULL;
    png_infop           info_ptr = NULL;
@@ -87,9 +86,6 @@ load2(ImlibImage * im, int load_data)
 
    /* Load data */
 
-   w = im->w;
-   h = im->h;
-
    /* Prep for transformations...  ultimately we want ARGB */
    /* expand palette -> RGB if necessary */
    if (color_type == PNG_COLOR_TYPE_PALETTE)
@@ -129,12 +125,12 @@ load2(ImlibImage * im, int load_data)
    if (!__imlib_AllocateData(im))
       goto quit;
 
-   pdata.lines = malloc(h * sizeof(unsigned char *));
+   pdata.lines = malloc(im->h * sizeof(unsigned char *));
    if (!pdata.lines)
       goto quit;
 
-   for (i = 0; i < h; i++)
-      pdata.lines[i] = ((unsigned char *)(im->data)) + (i * w * sizeof(DATA32));
+   for (i = 0; i < im->h; i++)
+      pdata.lines[i] = (unsigned char *)(im->data + i * im->w);
 
    if (im->lc)
      {
@@ -145,7 +141,7 @@ load2(ImlibImage * im, int load_data)
           {
              __imlib_LoadProgressSetPass(im, pass, n_passes);
 
-             for (y = 0; y < h; y += nrows)
+             for (y = 0; y < im->h; y += nrows)
                {
                   png_read_rows(png_ptr, &pdata.lines[y], NULL, nrows);
 
