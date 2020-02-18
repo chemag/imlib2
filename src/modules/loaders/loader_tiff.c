@@ -257,17 +257,14 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    rc = LOAD_FAIL;
    rgba_image.image = NULL;
 
-   if (fread(&magic_number, sizeof(uint16), 1, f) != 1)
+   fd = fileno(f);
+   if (read(fd, &magic_number, sizeof(uint16)) != sizeof(uint16))
       goto quit;
-
-   /* Apparently rewind(f) isn't sufficient */
-   fseek(f, 0, SEEK_SET);
 
    if ((magic_number != TIFF_BIGENDIAN) /* Checks if actually tiff file */
        && (magic_number != TIFF_LITTLEENDIAN))
       goto quit;
 
-   fd = fileno(f);
    fd = dup(fd);
    lseek(fd, 0, SEEK_SET);
    fclose(f);
