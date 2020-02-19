@@ -49,7 +49,7 @@ id3_frame_id(struct id3_frame *frame)
 }
 
 static context     *
-context_create(const char *filename)
+context_create(const char *filename, FILE * f)
 {
    context            *node = (context *) malloc(sizeof(context));
    context            *ptr, *last;
@@ -57,13 +57,16 @@ context_create(const char *filename)
 
    node->refcount = 1;
    {
+      int                 fd;
       struct id3_file    *file;
       struct id3_tag     *tag;
       unsigned int        i;
 
-      file = id3_file_open(filename, ID3_FILE_MODE_READONLY);
+      fd = dup(fileno(f));
+      file = id3_file_fdopen(fd, ID3_FILE_MODE_READONLY);
       if (!file)
         {
+           close(fd);
            fprintf(stderr, "Unable to open tagged file %s: %s\n",
                    filename, strerror(errno));
            goto fail_free;
@@ -81,7 +84,9 @@ context_create(const char *filename)
             id3_tag_attachframe(node->tag, id3_tag_get_frame(tag, i));
       id3_file_close(file);
    }
+
    node->filename = strdup(filename);
+
    if (!id3_ctxs)
      {
         node->id = 1;
@@ -90,6 +95,7 @@ context_create(const char *filename)
         return node;
      }
    ptr = id3_ctxs;
+
    last = NULL;
    while (UNLIKELY(ptr && (ptr->id + 1) >= last_id))
      {
@@ -97,13 +103,16 @@ context_create(const char *filename)
         last = ptr;
         ptr = ptr->next;
      }
+
    /* Paranoid! this can occur only if there are INT_MAX contexts :) */
    if (UNLIKELY(!ptr))
      {
         fprintf(stderr, "Too many open ID3 contexts\n");
         goto fail_close;
      }
+
    node->id = ptr->id + 1;
+
    if (UNLIKELY(!!last))
      {
         node->next = last->next;
@@ -238,7 +247,7 @@ typedef struct lopt {
 } lopt;
 
 static char
-get_options(lopt * opt, ImlibImage * im)
+get_options(lopt * opt, const ImlibImage * im, FILE * f)
 {
    unsigned int        handle = 0, index = 0, traverse = 0;
    context            *ctx;
@@ -286,7 +295,7 @@ get_options(lopt * opt, ImlibImage * im)
    if (handle)
       ctx = context_get(handle);
    else if (!(ctx = context_get_by_name(im->real_file)) &&
-            !(ctx = context_create(im->real_file)))
+            !(ctx = context_create(im->real_file, f)))
       return 0;
 
    if (!index)
@@ -490,15 +499,20 @@ char
 load(ImlibImage * im, ImlibProgressFunction progress,
      char progress_granularity, char load_data)
 {
+   FILE               *f;
    ImlibLoader        *loader;
    lopt                opt;
    int                 res;
-   struct stat         st;
 
-   if (stat(im->real_file, &st) < 0)
-      return 0;
-   if (!get_options(&opt, im))
-      return 0;
+   res = LOAD_FAIL;
+   opt.ctx = NULL;
+
+   f = fopen(im->real_file, "rb");
+   if (!f)
+      return LOAD_FAIL;
+
+   if (!get_options(&opt, im, f))
+      goto fail_context;
 
    if (!get_loader(&opt, &loader))
       goto fail_context;
@@ -583,12 +597,14 @@ load(ImlibImage * im, ImlibProgressFunction progress,
      }
 #endif
 
-   context_delref(opt.ctx);
-   return res;
+   res = LOAD_SUCCESS;
 
  fail_context:
-   context_delref(opt.ctx);
-   return 0;
+   if (opt.ctx)
+      context_delref(opt.ctx);
+   fclose(f);
+
+   return res;
 }
 
 void
