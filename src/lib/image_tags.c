@@ -34,7 +34,7 @@ __imlib_AttachTag(ImlibImage * im, const char *key, int val, void *data,
 
 /* look up a tage by its key on the image it was attached to */
 __EXPORT__ ImlibImageTag *
-__imlib_GetTag(ImlibImage * im, const char *key)
+__imlib_GetTag(const ImlibImage * im, const char *key)
 {
    ImlibImageTag      *t;
 

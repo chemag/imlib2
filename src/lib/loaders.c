@@ -209,7 +209,7 @@ __imlib_FindBestLoaderForFile(const char *file, int for_save)
 }
 
 ImlibLoader        *
-__imlib_FindBestLoaderForFileFormat(const char *file, char *format,
+__imlib_FindBestLoaderForFileFormat(const char *file, const char *format,
                                     int for_save)
 {
    /* if the format is provided ("png" "jpg" etc.) use that */

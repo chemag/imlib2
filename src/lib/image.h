@@ -100,7 +100,7 @@ ImlibLoader        *__imlib_FindBestLoaderForFile(const char *file,
 ImlibLoader        *__imlib_FindBestLoaderForFormat(const char *format,
                                                     int for_save);
 ImlibLoader        *__imlib_FindBestLoaderForFileFormat(const char *file,
-                                                        char *format,
+                                                        const char *format,
                                                         int for_save);
 void                __imlib_LoaderSetFormats(ImlibLoader * l,
                                              const char *const *fmt,
@@ -155,7 +155,7 @@ void                __imlib_DirtyPixmapsForImage(ImlibImage * im);
 void                __imlib_AttachTag(ImlibImage * im, const char *key,
                                       int val, void *data,
                                       ImlibDataDestructorFunction destructor);
-ImlibImageTag      *__imlib_GetTag(ImlibImage * im, const char *key);
+ImlibImageTag      *__imlib_GetTag(const ImlibImage * im, const char *key);
 ImlibImageTag      *__imlib_RemoveTag(ImlibImage * im, const char *key);
 void                __imlib_FreeTag(ImlibImage * im, ImlibImageTag * t);
 void                __imlib_FreeAllTags(ImlibImage * im);
