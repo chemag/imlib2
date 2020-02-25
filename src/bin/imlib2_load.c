@@ -1,6 +1,8 @@
 #include "config.h"
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
 
@@ -19,6 +21,7 @@ static FILE        *fout;
    "  imlib2_load [OPTIONS] FILE...\n" \
    "OPTIONS:\n" \
    "  -e  : Break on error\n" \
+   "  -f  : Load with imlib_load_image_fd()\n" \
    "  -n N: Reeat load N times\n" \
    "  -p  : Check that progress is called\n" \
    "  -x  : Print to stderr\n"
@@ -47,6 +50,25 @@ time_us(void)
 #endif
 }
 
+static Imlib_Image *
+image_load_fd(const char *file)
+{
+   Imlib_Image        *im;
+   int                 fd;
+   const char         *ext;
+
+   ext = strchr(file, '.');
+   if (ext)
+      ext += 1;
+   else
+      ext = file;
+
+   fd = open(file, O_RDONLY);
+   im = imlib_load_image_fd(fd, ext);
+
+   return im;
+}
+
 static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
@@ -66,19 +88,24 @@ main(int argc, char **argv)
    int                 break_on_error;
    int                 show_time;
    int                 load_cnt, cnt;
+   int                 load_fd;
 
    fout = stdout;
    check_progress = 0;
    break_on_error = 0;
    load_cnt = 1;
    show_time = 0;
+   load_fd = 0;
 
-   while ((opt = getopt(argc, argv, "en:px")) != -1)
+   while ((opt = getopt(argc, argv, "efn:px")) != -1)
      {
         switch (opt)
           {
           case 'e':
              break_on_error += 1;
+             break;
+          case 'f':
+             load_fd = 1;
              break;
           case 'n':
              load_cnt = atoi(optarg);
@@ -125,6 +152,8 @@ main(int argc, char **argv)
 
              if (check_progress)
                 im = imlib_load_image_with_error_return(argv[0], &lerr);
+             else if (load_fd)
+                im = image_load_fd(argv[0]);
              else
                 im = imlib_load_image(argv[0]);
 
@@ -134,7 +163,7 @@ main(int argc, char **argv)
                           lerr, argv[0]);
                   if (break_on_error & 2)
                      goto quit;
-                  continue;
+                  goto next;
                }
 
              imlib_context_set_image(im);
@@ -154,6 +183,8 @@ main(int argc, char **argv)
              if (break_on_error & 1)
                 goto quit;
           }
+      next:
+        ;
      }
  quit:
 
