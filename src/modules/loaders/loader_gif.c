@@ -25,18 +25,18 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (fd < 0)
       return LOAD_FAIL;
 
-   rc = LOAD_FAIL;
-   done = 0;
-   rows = NULL;
-   transp = -1;
-
 #if GIFLIB_MAJOR >= 5
    gif = DGifOpenFileHandle(fd, NULL);
 #else
    gif = DGifOpenFileHandle(fd);
 #endif
    if (!gif)
-      goto quit;
+      return LOAD_FAIL;
+
+   rc = LOAD_FAIL;
+   done = 0;
+   rows = NULL;
+   transp = -1;
 
    do
      {
@@ -172,16 +172,11 @@ load(ImlibImage * im, ImlibProgressFunction progress,
         free(rows);
      }
 
-   if (gif)
-     {
 #if GIFLIB_MAJOR > 5 || (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1)
-        DGifCloseFile(gif, NULL);
+   DGifCloseFile(gif, NULL);
 #else
-        DGifCloseFile(gif);
+   DGifCloseFile(gif);
 #endif
-     }
-
-   close(fd);
 
    if (rc <= 0)
       __imlib_FreeData(im);
