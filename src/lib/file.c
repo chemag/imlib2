@@ -103,12 +103,17 @@ __imlib_FileRealFile(const char *file)
 const char         *
 __imlib_FileExtension(const char *file)
 {
-   const char         *p;
+   const char         *p, *s;
+   int                 ch;
 
-   p = strrchr(file, '.');
-   if (!p)
+   if (!file)
       return NULL;
-   p++;
+
+   for (p = s = file; (ch = *s) != 0; s++)
+     {
+        if (ch == '.' || ch == '/')
+           p = s + 1;
+     }
    return *p != '\0' ? p : NULL;
 }
 
