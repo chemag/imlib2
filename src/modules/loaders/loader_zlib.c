@@ -50,17 +50,17 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    /* make sure this file ends in ".gz" and that there's another ext
     * (e.g. "foo.png.gz") */
-   for (s = im->real_file, p = q = NULL; *s; s++)
+   for (p = s = im->real_file, q = NULL; *s; s++)
      {
-        if (*s != '.')
+        if (*s != '.' && *s != '/')
            continue;
         q = p;
-        p = s;
+        p = s + 1;
      }
-   if (!q || q == im->real_file || strcasecmp(p + 1, "gz"))
+   if (!q || strcasecmp(p, "gz"))
       return 0;
 
-   if (!(real_ext = strndup(q + 1, p - q - 1)))
+   if (!(real_ext = strndup(q, p - q - 1)))
       return 0;
 
    loader = __imlib_FindBestLoaderForFormat(real_ext, 0);
