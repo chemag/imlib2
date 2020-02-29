@@ -12,12 +12,6 @@ comment_free(ImlibImage * im, void *data)
    free(data);
 }
 
-static int
-jump_init(png_structp png_ptr)
-{
-   return setjmp(png_jmpbuf(png_ptr));
-}
-
 char
 load(ImlibImage * im, ImlibProgressFunction progress,
      char progress_granularity, char load_data)
@@ -58,7 +52,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!info_ptr)
       goto quit;
 
-   if (jump_init(png_ptr))
+   if (setjmp(png_jmpbuf(png_ptr)))
       goto quit;
 
    png_init_io(png_ptr, f);
