@@ -73,12 +73,15 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!f)
       return LOAD_FAIL;
 
-   rc = LOAD_FAIL;
-
    /* set up error handling */
    cinfo.err = _jdata_init(&jdata);
    if (sigsetjmp(jdata.setjmp_buffer, 1))
-      goto quit;
+     {
+        rc = LOAD_FAIL;
+        goto quit;
+     }
+
+   rc = LOAD_FAIL;
 
    jpeg_create_decompress(&cinfo);
    jpeg_stdio_src(&cinfo, f);

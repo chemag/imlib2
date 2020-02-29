@@ -6,6 +6,11 @@
 /* PNG stuff */
 #define PNG_BYTES_TO_CHECK 4
 
+typedef struct {
+   unsigned char       buf[PNG_BYTES_TO_CHECK];
+   unsigned char     **lines;
+} ImLib_PNG_data;
+
 static void
 comment_free(ImlibImage * im, void *data)
 {
@@ -24,8 +29,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    png_structp         png_ptr = NULL;
    png_infop           info_ptr = NULL;
    int                 bit_depth, color_type, interlace_type;
-   unsigned char       buf[PNG_BYTES_TO_CHECK];
-   unsigned char     **lines;
+   ImLib_PNG_data      pdata;
    int                 i;
 
    f = fopen(im->real_file, "rb");
@@ -34,13 +38,12 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
    /* read header */
    rc = LOAD_FAIL;
-   hasa = 0;
-   lines = NULL;
+   pdata.lines = NULL;
 
-   if (fread(buf, 1, PNG_BYTES_TO_CHECK, f) != PNG_BYTES_TO_CHECK)
+   if (fread(pdata.buf, 1, PNG_BYTES_TO_CHECK, f) != PNG_BYTES_TO_CHECK)
       goto quit;
 
-   if (png_sig_cmp(buf, 0, PNG_BYTES_TO_CHECK))
+   if (png_sig_cmp(pdata.buf, 0, PNG_BYTES_TO_CHECK))
       goto quit;
 
    rewind(f);
@@ -53,7 +56,10 @@ load(ImlibImage * im, ImlibProgressFunction progress,
       goto quit;
 
    if (setjmp(png_jmpbuf(png_ptr)))
-      goto quit;
+     {
+        rc = LOAD_FAIL;
+        goto quit;
+     }
 
    png_init_io(png_ptr, f);
    png_read_info(png_ptr, info_ptr);
@@ -66,6 +72,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    im->w = (int)w32;
    im->h = (int)h32;
 
+   hasa = 0;
    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
       hasa = 1;
    if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
@@ -127,12 +134,12 @@ load(ImlibImage * im, ImlibProgressFunction progress,
    if (!__imlib_AllocateData(im))
       goto quit;
 
-   lines = (unsigned char **)malloc(h * sizeof(unsigned char *));
-   if (!lines)
+   pdata.lines = malloc(h * sizeof(unsigned char *));
+   if (!pdata.lines)
       goto quit;
 
    for (i = 0; i < h; i++)
-      lines[i] = ((unsigned char *)(im->data)) + (i * w * sizeof(DATA32));
+      pdata.lines[i] = ((unsigned char *)(im->data)) + (i * w * sizeof(DATA32));
 
    if (im->lc)
      {
@@ -145,7 +152,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
 
              for (y = 0; y < h; y += nrows)
                {
-                  png_read_rows(png_ptr, &lines[y], NULL, nrows);
+                  png_read_rows(png_ptr, &pdata.lines[y], NULL, nrows);
 
                   if (__imlib_LoadProgressRows(im, y, nrows))
                     {
@@ -157,7 +164,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
      }
    else
      {
-        png_read_image(png_ptr, lines);
+        png_read_image(png_ptr, pdata.lines);
      }
 
    rc = LOAD_SUCCESS;
@@ -181,7 +188,7 @@ load(ImlibImage * im, ImlibProgressFunction progress,
  quit1:
    png_read_end(png_ptr, info_ptr);
  quit:
-   free(lines);
+   free(pdata.lines);
    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
    if (rc <= 0)
       __imlib_FreeData(im);
