@@ -1,6 +1,8 @@
 #ifndef __FILE_H
 #define __FILE_H 1
 
+#include <sys/stat.h>
+
 #include "common.h"
 
 int                 __imlib_IsRealFile(const char *s);
@@ -8,6 +10,26 @@ char               *__imlib_FileKey(const char *file);
 char               *__imlib_FileRealFile(const char *file);
 
 const char         *__imlib_FileExtension(const char *file);
+
+int                 __imlib_FileStat(const char *file, struct stat *st);
+
+static inline       time_t
+__imlib_StatModDate(const struct stat *st)
+{
+   return (st->st_mtime > st->st_ctime) ? st->st_mtime : st->st_ctime;
+}
+
+static inline int
+__imlib_StatIsFile(const struct stat *st)
+{
+   return S_ISREG(st->st_mode);
+}
+
+static inline int
+__imlib_StatIsDir(const struct stat *st)
+{
+   return S_ISDIR(st->st_mode);
+}
 
 int                 __imlib_FileExists(const char *s);
 int                 __imlib_FileIsFile(const char *s);

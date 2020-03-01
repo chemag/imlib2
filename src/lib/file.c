@@ -117,7 +117,7 @@ __imlib_FileExtension(const char *file)
    return *p != '\0' ? p : NULL;
 }
 
-static int
+int
 __imlib_FileStat(const char *file, struct stat *st)
 {
    if ((!file) || (!*file))

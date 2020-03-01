@@ -526,6 +526,26 @@ __imlib_ErrorFromErrno(int err, int save)
      }
 }
 
+static int
+__imlib_FileCheck(const char *file, struct stat *st, ImlibLoadError * er)
+{
+   int                 err;
+
+   err = 0;
+
+   if (__imlib_FileStat(file, st))
+      err = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
+   else if (__imlib_StatIsDir(st))
+      err = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
+   else if (st->st_size == 0)
+      err = IMLIB_LOAD_ERROR_UNKNOWN;
+
+   if (er)
+      *er = err;
+
+   return err;
+}
+
 /* create a new image struct from data passed that is wize w x h then return */
 /* a pointer to that image sturct */
 ImlibImage         *
@@ -648,6 +668,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
    ImlibLoader        *best_loader;
    int                 loader_ret;
    ImlibLdCtx          ilc;
+   struct stat         st;
 
    if (!file || file[0] == '\0')
       return NULL;
@@ -686,12 +707,15 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
           }
      }
 
+   if (__imlib_FileCheck(file, &st, er))
+      return NULL;
+
    /* either image in cache is invalid or we dont even have it in cache */
    /* so produce a new one and load an image into that */
    im = __imlib_ProduceImage();
    im->file = strdup(file);
 
-   if (__imlib_IsRealFile(file))
+   if (__imlib_StatIsFile(&st))
      {
         im->real_file = im->file;
         im->key = NULL;
@@ -711,7 +735,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
         return NULL;
      }
 
-   im->moddate = __imlib_FileModDate(im->real_file);
+   im->moddate = __imlib_StatModDate(&st);
 
    im->data_memory_func = imlib_context_get_image_data_memory_function();
 

@@ -1412,26 +1412,9 @@ imlib_load_image_with_error_return(const char *file,
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_with_error_return", "file",
                               file, NULL);
-   if (!__imlib_FileExists(file))
-     {
-        *error_return = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
-        return NULL;
-     }
-   if (__imlib_FileIsDir(file))
-     {
-        *error_return = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
-        return NULL;
-     }
-   if (!__imlib_FileCanRead(file))
-     {
-        *error_return = IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ;
-        return NULL;
-     }
    prev_ctxt_image = ctx->image;
-   im = (Imlib_Image) __imlib_LoadImage(file,
-                                        (ImlibProgressFunction)
-                                        ctx->progress_func,
-                                        ctx->progress_granularity, 1, 0, &er);
+   im = __imlib_LoadImage(file, (ImlibProgressFunction) ctx->progress_func,
+                          ctx->progress_granularity, 1, 0, &er);
    ctx->image = prev_ctxt_image;
    if (im)
       *error_return = IMLIB_LOAD_ERROR_NONE;
