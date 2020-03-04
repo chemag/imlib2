@@ -1314,7 +1314,8 @@ imlib_load_image(const char *file)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_load_image", "file", file, NULL);
    prev_ctxt_image = ctx->image;
-   im = __imlib_LoadImage(file, (ImlibProgressFunction) ctx->progress_func,
+   im = __imlib_LoadImage(file, NULL,
+                          (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 0, 0, NULL);
    ctx->image = prev_ctxt_image;
    return (Imlib_Image) im;
@@ -1339,7 +1340,8 @@ imlib_load_image_immediately(const char *file)
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_immediately", "file", file,
                               NULL);
    prev_ctxt_image = ctx->image;
-   im = __imlib_LoadImage(file, (ImlibProgressFunction) ctx->progress_func,
+   im = __imlib_LoadImage(file, NULL,
+                          (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 1, 0, NULL);
    ctx->image = prev_ctxt_image;
    return (Imlib_Image) im;
@@ -1362,7 +1364,8 @@ imlib_load_image_without_cache(const char *file)
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_without_cache", "file",
                               file, NULL);
    prev_ctxt_image = ctx->image;
-   im = __imlib_LoadImage(file, (ImlibProgressFunction) ctx->progress_func,
+   im = __imlib_LoadImage(file, NULL,
+                          (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 0, 1, NULL);
    ctx->image = prev_ctxt_image;
    return (Imlib_Image) im;
@@ -1386,9 +1389,46 @@ imlib_load_image_immediately_without_cache(const char *file)
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_immediately_without_cache",
                               "file", file, NULL);
    prev_ctxt_image = ctx->image;
-   im = __imlib_LoadImage(file, (ImlibProgressFunction) ctx->progress_func,
+   im = __imlib_LoadImage(file, NULL,
+                          (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 1, 1, NULL);
    ctx->image = prev_ctxt_image;
+   return (Imlib_Image) im;
+}
+
+/**
+ * @param fd Image file descriptor.
+ * @param file Image file.
+ * @return An image handle.
+ *
+ * Loads the image without deferred image data decoding (i.e. it is
+ * decoded straight away) and without looking in the cache. Returns an
+ * image handle on success or NULL on failure.
+ * fd will be closed after calling this function.
+ */
+EAPI                Imlib_Image
+imlib_load_image_fd(int fd, const char *file)
+{
+   Imlib_Image         im = NULL;
+   Imlib_Image         prev_ctxt_image;
+   FILE               *fp;
+
+   CHECK_CONTEXT(ctx);
+   CHECK_PARAM_POINTER_RETURN("imlib_load_image_fd", "file", file, NULL);
+   fp = fdopen(fd, "rb");
+   if (fp)
+     {
+        prev_ctxt_image = ctx->image;
+        im = __imlib_LoadImage(file, fp,
+                               (ImlibProgressFunction) ctx->progress_func,
+                               ctx->progress_granularity, 1, 1, NULL);
+        fclose(fp);
+        ctx->image = prev_ctxt_image;
+     }
+   else
+     {
+        close(fd);
+     }
    return (Imlib_Image) im;
 }
 
@@ -1413,7 +1453,8 @@ imlib_load_image_with_error_return(const char *file,
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_with_error_return", "file",
                               file, NULL);
    prev_ctxt_image = ctx->image;
-   im = __imlib_LoadImage(file, (ImlibProgressFunction) ctx->progress_func,
+   im = __imlib_LoadImage(file, NULL,
+                          (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 1, 0, &er);
    ctx->image = prev_ctxt_image;
    if (im)

@@ -527,13 +527,14 @@ __imlib_ErrorFromErrno(int err, int save)
 }
 
 static int
-__imlib_FileCheck(const char *file, struct stat *st, ImlibLoadError * er)
+__imlib_FileCheck(const char *file, FILE * fp, struct stat *st,
+                  ImlibLoadError * er)
 {
    int                 err;
 
    err = 0;
 
-   if (__imlib_FileStat(file, st))
+   if (fp ? fstat(fileno(fp), st) : __imlib_FileStat(file, st))
       err = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
    else if (__imlib_StatIsDir(st))
       err = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
@@ -660,7 +661,7 @@ __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
 }
 
 ImlibImage         *
-__imlib_LoadImage(const char *file, ImlibProgressFunction progress,
+__imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
                   char progress_granularity, char immediate_load,
                   char dont_cache, ImlibLoadError * er)
 {
@@ -685,7 +686,9 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
           {
              time_t              current_modified_time;
 
-             current_modified_time = __imlib_FileModDate(im->real_file);
+             current_modified_time = fp ?
+                __imlib_FileModDateFd(fileno(fp)) :
+                __imlib_FileModDate(im->real_file);
              /* if the file on disk is newer than the cached one */
              if (current_modified_time != im->moddate)
                {
@@ -707,7 +710,7 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
           }
      }
 
-   if (__imlib_FileCheck(file, &st, er))
+   if (__imlib_FileCheck(file, fp, &st, er))
       return NULL;
 
    /* either image in cache is invalid or we dont even have it in cache */
@@ -726,7 +729,11 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
         im->key = __imlib_FileKey(file);
      }
 
-   im->fp = fopen(im->real_file, "rb");
+   if (fp)
+      im->fp = fp;
+   else
+      im->fp = fopen(im->real_file, "rb");
+
    if (!im->fp)
      {
         if (er)
@@ -795,7 +802,8 @@ __imlib_LoadImage(const char *file, ImlibProgressFunction progress,
 
    im->lc = NULL;
 
-   fclose(im->fp);
+   if (!fp)
+      fclose(im->fp);
    im->fp = NULL;
 
    /* all loaders have been tried and they all failed. free the skeleton */

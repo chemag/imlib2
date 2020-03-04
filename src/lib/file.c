@@ -167,6 +167,17 @@ __imlib_FileModDate(const char *s)
    return (st.st_mtime > st.st_ctime) ? st.st_mtime : st.st_ctime;
 }
 
+time_t
+__imlib_FileModDateFd(int fd)
+{
+   struct stat         st;
+
+   if (fstat(fd, &st) < 0)
+      return 0;
+
+   return (st.st_mtime > st.st_ctime) ? st.st_mtime : st.st_ctime;
+}
+
 int
 __imlib_FileCanRead(const char *s)
 {

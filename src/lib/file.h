@@ -35,6 +35,7 @@ int                 __imlib_FileExists(const char *s);
 int                 __imlib_FileIsFile(const char *s);
 int                 __imlib_FileIsDir(const char *s);
 time_t              __imlib_FileModDate(const char *s);
+time_t              __imlib_FileModDateFd(int fd);
 int                 __imlib_FileCanRead(const char *s);
 
 char              **__imlib_FileDir(const char *dir, int *num);

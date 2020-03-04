@@ -108,7 +108,7 @@ void                __imlib_LoaderSetFormats(ImlibLoader * l,
                                              unsigned int num);
 
 ImlibImage         *__imlib_CreateImage(int w, int h, DATA32 * data);
-ImlibImage         *__imlib_LoadImage(const char *file,
+ImlibImage         *__imlib_LoadImage(const char *file, FILE * fp,
                                       ImlibProgressFunction progress,
                                       char progress_granularity,
                                       char immediate_load, char dont_cache,
