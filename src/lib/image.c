@@ -752,8 +752,7 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
         immediate_load = 1;
      }
 
-   /* ok - just check all our loaders are up to date */
-   __imlib_RescanLoaders();
+   __imlib_LoadAllLoaders();
 
    loader_ret = 0;
 
@@ -1025,8 +1024,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
         return;
      }
 
-   /* ok - just check all our loaders are up to date */
-   __imlib_RescanLoaders();
+   __imlib_LoadAllLoaders();
 
    /* find the laoder for the format - if its null use the extension */
    l = __imlib_FindBestLoaderForFileFormat(file, im->format, 1);

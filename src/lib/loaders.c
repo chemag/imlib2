@@ -9,8 +9,6 @@
 #include "image.h"
 #include "loaders.h"
 
-static void         __imlib_LoadAllLoaders(void);
-
 static ImlibLoader *loaders = NULL;
 
 ImlibLoader       **
@@ -73,43 +71,6 @@ __imlib_ConsumeLoader(ImlibLoader * l)
    free(l);
 }
 
-void
-__imlib_RescanLoaders(void)
-{
-   static time_t       last_scan_time = 0;
-   static time_t       last_modified_system_time = 0;
-   static int          scanned = 0;
-   time_t              current_time;
-   char                do_reload = 0;
-
-   /* dont stat the dir and rescan if we checked in the last 5 seconds */
-   current_time = time(NULL);
-   if ((current_time - last_scan_time) < 5)
-      return;
-
-   /* ok - was the system loaders dir contents modified ? */
-   last_scan_time = current_time;
-
-   current_time = __imlib_FileModDate(__imlib_PathToLoaders());
-   if (current_time == 0)
-      return;                   /* Loader directory not found */
-   if ((current_time > last_modified_system_time) || (!scanned))
-     {
-        /* yup - set the "do_reload" flag */
-        do_reload = 1;
-        last_modified_system_time = current_time;
-     }
-
-   /* if we dont ned to reload the loaders - get out now */
-   if (!do_reload)
-      return;
-
-   __imlib_RemoveAllLoaders();
-   __imlib_LoadAllLoaders();
-
-   scanned = 1;
-}
-
 /* remove all loaders int eh list we have cached so we can re-load them */
 void
 __imlib_RemoveAllLoaders(void)
@@ -128,11 +89,14 @@ __imlib_RemoveAllLoaders(void)
 
 /* find all the loaders we can find and load them up to see what they can */
 /* load / save */
-static void
+void
 __imlib_LoadAllLoaders(void)
 {
    int                 i, num;
    char              **list;
+
+   if (loaders)
+      return;
 
    /* list all the loaders imlib can find */
    list = __imlib_ListModules(__imlib_PathToLoaders(), &num);
