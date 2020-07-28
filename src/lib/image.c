@@ -1004,8 +1004,10 @@ void
 __imlib_DirtyImage(ImlibImage * im)
 {
    SET_FLAG(im->flags, F_INVALID);
+#ifdef BUILD_X11
    /* and dirty all pixmaps generated from it */
    __imlib_DirtyPixmapsForImage(im);
+#endif
 }
 
 void
