@@ -34,11 +34,9 @@
 #include "updates.h"
 #ifdef BUILD_X11
 #include "color.h"
-#include "context.h"
 #include "draw.h"
 #include "grab.h"
 #include "rend.h"
-#include "rgba.h"
 #include "ximage.h"
 #endif
 
