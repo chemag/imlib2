@@ -10,13 +10,6 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef BUILD_X11
-#include <X11/Xlib.h>
-#else
-#ifndef X_DISPLAY_MISSING
-#define X_DISPLAY_MISSING
-#endif
-#endif
 
 #include "Imlib2.h"
 #include "dynamic_filters.h"

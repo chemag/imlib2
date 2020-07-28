@@ -9,10 +9,6 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/shape.h>
-#else
-#ifndef X_DISPLAY_MISSING
-#define X_DISPLAY_MISSING
-#endif
 #endif
 
 #include "Imlib2.h"
