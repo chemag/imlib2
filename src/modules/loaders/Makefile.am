@@ -45,6 +45,7 @@ pnm.la \
 tga.la \
 $(TIFF_L) \
 $(WEBP_L) \
+xbm.la \
 xpm.la \
 $(ZLIB_L)
 
@@ -121,6 +122,11 @@ webp_la_CPPFLAGS      = @WEBP_CFLAGS@ $(AM_CPPFLAGS)
 webp_la_LDFLAGS       = -module -avoid-version
 webp_la_LIBADD        = @WEBP_LIBS@ $(top_builddir)/src/lib/libImlib2.la
 webp_la_LIBTOOLFLAGS = --tag=disable-static
+
+xbm_la_SOURCES       = loader_xbm.c
+xbm_la_LDFLAGS       = -module -avoid-version
+xbm_la_LIBADD        = $(top_builddir)/src/lib/libImlib2.la
+xbm_la_LIBTOOLFLAGS = --tag=disable-static
 
 xpm_la_SOURCES       = loader_xpm.c
 xpm_la_LDFLAGS       = -module -avoid-version
