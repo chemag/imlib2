@@ -317,7 +317,7 @@ __imlib_ConsumeImagePixmap(ImlibImagePixmap * ip)
 {
 #ifdef DEBUG_CACHE
    fprintf(stderr,
-           "[Imlib2]  Deleting pixmap.  Reference count is %d, pixmap 0x%08x, mask 0x%08x\n",
+           "[Imlib2]  Deleting pixmap.  Reference count is %d, pixmap 0x%08lx, mask 0x%08lx\n",
            ip->references, ip->pixmap, ip->mask);
 #endif
    if (ip->pixmap)
@@ -865,7 +865,7 @@ __imlib_FindImlibImagePixmapByID(Display * d, Pixmap p)
           {
 #ifdef DEBUG_CACHE
              fprintf(stderr,
-                     "[Imlib2]  Match found.  Reference count is %d, pixmap 0x%08x, mask 0x%08x\n",
+                     "[Imlib2]  Match found.  Reference count is %d, pixmap 0x%08lx, mask 0x%08lx\n",
                      ip->references, ip->pixmap, ip->mask);
 #endif
              return ip;
@@ -915,7 +915,7 @@ __imlib_FreePixmap(Display * d, Pixmap p)
              ip->references--;
 #ifdef DEBUG_CACHE
              fprintf(stderr,
-                     "[Imlib2]  Reference count is now %d for pixmap 0x%08x\n",
+                     "[Imlib2]  Reference count is now %d for pixmap 0x%08lx\n",
                      ip->references, ip->pixmap);
 #endif
              /* if it becaume 0 reference count - clean the cache up */
@@ -926,7 +926,7 @@ __imlib_FreePixmap(Display * d, Pixmap p)
    else
      {
 #ifdef DEBUG_CACHE
-        fprintf(stderr, "[Imlib2]  Pixmap 0x%08x not found.  Freeing.\n", p);
+        fprintf(stderr, "[Imlib2]  Pixmap 0x%08lx not found.  Freeing.\n", p);
 #endif
         XFreePixmap(d, p);
      }
