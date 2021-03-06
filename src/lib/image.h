@@ -140,7 +140,14 @@ ImlibImagePixmap   *__imlib_FindCachedImagePixmap(ImlibImage * im, int w, int h,
                                                   char aa, char hiq, char dmask,
                                                   DATABIG modification_count);
 ImlibImagePixmap   *__imlib_FindCachedImagePixmapByID(Display * d, Pixmap p);
-void                __imlib_AddImagePixmapToCache(ImlibImagePixmap * ip);
+ImlibImagePixmap   *__imlib_AddImagePixmapToCache(ImlibImage * im,
+                                                  Pixmap p, Pixmap m,
+                                                  int w, int h,
+                                                  Display * d, Visual * v,
+                                                  int depth, int sx, int sy,
+                                                  int sw, int sh, Colormap cm,
+                                                  char aa, char hiq, char dmask,
+                                                  DATABIG modification_count);
 void                __imlib_RemoveImagePixmapFromCache(ImlibImagePixmap * ip);
 void                __imlib_CleanupImagePixmapCache(void);
 

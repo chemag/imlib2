@@ -383,11 +383,46 @@ __imlib_FindCachedImagePixmapByID(Display * d, Pixmap p)
 }
 
 /* add a pixmap cahce struct to the pixmap cache (at the start of course */
-void
-__imlib_AddImagePixmapToCache(ImlibImagePixmap * ip)
+ImlibImagePixmap   *
+__imlib_AddImagePixmapToCache(ImlibImage * im, Pixmap pmap, Pixmap mask,
+                              int w, int h,
+                              Display * d, Visual * v, int depth,
+                              int sx, int sy, int sw, int sh,
+                              Colormap cm, char aa, char hiq, char dmask,
+                              DATABIG modification_count)
 {
+   ImlibImagePixmap   *ip;
+
+   ip = __imlib_ProduceImagePixmap();
+   ip->visual = v;
+   ip->depth = depth;
+   ip->image = im;
+   if (im->file)
+      ip->file = strdup(im->file);
+   ip->border.left = im->border.left;
+   ip->border.right = im->border.right;
+   ip->border.top = im->border.top;
+   ip->border.bottom = im->border.bottom;
+   ip->colormap = cm;
+   ip->display = d;
+   ip->w = w;
+   ip->h = h;
+   ip->source_x = sx;
+   ip->source_y = sy;
+   ip->source_w = sw;
+   ip->source_h = sh;
+   ip->antialias = aa;
+   ip->modification_count = modification_count;
+   ip->dither_mask = dmask;
+   ip->hi_quality = hiq;
+   ip->references = 1;
+   ip->pixmap = pmap;
+   ip->mask = mask;
+
    ip->next = pixmaps;
    pixmaps = ip;
+
+   return ip;
 }
 
 /* remove a pixmap cache struct from the pixmap cache */
