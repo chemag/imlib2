@@ -35,6 +35,7 @@ Makefile.in
 /src/bin/imlib2_colorspace
 /src/bin/imlib2_conv
 /src/bin/imlib2_grab
+/src/bin/imlib2_load
 /src/bin/imlib2_poly
 /src/bin/imlib2_show
 /src/bin/imlib2_test
@@ -42,3 +43,5 @@ Makefile.in
 
 /imlib2-*.tar.bz2
 /imlib2-*.tar.gz
+
+/build
