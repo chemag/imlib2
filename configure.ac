@@ -1,4 +1,4 @@
-AC_INIT([imlib2], [1.7.1], [enlightenment-devel@lists.sourceforge.net])
+AC_INIT([imlib2],[1.7.1],[enlightenment-devel@lists.sourceforge.net])
 AC_CONFIG_SRCDIR(configure.ac)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_BUILD
@@ -11,7 +11,6 @@ AC_C_BIGENDIAN
 AC_PROG_CC
 AM_PROG_AS
 
-AC_HEADER_STDC
 AC_C_CONST
 
 dnl Next two lines is a hack to prevent libtool checking for CXX/F77
