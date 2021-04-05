@@ -526,27 +526,6 @@ __imlib_ErrorFromErrno(int err, int save)
      }
 }
 
-static int
-__imlib_FileCheck(const char *file, FILE * fp, struct stat *st,
-                  ImlibLoadError * er)
-{
-   int                 err;
-
-   err = 0;
-
-   if (fp ? fstat(fileno(fp), st) : __imlib_FileStat(file, st))
-      err = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
-   else if (__imlib_StatIsDir(st))
-      err = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
-   else if (st->st_size == 0)
-      err = IMLIB_LOAD_ERROR_UNKNOWN;
-
-   if (er)
-      *er = err;
-
-   return err;
-}
-
 /* create a new image struct from data passed that is wize w x h then return */
 /* a pointer to that image sturct */
 ImlibImage         *
@@ -667,9 +646,10 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
 {
    ImlibImage         *im;
    ImlibLoader        *best_loader;
-   int                 loader_ret;
+   int                 err, loader_ret;
    ImlibLdCtx          ilc;
    struct stat         st;
+   char               *im_file, *im_key;
 
    if (!file || file[0] == '\0')
       return NULL;
@@ -710,24 +690,45 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
           }
      }
 
-   if (__imlib_FileCheck(file, fp, &st, er))
-      return NULL;
+   im_file = im_key = NULL;
+   if (fp)
+     {
+        err = fstat(fileno(fp), &st);
+     }
+   else
+     {
+        err = __imlib_FileStat(file, &st);
+        if (err)
+          {
+             im_file = __imlib_FileRealFile(file);
+             im_key = __imlib_FileKey(file);
+             err = __imlib_FileStat(im_file, &st);
+          }
+     }
+
+   if (err)
+      err = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
+   else if (__imlib_StatIsDir(&st))
+      err = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
+   else if (st.st_size == 0)
+      err = IMLIB_LOAD_ERROR_UNKNOWN;
+
+   if (er)
+      *er = err;
+
+   if (err)
+     {
+        free(im_file);
+        free(im_key);
+        return NULL;
+     }
 
    /* either image in cache is invalid or we dont even have it in cache */
    /* so produce a new one and load an image into that */
    im = __imlib_ProduceImage();
    im->file = strdup(file);
-
-   if (__imlib_StatIsFile(&st))
-     {
-        im->real_file = im->file;
-        im->key = NULL;
-     }
-   else
-     {
-        im->real_file = __imlib_FileRealFile(file);
-        im->key = __imlib_FileKey(file);
-     }
+   im->real_file = im_file ? im_file : im->file;
+   im->key = im_key;
 
    if (fp)
       im->fp = fp;
