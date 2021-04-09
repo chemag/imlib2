@@ -70,51 +70,6 @@ __imlib_FlushContexts(void)
      }
 }
 
-void
-__imlib_FreeContextForDisplay(Display * d)
-{
-   Context            *ct;
-
-   ct = context;
-   while (ct)
-     {
-        if (ct->display == d)
-           ct->last_use = -(max_context_count * 2);
-        ct = ct->next;
-     }
-   __imlib_FlushContexts();
-}
-
-void
-__imlib_FreeContextForColormap(Display * d, Colormap cm)
-{
-   Context            *ct;
-
-   ct = context;
-   while (ct)
-     {
-        if ((ct->display == d) && (ct->colormap == cm))
-           ct->last_use = -(max_context_count * 2);
-        ct = ct->next;
-     }
-   __imlib_FlushContexts();
-}
-
-void
-__imlib_FreeContextForVisual(Display * d, Visual * v)
-{
-   Context            *ct;
-
-   ct = context;
-   while (ct)
-     {
-        if ((ct->display == d) && (ct->visual == v))
-           ct->last_use = -(max_context_count * 2);
-        ct = ct->next;
-     }
-   __imlib_FlushContexts();
-}
-
 Context            *
 __imlib_FindContext(Display * d, Visual * v, Colormap c, int depth)
 {
