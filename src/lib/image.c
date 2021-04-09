@@ -111,16 +111,15 @@ __imlib_ConsumeImage(ImlibImage * im)
    if (im->format)
       free(im->format);
    free(im);
+
 #ifdef BUILD_X11
-   ip = pixmaps;
-   while (ip)
+   for (ip = pixmaps; ip; ip = ip->next)
      {
         if (ip->image == im)
           {
              ip->image = NULL;
              ip->dirty = 1;
           }
-        ip = ip->next;
      }
 #endif
 }
@@ -183,7 +182,7 @@ __imlib_CurrentCacheSize(void)
    ImlibImage         *im, *im_next;
 
 #ifdef BUILD_X11
-   ImlibImagePixmap   *ip;
+   ImlibImagePixmap   *ip, *ip_next;
 #endif
    int                 current_cache = 0;
 
@@ -206,23 +205,18 @@ __imlib_CurrentCacheSize(void)
      }
 
 #ifdef BUILD_X11
-   /* go through the pixmaps */
-   ip = pixmaps;
-   while (ip)
+   for (ip = pixmaps; ip; ip = ip_next)
      {
+        ip_next = ip->next;
+
         /* if the pixmap has 0 references */
         if (ip->references == 0)
           {
              /* if the image is invalid */
              if ((ip->dirty) || ((ip->image) && (!(IMAGE_IS_VALID(ip->image)))))
                {
-                  ImlibImagePixmap   *tmp_ip;
-
-                  tmp_ip = ip;
-                  ip = ip->next;
-                  __imlib_RemoveImagePixmapFromCache(tmp_ip);
-                  __imlib_ConsumeImagePixmap(tmp_ip);
-                  continue;
+                  __imlib_RemoveImagePixmapFromCache(ip);
+                  __imlib_ConsumeImagePixmap(ip);
                }
              else
                {
@@ -243,7 +237,6 @@ __imlib_CurrentCacheSize(void)
                      current_cache += ip->w * ip->h / 8;
                }
           }
-        ip = ip->next;
      }
 #endif
    return current_cache;
@@ -342,12 +335,9 @@ __imlib_FindCachedImagePixmap(ImlibImage * im, int w, int h, Display * d,
                               int sh, Colormap cm, char aa, char hiq,
                               char dmask, DATABIG modification_count)
 {
-   ImlibImagePixmap   *ip, *previous_ip;
+   ImlibImagePixmap   *ip, *ip_prev;
 
-   ip = pixmaps;
-   previous_ip = NULL;
-   /* go through the pixmap list */
-   while (ip)
+   for (ip = pixmaps, ip_prev = NULL; ip; ip_prev = ip, ip = ip->next)
      {
         /* if all the pixmap attributes match */
         if ((ip->w == w) && (ip->h == h) && (ip->depth == depth) && (!ip->dirty)
@@ -365,17 +355,14 @@ __imlib_FindCachedImagePixmap(ImlibImage * im, int w, int h, Display * d,
              ((!im->file) && (!ip->file) && (im == ip->image))))
           {
              /* move the pixmap to the head of the pixmap list */
-             if (previous_ip)
+             if (ip_prev)
                {
-                  previous_ip->next = ip->next;
+                  ip_prev->next = ip->next;
                   ip->next = pixmaps;
                   pixmaps = ip;
                }
-             /* return it */
              return ip;
           }
-        previous_ip = ip;
-        ip = ip->next;
      }
    return NULL;
 }
@@ -385,14 +372,11 @@ __imlib_FindCachedImagePixmapByID(Display * d, Pixmap p)
 {
    ImlibImagePixmap   *ip;
 
-   ip = pixmaps;
-   /* go through the pixmap list */
-   while (ip)
+   for (ip = pixmaps; ip; ip = ip->next)
      {
         /* if all the pixmap attributes match */
         if ((ip->pixmap == p) && (ip->display == d))
            return ip;
-        ip = ip->next;
      }
    return NULL;
 }
@@ -407,24 +391,20 @@ __imlib_AddImagePixmapToCache(ImlibImagePixmap * ip)
 
 /* remove a pixmap cache struct from the pixmap cache */
 void
-__imlib_RemoveImagePixmapFromCache(ImlibImagePixmap * ip)
+__imlib_RemoveImagePixmapFromCache(ImlibImagePixmap * ip_del)
 {
-   ImlibImagePixmap   *current_ip, *previous_ip;
+   ImlibImagePixmap   *ip, *ip_prev;
 
-   current_ip = pixmaps;
-   previous_ip = NULL;
-   while (current_ip)
+   for (ip = pixmaps, ip_prev = NULL; ip; ip_prev = ip, ip = ip->next)
      {
-        if (ip == current_ip)
+        if (ip == ip_del)
           {
-             if (previous_ip)
-                previous_ip->next = ip->next;
+             if (ip_prev)
+                ip_prev->next = ip->next;
              else
                 pixmaps = ip->next;
              return;
           }
-        previous_ip = current_ip;
-        current_ip = current_ip->next;
      }
 }
 
@@ -432,37 +412,33 @@ __imlib_RemoveImagePixmapFromCache(ImlibImagePixmap * ip)
 void
 __imlib_CleanupImagePixmapCache(void)
 {
-   ImlibImagePixmap   *ip, *ip_last;
+   ImlibImagePixmap   *ip, *ip_next, *ip_del;
    int                 current_cache;
 
    current_cache = __imlib_CurrentCacheSize();
-   ip_last = NULL;
-   ip = pixmaps;
-   while (ip)
+
+   for (ip = pixmaps; ip; ip = ip_next)
      {
-        ip_last = ip;
-        ip = ip->next;
-        if ((ip_last->references <= 0) && (ip_last->dirty))
+        ip_next = ip->next;
+        if ((ip->references <= 0) && (ip->dirty))
           {
-             __imlib_RemoveImagePixmapFromCache(ip_last);
-             __imlib_ConsumeImagePixmap(ip_last);
+             __imlib_RemoveImagePixmapFromCache(ip);
+             __imlib_ConsumeImagePixmap(ip);
           }
      }
+
    while (current_cache > cache_size)
      {
-        ip_last = NULL;
-        ip = pixmaps;
-        while (ip)
+        for (ip = pixmaps, ip_del = NULL; ip; ip = ip->next)
           {
              if (ip->references <= 0)
-                ip_last = ip;
-             ip = ip->next;
+                ip_del = ip;
           }
-        if (!ip_last)
+        if (!ip_del)
            break;
 
-        __imlib_RemoveImagePixmapFromCache(ip_last);
-        __imlib_ConsumeImagePixmap(ip_last);
+        __imlib_RemoveImagePixmapFromCache(ip_del);
+        __imlib_ConsumeImagePixmap(ip_del);
 
         current_cache = __imlib_CurrentCacheSize();
      }
@@ -882,9 +858,7 @@ __imlib_FindImlibImagePixmapByID(Display * d, Pixmap p)
 {
    ImlibImagePixmap   *ip;
 
-   ip = pixmaps;
-   /* go through the pixmap list */
-   while (ip)
+   for (ip = pixmaps; ip; ip = ip->next)
      {
         /* if all the pixmap ID & Display match */
         if ((ip->pixmap == p) && (ip->display == d))
@@ -896,7 +870,6 @@ __imlib_FindImlibImagePixmapByID(Display * d, Pixmap p)
 #endif
              return ip;
           }
-        ip = ip->next;
      }
    return NULL;
 }
@@ -967,14 +940,11 @@ __imlib_DirtyPixmapsForImage(ImlibImage * im)
 {
    ImlibImagePixmap   *ip;
 
-   ip = pixmaps;
-   /* go through the pixmap list */
-   while (ip)
+   for (ip = pixmaps; ip; ip = ip->next)
      {
         /* if image matches */
         if (ip->image == im)
            ip->dirty = 1;
-        ip = ip->next;
      }
    __imlib_CleanupImagePixmapCache();
 }
