@@ -128,28 +128,22 @@ __imlib_ConsumeImage(ImlibImage * im)
 static ImlibImage  *
 __imlib_FindCachedImage(const char *file)
 {
-   ImlibImage         *im, *previous_im;
+   ImlibImage         *im, *im_prev;
 
-   im = images;
-   previous_im = NULL;
-   /* go through the images list */
-   while (im)
+   for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
         /* if the filenames match and it's valid */
         if ((!strcmp(file, im->file)) && (IMAGE_IS_VALID(im)))
           {
              /* move the image to the head of the pixmap list */
-             if (previous_im)
+             if (im_prev)
                {
-                  previous_im->next = im->next;
+                  im_prev->next = im->next;
                   im->next = images;
                   images = im;
                }
-             /* return it */
              return im;
           }
-        previous_im = im;
-        im = im->next;
      }
    return NULL;
 }
@@ -164,24 +158,20 @@ __imlib_AddImageToCache(ImlibImage * im)
 
 /* remove (unlink) an image from the cache of images */
 static void
-__imlib_RemoveImageFromCache(ImlibImage * im)
+__imlib_RemoveImageFromCache(ImlibImage * im_del)
 {
-   ImlibImage         *current_im, *previous_im;
+   ImlibImage         *im, *im_prev;
 
-   current_im = images;
-   previous_im = NULL;
-   while (current_im)
+   for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
-        if (im == current_im)
+        if (im == im_del)
           {
-             if (previous_im)
-                previous_im->next = im->next;
+             if (im_prev)
+                im_prev->next = im->next;
              else
                 images = im->next;
              return;
           }
-        previous_im = current_im;
-        current_im = current_im->next;
      }
 }
 
@@ -190,35 +180,29 @@ __imlib_RemoveImageFromCache(ImlibImage * im)
 int
 __imlib_CurrentCacheSize(void)
 {
-   ImlibImage         *im;
+   ImlibImage         *im, *im_next;
 
 #ifdef BUILD_X11
    ImlibImagePixmap   *ip;
 #endif
    int                 current_cache = 0;
 
-   /* go through the image cache */
-   im = images;
-   while (im)
+   for (im = images; im; im = im_next)
      {
+        im_next = im->next;
+
         /* mayaswell clean out stuff thats invalid that we dont need anymore */
         if (im->references == 0)
           {
              if (!(IMAGE_IS_VALID(im)))
                {
-                  ImlibImage         *tmp_im;
-
-                  tmp_im = im;
-                  im = im->next;
-                  __imlib_RemoveImageFromCache(tmp_im);
-                  __imlib_ConsumeImage(tmp_im);
-                  continue;
+                  __imlib_RemoveImageFromCache(im);
+                  __imlib_ConsumeImage(im);
                }
              /* it's valid but has 0 ref's - append to cache size count */
              else
                 current_cache += im->w * im->h * sizeof(DATA32);
           }
-        im = im->next;
      }
 
 #ifdef BUILD_X11
@@ -269,40 +253,36 @@ __imlib_CurrentCacheSize(void)
 static void
 __imlib_CleanupImageCache(void)
 {
-   ImlibImage         *im, *im_last;
+   ImlibImage         *im, *im_next, *im_del;
    int                 current_cache;
 
    current_cache = __imlib_CurrentCacheSize();
-   im_last = NULL;
-   im = images;
+
    /* remove 0 ref count invalid (dirty) images */
-   while (im)
+   for (im = images; im; im = im_next)
      {
-        im_last = im;
-        im = im->next;
-        if ((im_last->references <= 0) && (!(IMAGE_IS_VALID(im_last))))
+        im_next = im->next;
+        if ((im->references <= 0) && (!(IMAGE_IS_VALID(im))))
           {
-             __imlib_RemoveImageFromCache(im_last);
-             __imlib_ConsumeImage(im_last);
+             __imlib_RemoveImageFromCache(im);
+             __imlib_ConsumeImage(im);
           }
      }
+
    /* while the cache size of 0 ref coutn data is bigger than the set value */
    /* clean out the oldest members of the imaeg cache */
    while (current_cache > cache_size)
      {
-        im_last = NULL;
-        im = images;
-        while (im)
+        for (im = images, im_del = NULL; im; im = im->next)
           {
              if (im->references <= 0)
-                im_last = im;
-             im = im->next;
+                im_del = im;
           }
-        if (!im_last)
+        if (!im_del)
            break;
 
-        __imlib_RemoveImageFromCache(im_last);
-        __imlib_ConsumeImage(im_last);
+        __imlib_RemoveImageFromCache(im_del);
+        __imlib_ConsumeImage(im_del);
 
         current_cache = __imlib_CurrentCacheSize();
      }
