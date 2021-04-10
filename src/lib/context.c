@@ -26,73 +26,68 @@ __imlib_GetMaxContexts(void)
 void
 __imlib_FlushContexts(void)
 {
-   Context            *ct, *pct, *ctt;
+   Context            *ct, *ct_prev, *ct_next;
 
-   ct = context;
-   pct = NULL;
-   while (ct)
+   for (ct = context, ct_prev = NULL; ct; ct = ct_next)
      {
-        ctt = ct;
-        ct = ct->next;
+        ct_next = ct->next;
+
         /* it hasn't been referenced in the last max_context_count references */
         /* thus old and getrid of it */
-        if (ctt->last_use < (context_counter - max_context_count))
+        if (ct->last_use < (context_counter - max_context_count))
           {
-             if (pct)
-                pct->next = ctt->next;
+             if (ct_prev)
+                ct_prev->next = ct->next;
              else
-                context = ctt->next;
-
-             if (ctt->palette)
+                context = ct->next;
+             if (ct->palette)
                {
                   int                 i, num[] = { 256, 128, 64, 32, 16, 8, 1 };
                   unsigned long       pixels[256];
 
-                  for (i = 0; i < num[ctt->palette_type]; i++)
-                     pixels[i] = (unsigned long)ctt->palette[i];
-                  XFreeColors(ctt->display, ctt->colormap, pixels,
-                              num[ctt->palette_type], 0);
+                  for (i = 0; i < num[ct->palette_type]; i++)
+                     pixels[i] = (unsigned long)ct->palette[i];
+                  XFreeColors(ct->display, ct->colormap, pixels,
+                              num[ct->palette_type], 0);
 
-                  free(ctt->palette);
-                  free(ctt->r_dither);
-                  free(ctt->g_dither);
-                  free(ctt->b_dither);
+                  free(ct->palette);
+                  free(ct->r_dither);
+                  free(ct->g_dither);
+                  free(ct->b_dither);
                }
-             else if (ctt->r_dither)
+             else if (ct->r_dither)
                {
-                  free(ctt->r_dither);
-                  free(ctt->g_dither);
-                  free(ctt->b_dither);
+                  free(ct->r_dither);
+                  free(ct->g_dither);
+                  free(ct->b_dither);
                }
-             free(ctt);
+             free(ct);
           }
         else
-           pct = ctt;
+          {
+             ct_prev = ct;
+          }
      }
 }
 
 Context            *
 __imlib_FindContext(Display * d, Visual * v, Colormap c, int depth)
 {
-   Context            *ct, *pct;
+   Context            *ct, *ct_prev;
 
-   pct = NULL;
-   ct = context;
-   while (ct)
+   for (ct = context, ct_prev = NULL; ct; ct_prev = ct, ct = ct->next)
      {
         if ((ct->display == d) && (ct->visual == v) &&
             (ct->colormap == c) && (ct->depth == depth))
           {
-             if (pct)
+             if (ct_prev)
                {
-                  pct->next = ct->next;
+                  ct_prev->next = ct->next;
                   ct->next = context;
                   context = ct;
                }
              return ct;
           }
-        pct = ct;
-        ct = ct->next;
      }
    return NULL;
 }
