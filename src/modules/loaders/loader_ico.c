@@ -213,7 +213,7 @@ ico_read_icon(ico_t * ico, int ino)
 }
 
 static ico_t       *
-ico_read(FILE * fp)
+ico_read(ImlibImage * im)
 {
    ico_t              *ico;
    unsigned int        nr, i;
@@ -222,7 +222,7 @@ ico_read(FILE * fp)
    if (!ico)
       return NULL;
 
-   ico->fp = fp;
+   ico->fp = im->fp;
 
    nr = fread(&ico->idir, 1, sizeof(ico->idir), ico->fp);
    if (nr != sizeof(ico->idir))
@@ -240,7 +240,7 @@ ico_read(FILE * fp)
    if (!ico->ie)
       goto bail;
 
-   D("Loading '%s' Nicons = %d\n", filename, ico->idir.icons);
+   D("Loading '%s' Nicons = %d\n", im->real_file, ico->idir.icons);
 
    for (i = 0; i < ico->idir.icons; i++)
      {
@@ -419,7 +419,7 @@ load2(ImlibImage * im, int load_data)
    ico_t              *ico;
    int                 ok;
 
-   ico = ico_read(im->fp);
+   ico = ico_read(im);
    if (!ico)
       return 0;
 
