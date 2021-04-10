@@ -308,13 +308,12 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
      }
 
    /* Enable overriding selected index for debug purposes */
-   {
-      const char         *s = getenv("IMLIB2_LOADER_ICO");
-
-      ic = (s) ? atoi(s) : ic;
-      if (ic >= ico->idir.icons)
-         return 0;
-   }
+   if (im->key)
+     {
+        ic = atoi(im->key);
+        if (ic >= ico->idir.icons)
+           return 0;
+     }
 
    ie = &ico->ie[ic];
 
