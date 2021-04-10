@@ -39,9 +39,10 @@ __imlib_FlushContexts(void)
         if (ctt->last_use < (context_counter - max_context_count))
           {
              if (pct)
-                context = ctt->next;
-             else
                 pct->next = ctt->next;
+             else
+                context = ctt->next;
+
              if (ctt->palette)
                {
                   int                 i, num[] = { 256, 128, 64, 32, 16, 8, 1 };
@@ -140,6 +141,7 @@ __imlib_NewContext(Display * d, Visual * v, Colormap c, int depth)
                                (void *)ct->b_dither, depth, 0);
           }
      }
+
    return ct;
 }
 
@@ -154,10 +156,13 @@ __imlib_GetContext(Display * d, Visual * v, Colormap c, int depth)
         ct->last_use = context_counter;
         return ct;
      }
+
+   __imlib_FlushContexts();
+
    ct = __imlib_NewContext(d, v, c, depth);
    ct->next = context;
    context = ct;
-   __imlib_FlushContexts();
+
    return ct;
 }
 
