@@ -57,7 +57,7 @@ load2(ImlibImage * im, int load_data)
              if (!IMAGE_DIMENSIONS_OK(w, h))
                 goto quit;
 
-             rows = calloc(h, sizeof(GifRowType *));
+             rows = calloc(h, sizeof(GifRowType));
              if (!rows)
                 goto quit;
 

@@ -69,8 +69,8 @@ raster(TIFFRGBAImage_Extra * img, uint32 * rast,
    /* I don't understand why, but that seems to be what's going on. */
    /* libtiff needs better docs! */
 
-   if (img->rgba.alpha == EXTRASAMPLE_UNASSALPHA)
-      alpha_premult = 1;
+   alpha_premult = img->rgba.alpha == EXTRASAMPLE_UNASSALPHA;
+
    switch (img->rgba.orientation)
      {
      default:

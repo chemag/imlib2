@@ -591,8 +591,6 @@ load2(ImlibImage * im, int load_data)
      }
 #endif
 
-   res = LOAD_SUCCESS;
-
  fail_context:
    if (opt.ctx)
       context_delref(opt.ctx);
