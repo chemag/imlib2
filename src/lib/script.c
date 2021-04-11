@@ -59,15 +59,15 @@ static char        *
 __imlib_copystr(const char *str, int start, int end)
 {
    int                 i = 0;
-   char               *rstr = calloc(1024, sizeof(char));
+   char               *rstr;
 
-   if (start <= end && end < (int)strlen(str))
-     {
-        for (i = start; i <= end; i++)
-           rstr[i - start] = str[i];
-        return rstr;
-     }
-   return NULL;
+   if (start > end || end >= (int)strlen(str))
+      return NULL;
+
+   rstr = calloc(1024, sizeof(char));
+   for (i = start; i <= end; i++)
+      rstr[i - start] = str[i];
+   return rstr;
 }
 
 static void
@@ -267,7 +267,6 @@ __imlib_script_parse(ImlibImage * im, const char *script, va_list param_list)
           }
 
         start = 0;
-        i = 0;
         script_len = strlen(scriptbuf);
         for (i = 0; i < script_len; i++)
           {

@@ -360,18 +360,16 @@ __imlib_hash_free(Imlib_Hash * hash)
 
    if (!hash)
       return;
+
    size = __imlib_hash_size(hash);
    for (i = 0; i < size; i++)
      {
-        while (hash->buckets[i])
-          {
-             Imlib_Hash_El      *el;
+        Imlib_Hash_El      *el, *el_next;
 
-             el = (Imlib_Hash_El *) hash->buckets[i];
-             if (el->key)
-                free(el->key);
-             hash->buckets[i] =
-                __imlib_object_list_remove(hash->buckets[i], el);
+        for (el = (Imlib_Hash_El *) hash->buckets[i]; el; el = el_next)
+          {
+             el_next = (Imlib_Hash_El *) el->_list_data.next;
+             free(el->key);
              free(el);
           }
      }
