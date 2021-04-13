@@ -189,6 +189,10 @@ bodyrow(unsigned char *p, int z, ILBM * ilbm)
         return;
      }
 
+#ifdef __clang_analyzer__
+   memset(p, 0, z);
+#endif
+
    for (i = 0; i < z; i += w)
      {
         b = ilbm->body.data[ilbm->offset++];
