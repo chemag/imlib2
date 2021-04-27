@@ -142,13 +142,7 @@ AC_ARG_WITH([jpeg],
 AC_MSG_RESULT($jpeg_loader)
 
 if test "$jpeg_loader" != no ; then
-  AC_CHECK_LIB(jpeg, jpeg_destroy_decompress, jpeg_ok=yes, jpeg_ok=no)
-  if test "$jpeg_ok" = yes; then
-    AC_CHECK_HEADER([jpeglib.h], , jpeg_ok=no)
-    if test "$jpeg_ok" = yes; then
-      JPEGLIBS="-ljpeg"
-    fi
-  fi
+  PKG_CHECK_MODULES(JPEG, libjpeg, [ jpeg_ok="yes" ], [ jpeg_ok="no" ])
   if test "$jpeg_ok" = no ; then
     if test "$jpeg_loader" = yes ; then
       AC_MSG_ERROR(JPEG support was requested but system does not support it)
@@ -160,7 +154,6 @@ else
   jpeg_ok=no
 fi
 AM_CONDITIONAL(BUILD_JPEG_LOADER, test "$jpeg_ok" = yes)
-AC_SUBST(JPEGLIBS)
 
 
 AC_MSG_CHECKING(whether to enable png support)
@@ -225,25 +218,7 @@ AC_ARG_WITH([tiff],
 AC_MSG_RESULT($tiff_loader)
 
 if test "$tiff_loader" != no ; then
-  AC_CHECK_LIB(tiff, TIFFReadScanline,
-    tiff_libs="-ltiff"
-    tiff_ok=yes,
-  AC_CHECK_LIB(tiff, TIFFReadScanline,
-    tiff_libs="-ltiff -ljpeg -lz -lm"
-    tiff_ok=yes,
-  AC_CHECK_LIB(tiff34, TIFFReadScanline,
-    tiff_libs="-ltiff34 -ljpeg -lz -lm"
-    tiff_ok=yes,
-    tiff_ok=no,
-    -ljpeg -lz -lm),
-    -ljpeg -lz -lm),
-    )
-  if test "$tiff_ok" = yes; then
-    AC_CHECK_HEADER([tiffio.h], , tiff_ok=no)
-    if test "$tiff_ok" = yes; then
-      TIFFLIBS=$tiff_libs
-    fi
-  fi
+  PKG_CHECK_MODULES(TIFF, libtiff-4, [ tiff_ok="yes" ], [ tiff_ok="no" ])
   if test "$tiff_ok" = no ; then
     if test "$tiff_loader" = yes ; then
       AC_MSG_ERROR(TIFF support was requested but system does not support it)
@@ -255,7 +230,6 @@ else
   tiff_ok=no
 fi
 AM_CONDITIONAL(BUILD_TIFF_LOADER, test "$tiff_ok" = yes)
-AC_SUBST(TIFFLIBS)
 
 
 AC_MSG_CHECKING(whether to enable gif support)
@@ -332,13 +306,7 @@ AC_ARG_WITH([zlib],
 AC_MSG_RESULT($zlib_loader)
 
 if test "$zlib_loader" != no ; then
-  AC_CHECK_LIB(z, uncompress, zlib_ok=yes, zlib_ok=no)
-  if test "$zlib_ok" = yes; then
-    AC_CHECK_HEADER([zlib.h], , zlib_ok=no)
-    if test "$zlib_ok" = yes; then
-      ZLIBLIBS="-lz"
-    fi
-  fi
+  PKG_CHECK_MODULES(ZLIB, zlib, [ zlib_ok="yes" ], [ zlib_ok="no" ])
   if test "$zlib_ok" = no ; then
     if test "$zlib_loader" = yes ; then
       AC_MSG_ERROR(ZLIB support was requested but system does not support it)
@@ -350,7 +318,6 @@ else
   zlib_ok=no
 fi
 AM_CONDITIONAL(BUILD_ZLIB_LOADER, test "$zlib_ok" = yes)
-AC_SUBST(ZLIBLIBS)
 
 
 AC_MSG_CHECKING(whether to enable bzip2 support)
@@ -368,13 +335,7 @@ AC_ARG_WITH([bzip2],
 AC_MSG_RESULT($bz2_loader)
 
 if test "$bz2_loader" != no ; then
-  AC_CHECK_LIB(bz2, BZ2_bzRead, bz2_ok=yes, bz2_ok=no)
-  if test "$bz2_ok" = yes; then
-    AC_CHECK_HEADER([bzlib.h], , bz2_ok=no)
-    if test "$bz2_ok" = yes; then
-      BZ2LIBS="-lbz2"
-    fi
-  fi
+  PKG_CHECK_MODULES(BZ2, bzip2, [ bz2_ok="yes" ], [ bz2_ok="no" ])
   if test "$bz2_ok" = no ; then
     if test "$bz2_loader" = yes ; then
       AC_MSG_ERROR(BZIP2 support was requested but system does not support it)
@@ -386,7 +347,6 @@ else
   bz2_ok=no
 fi
 AM_CONDITIONAL(BUILD_BZ2_LOADER, test "$bz2_ok" = yes)
-AC_SUBST(BZ2LIBS)
 
 
 AC_MSG_CHECKING(whether to enable id3 support)
@@ -404,17 +364,7 @@ AC_ARG_WITH([id3],
 AC_MSG_RESULT($id3_loader)
 
 if test "$id3_loader" != no ; then
-  AC_CHECK_LIB(id3tag, id3_file_open,
-    id3_libs="-lz -lid3tag"
-    id3_ok=yes,
-    id3_ok=no,
-    -lz)
-  if test "$id3_ok" = yes; then
-    AC_CHECK_HEADER([id3tag.h], , id3_ok=no)
-    if test "$id3_ok" = yes; then
-      ID3LIBS=$id3_libs
-    fi
-  fi
+  PKG_CHECK_MODULES(ID3, id3tag, [ id3_ok="yes" ], [ id3_ok="no" ])
   if test "$id3_ok" = no ; then
     if test "$id3_loader" = yes ; then
       AC_MSG_ERROR(ID3 support was requested but system does not support it)
@@ -426,7 +376,6 @@ else
   id3_ok=no
 fi
 AM_CONDITIONAL(BUILD_ID3_LOADER, test "$id3_ok" = yes)
-AC_SUBST(ID3LIBS)
 
 
 EC_C_WARNINGS()
