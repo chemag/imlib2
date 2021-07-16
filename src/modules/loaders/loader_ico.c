@@ -6,9 +6,7 @@
  * https://en.wikipedia.org/wiki/BMP_file_format
  */
 #include "loader_common.h"
-
 #include <limits.h>
-#include <string.h>
 
 #define DEBUG 0
 #if DEBUG

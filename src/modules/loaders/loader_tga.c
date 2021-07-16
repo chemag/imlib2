@@ -10,11 +10,9 @@
  * header/footer structures courtesy of the GIMP Targa plugin 
  */
 #include "loader_common.h"
-#include <fcntl.h>
 #include <stdint.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#include "blend.h"
 
 /* flip an inverted image - see RLE reading below */
 static void         tgaflip(DATA32 * in, int w, int h, int fliph, int flipv);

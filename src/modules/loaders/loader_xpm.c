@@ -1,7 +1,4 @@
 #include "loader_common.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 static FILE        *rgb_txt = NULL;
 

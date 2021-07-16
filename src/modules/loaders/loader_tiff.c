@@ -3,7 +3,6 @@
 
 #include "loader_common.h"
 #include <setjmp.h>
-#include <stdarg.h>
 #include <stdint.h>
 #include <tiffio.h>
 
