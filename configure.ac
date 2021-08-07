@@ -339,6 +339,15 @@ AC_MSG_RESULT($bz2_loader)
 if test "$bz2_loader" != no ; then
   PKG_CHECK_MODULES(BZ2, bzip2, [ bz2_ok="yes" ], [ bz2_ok="no" ])
   if test "$bz2_ok" = no ; then
+    AC_CHECK_LIB(bz2, BZ2_bzRead, bz2_ok=yes, bz2_ok=no)
+    if test "$bz2_ok" = yes; then
+      AC_CHECK_HEADER([bzlib.h], , bz2_ok=no)
+      if test "$bz2_ok" = yes; then
+        BZ2_LIBS="-lbz2"
+      fi
+    fi
+  fi
+  if test "$bz2_ok" = no ; then
     if test "$bz2_loader" = yes ; then
       AC_MSG_ERROR(BZIP2 support was requested but system does not support it)
     else
