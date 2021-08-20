@@ -12,6 +12,7 @@
 
 Display            *disp;
 
+static int          debug = 0;
 static Window       win;
 static Pixmap       pm = 0;
 static int          depth;
@@ -25,6 +26,9 @@ static char         progress_granularity = 10;
 static char         progress_print = 0;
 static int          progress_delay = 0;
 
+#define Dprintf if (debug) printf
+#define Vprintf if (verbose) printf
+
 #define MAX_DIM	32767
 
 #define SCALE_X(x) (int)(scale_x * (x) + .5)
@@ -34,6 +38,7 @@ static int          progress_delay = 0;
    "Usage:\n" \
    "  imlib2_view [OPTIONS] FILE...\n" \
    "OPTIONS:\n" \
+   "  -d  : Enable debug\n" \
    "  -g N: Set progress granularity to N%% (default 10(%%))\n" \
    "  -l N: Introduce N ms delay in progress callback (default 0)\n" \
    "  -p  : Print info in progress callback (default no)\n" \
@@ -69,10 +74,12 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         window_height = DisplayHeight(disp, DefaultScreen(disp));
         window_width -= 32;     /* Allow for decorations */
         window_height -= 32;
+        Dprintf("Screen WxH=%dx%d\n", window_width, window_height);
 
         imlib_context_set_image(im);
         image_width = imlib_image_get_width();
         image_height = imlib_image_get_height();
+        Dprintf("Image  WxH=%dx%d\n", image_width, image_height);
 
         if (!scale &&
             (image_width > window_width || image_height > window_height))
@@ -83,6 +90,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
                {
                   scale_x *= .5;
                   scale_y = scale_x;
+                  Dprintf(" scale WxH=%.3fx%.3f\n", scale_x, scale_y);
                }
           }
 
@@ -98,6 +106,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
              window_height = MAX_DIM;
              scale_y = (double)MAX_DIM / image_height;
           }
+        Dprintf("Window WxH=%dx%d\n", window_width, window_height);
 
         if (pm)
            XFreePixmap(disp, pm);
@@ -171,10 +180,13 @@ main(int argc, char **argv)
 
    verbose = 0;
 
-   while ((opt = getopt(argc, argv, "g:l:ps:v")) != -1)
+   while ((opt = getopt(argc, argv, "dg:l:ps:v")) != -1)
      {
         switch (opt)
           {
+          case 'd':
+             debug += 1;
+             break;
           case 'g':
              progress_granularity = atoi(optarg);
              break;
@@ -239,8 +251,7 @@ main(int argc, char **argv)
              exit(0);
           }
         file = argv[no];
-        if (verbose)
-           printf("Show  %d: '%s'\n", no, file);
+        Vprintf("Show  %d: '%s'\n", no, file);
         image_width = 0;
         im = imlib_load_image(file);
      }
@@ -383,8 +394,7 @@ main(int argc, char **argv)
                        continue;
                     }
                   file = argv[no2];
-                  if (verbose)
-                     printf("Show  %d: '%s'\n", no2, file);
+                  Vprintf("Show  %d: '%s'\n", no2, file);
                   if (no2 == no)
                      break;
                   image_width = 0;
