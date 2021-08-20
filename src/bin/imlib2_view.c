@@ -11,14 +11,15 @@
 #include "props.h"
 
 Display            *disp;
-Window              win;
-Pixmap              pm = 0;
-int                 depth;
-int                 image_width = 0, image_height = 0;
-int                 window_width = 0, window_height = 0;
-double              scale_x = 1.;
-double              scale_y = 1.;
-Imlib_Image         bg_im = NULL;
+
+static Window       win;
+static Pixmap       pm = 0;
+static int          depth;
+static int          image_width = 0, image_height = 0;
+static int          window_width = 0, window_height = 0;
+static double       scale_x = 1.;
+static double       scale_y = 1.;
+static Imlib_Image  bg_im = NULL;
 static char         progress_granularity = 10;
 static char         progress_print = 0;
 static int          progress_delay = 0;
