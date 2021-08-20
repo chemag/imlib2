@@ -17,6 +17,7 @@ static Pixmap       pm = 0;
 static int          depth;
 static int          image_width = 0, image_height = 0;
 static int          window_width = 0, window_height = 0;
+static char         scale = 0;
 static double       scale_x = 1.;
 static double       scale_y = 1.;
 static Imlib_Image  bg_im = NULL;
@@ -64,9 +65,27 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
      {
         int                 x, y, onoff;
 
+        window_width = DisplayWidth(disp, DefaultScreen(disp));
+        window_height = DisplayHeight(disp, DefaultScreen(disp));
+        window_width -= 32;     /* Allow for decorations */
+        window_height -= 32;
+
         imlib_context_set_image(im);
         image_width = imlib_image_get_width();
         image_height = imlib_image_get_height();
+
+        if (!scale &&
+            (image_width > window_width || image_height > window_height))
+          {
+             scale_x = scale_y = 1.;
+             while (window_width < SCALE_X(image_width) ||
+                    window_height < SCALE_Y(image_height))
+               {
+                  scale_x *= .5;
+                  scale_y = scale_x;
+               }
+          }
+
         window_width = SCALE_X(image_width);
         window_height = SCALE_Y(image_height);
         if (window_width > MAX_DIM)
@@ -79,6 +98,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
              window_height = MAX_DIM;
              scale_y = (double)MAX_DIM / image_height;
           }
+
         if (pm)
            XFreePixmap(disp, pm);
         pm = XCreatePixmap(disp, win, window_width, window_height, depth);
@@ -165,6 +185,7 @@ main(int argc, char **argv)
              progress_print = 1;
              break;
           case 's':            /* Scale (window size wrt. image size) */
+             scale = 1;
              scale_x = scale_y = atof(optarg);
              break;
           case 'v':
