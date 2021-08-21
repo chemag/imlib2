@@ -18,13 +18,14 @@ static Pixmap       pm = 0;
 static int          depth;
 static int          image_width = 0, image_height = 0;
 static int          window_width = 0, window_height = 0;
-static char         scale = 0;
-static double       scale_x = 1.;
-static double       scale_y = 1.;
 static Imlib_Image  bg_im = NULL;
-static char         progress_granularity = 10;
-static char         progress_print = 0;
-static int          progress_delay = 0;
+
+static char         opt_scale = 0;
+static double       opt_scale_x = 1.;
+static double       opt_scale_y = 1.;
+static char         opt_progress_granularity = 10;
+static char         opt_progress_print = 0;
+static int          opt_progress_delay = 0;
 
 #define Dprintf if (debug) printf
 #define Vprintf if (verbose) printf
@@ -55,9 +56,10 @@ static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
 {
+   static double       scale_x = 0., scale_y = 0.;
    int                 up_wx, up_wy, up_ww, up_wh;
 
-   if (progress_print)
+   if (opt_progress_print)
       printf("%s: %3d%% %4d,%4d %4dx%4d\n",
              __func__, percent, update_x, update_y, update_w, update_h);
 
@@ -70,6 +72,9 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
      {
         int                 x, y, onoff;
 
+        scale_x = opt_scale_x;
+        scale_y = opt_scale_y;
+
         window_width = DisplayWidth(disp, DefaultScreen(disp));
         window_height = DisplayHeight(disp, DefaultScreen(disp));
         window_width -= 32;     /* Allow for decorations */
@@ -81,7 +86,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         image_height = imlib_image_get_height();
         Dprintf("Image  WxH=%dx%d\n", image_width, image_height);
 
-        if (!scale &&
+        if (!opt_scale &&
             (image_width > window_width || image_height > window_height))
           {
              scale_x = scale_y = 1.;
@@ -163,8 +168,8 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
    XClearArea(disp, win, up_wx, up_wy, up_ww, up_wh, False);
    XFlush(disp);
 
-   if (progress_delay > 0)
-      usleep(progress_delay);
+   if (opt_progress_delay > 0)
+      usleep(opt_progress_delay);
 
    return 1;
 }
@@ -188,17 +193,17 @@ main(int argc, char **argv)
              debug += 1;
              break;
           case 'g':
-             progress_granularity = atoi(optarg);
+             opt_progress_granularity = atoi(optarg);
              break;
           case 'l':
-             progress_delay = 1000 * atoi(optarg);
+             opt_progress_delay = 1000 * atoi(optarg);
              break;
           case 'p':
-             progress_print = 1;
+             opt_progress_print = 1;
              break;
           case 's':            /* Scale (window size wrt. image size) */
-             scale = 1;
-             scale_x = scale_y = atof(optarg);
+             opt_scale = 1;
+             opt_scale_x = opt_scale_y = atof(optarg);
              break;
           case 'v':
              verbose += 1;
@@ -238,7 +243,7 @@ main(int argc, char **argv)
    imlib_context_set_visual(DefaultVisual(disp, DefaultScreen(disp)));
    imlib_context_set_colormap(DefaultColormap(disp, DefaultScreen(disp)));
    imlib_context_set_progress_function(progress);
-   imlib_context_set_progress_granularity(progress_granularity);
+   imlib_context_set_progress_granularity(opt_progress_granularity);
    imlib_context_set_drawable(win);
 
    no = -1;
