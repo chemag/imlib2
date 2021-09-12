@@ -247,6 +247,7 @@ load2(ImlibImage * im, int load_data)
    rgba_image.image = NULL;
 
    fd = fileno(im->fp);
+   lseek(fd, 0, SEEK_SET);
    if (read(fd, &magic_number, sizeof(uint16_t)) != sizeof(uint16_t))
       goto quit;
 
