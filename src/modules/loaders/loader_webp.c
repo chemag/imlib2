@@ -126,8 +126,6 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    uint8_t            *encoded_data;
    size_t              encoded_size;
 
-   printf("FOO\n");
-
    f = fopen(im->real_file, "wb");
    if (!f)
       return LOAD_FAIL;
