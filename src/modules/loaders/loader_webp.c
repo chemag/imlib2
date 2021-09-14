@@ -32,50 +32,45 @@ webp_strerror(VP8StatusCode code)
 int
 load2(ImlibImage * im, int load_data)
 {
-   int                 rc;
-   uint8_t            *encoded_data;
-   struct stat         stats;
-   int                 fd;
+   int                 rc, fd;
+   struct stat         st;
+   uint8_t            *fdata;
    WebPBitstreamFeatures features;
    VP8StatusCode       vp8return;
    unsigned int        size;
 
-   fd = fileno(im->fp);
-   if (fd < 0)
-      return LOAD_FAIL;
-
-   if (fstat(fd, &stats) < 0)
-      return LOAD_FAIL;
-
    rc = LOAD_FAIL;
+   fd = fileno(im->fp);
 
-   encoded_data = malloc(stats.st_size);
-   if (!encoded_data)
+   if (fstat(fd, &st) < 0)
+      return rc;
+
+   fdata = malloc(st.st_size);
+   if (!fdata)
       goto quit;
 
    /* Check signature */
    size = 12;
-   if (read(fd, encoded_data, size) != (long)size)
+   if (read(fd, fdata, size) != (long)size)
       goto quit;
-   if (memcmp(encoded_data + 0, "RIFF", 4) != 0 ||
-       memcmp(encoded_data + 8, "WEBP", 4) != 0)
+   if (memcmp(fdata + 0, "RIFF", 4) != 0 || memcmp(fdata + 8, "WEBP", 4) != 0)
       goto quit;
 
-   size = stats.st_size;
-   if ((long)size != stats.st_size)
+   size = st.st_size;
+   if ((long)size != st.st_size)
       goto quit;
 
    size -= 12;
-   if (read(fd, encoded_data + 12, size) != (long)size)
+   if (read(fd, fdata + 12, size) != (long)size)
       goto quit;
 
-   if (WebPGetInfo(encoded_data, stats.st_size, &im->w, &im->h) == 0)
+   if (WebPGetInfo(fdata, st.st_size, &im->w, &im->h) == 0)
       goto quit;
 
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   vp8return = WebPGetFeatures(encoded_data, stats.st_size, &features);
+   vp8return = WebPGetFeatures(fdata, st.st_size, &features);
    if (vp8return != VP8_STATUS_OK)
      {
         fprintf(stderr, "%s: Error reading file header: %s\n",
@@ -99,7 +94,7 @@ load2(ImlibImage * im, int load_data)
    if (!__imlib_AllocateData(im))
       goto quit;
 
-   if (WebPDecodeBGRAInto(encoded_data, stats.st_size, (uint8_t *) im->data,
+   if (WebPDecodeBGRAInto(fdata, st.st_size, (uint8_t *) im->data,
                           sizeof(DATA32) * im->w * im->h, im->w * 4) == NULL)
       goto quit;
 
@@ -111,7 +106,7 @@ load2(ImlibImage * im, int load_data)
  quit:
    if (rc <= 0)
       __imlib_FreeData(im);
-   free(encoded_data);
+   free(fdata);
 
    return rc;
 }
@@ -123,7 +118,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    int                 rc;
    ImlibImageTag      *quality_tag;
    float               quality;
-   uint8_t            *encoded_data;
+   uint8_t            *fdata;
    size_t              encoded_size;
 
    f = fopen(im->real_file, "wb");
@@ -131,7 +126,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
       return LOAD_FAIL;
 
    rc = LOAD_FAIL;
-   encoded_data = NULL;
+   fdata = NULL;
 
    quality = 75;
    quality_tag = __imlib_GetTag(im, "quality");
@@ -156,16 +151,16 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
      }
 
    encoded_size = WebPEncodeBGRA((uint8_t *) im->data, im->w, im->h,
-                                 im->w * 4, quality, &encoded_data);
+                                 im->w * 4, quality, &fdata);
 
-   if (fwrite(encoded_data, encoded_size, 1, f) != encoded_size)
+   if (fwrite(fdata, encoded_size, 1, f) != encoded_size)
       goto quit;
 
    rc = LOAD_SUCCESS;
 
  quit:
-   if (encoded_data)
-      WebPFree(encoded_data);
+   if (fdata)
+      WebPFree(fdata);
    fclose(f);
 
    return rc;
