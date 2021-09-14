@@ -1,8 +1,10 @@
 #include "loader_common.h"
-#include <sys/stat.h>
+
+#include <sys/mman.h>
 #include <webp/decode.h>
 #include <webp/encode.h>
 
+#if 0                           /* Unused */
 static const char  *
 webp_strerror(VP8StatusCode code)
 {
@@ -28,55 +30,34 @@ webp_strerror(VP8StatusCode code)
         return "Unknown error";
      }
 }
+#endif
 
 int
 load2(ImlibImage * im, int load_data)
 {
-   int                 rc, fd;
-   struct stat         st;
-   uint8_t            *fdata;
+   int                 rc;
+   void               *fdata;
    WebPBitstreamFeatures features;
    VP8StatusCode       vp8return;
-   unsigned int        size;
 
    rc = LOAD_FAIL;
-   fd = fileno(im->fp);
 
-   if (fstat(fd, &st) < 0)
+   if (im->fsize < 12)
       return rc;
 
-   fdata = malloc(st.st_size);
-   if (!fdata)
+   fdata = mmap(0, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   if (fdata == MAP_FAILED)
       goto quit;
 
-   /* Check signature */
-   size = 12;
-   if (read(fd, fdata, size) != (long)size)
-      goto quit;
-   if (memcmp(fdata + 0, "RIFF", 4) != 0 || memcmp(fdata + 8, "WEBP", 4) != 0)
+   vp8return = WebPGetFeatures(fdata, im->fsize, &features);
+   if (vp8return != VP8_STATUS_OK)
       goto quit;
 
-   size = st.st_size;
-   if ((long)size != st.st_size)
-      goto quit;
-
-   size -= 12;
-   if (read(fd, fdata + 12, size) != (long)size)
-      goto quit;
-
-   if (WebPGetInfo(fdata, st.st_size, &im->w, &im->h) == 0)
-      goto quit;
+   im->w = features.width;
+   im->h = features.height;
 
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
-
-   vp8return = WebPGetFeatures(fdata, st.st_size, &features);
-   if (vp8return != VP8_STATUS_OK)
-     {
-        fprintf(stderr, "%s: Error reading file header: %s\n",
-                im->real_file, webp_strerror(vp8return));
-        goto quit;
-     }
 
    if (features.has_alpha == 0)
       UNSET_FLAG(im->flags, F_HAS_ALPHA);
@@ -94,7 +75,7 @@ load2(ImlibImage * im, int load_data)
    if (!__imlib_AllocateData(im))
       goto quit;
 
-   if (WebPDecodeBGRAInto(fdata, st.st_size, (uint8_t *) im->data,
+   if (WebPDecodeBGRAInto(fdata, im->fsize, (uint8_t *) im->data,
                           sizeof(DATA32) * im->w * im->h, im->w * 4) == NULL)
       goto quit;
 
@@ -106,7 +87,8 @@ load2(ImlibImage * im, int load_data)
  quit:
    if (rc <= 0)
       __imlib_FreeData(im);
-   free(fdata);
+   if (fdata != MAP_FAILED)
+      munmap(fdata, im->fsize);
 
    return rc;
 }
