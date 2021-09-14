@@ -1,7 +1,11 @@
 /* Farbfeld (http://tools.suckless.org/farbfeld) */
 #include "loader_common.h"
+
 #include <stdint.h>
 #include <arpa/inet.h>
+#include <sys/mman.h>
+
+#define mm_check(p) ((const char *)(p) <= (const char *)fdata + im->fsize)
 
 typedef struct {
    unsigned char       magic[8];
@@ -12,20 +16,23 @@ int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
+   void               *fdata;
    int                 rowlen, i, j;
-   ff_hdr_t            hdr_;
    const ff_hdr_t     *hdr;
-   uint16_t           *row;
+   const uint16_t     *row;
    uint8_t            *dat;
 
    rc = LOAD_FAIL;
-   row = NULL;
+
+   if (im->fsize < (long)sizeof(ff_hdr_t))
+      return rc;
+
+   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   if (fdata == MAP_FAILED)
+      return rc;
 
    /* read and check the header */
-   hdr = &hdr_;
-   if (fread(&hdr_, 1, sizeof(ff_hdr_t), im->fp) != sizeof(ff_hdr_t))
-      goto quit;
-
+   hdr = fdata;
    if (memcmp("farbfeld", hdr->magic, sizeof(hdr->magic)))
       goto quit;
 
@@ -49,14 +56,11 @@ load2(ImlibImage * im, int load_data)
 
    rowlen = 4 * im->w;          /* RGBA */
 
-   row = malloc(rowlen * sizeof(uint16_t));
-   if (!row)
-      goto quit;
-
    dat = (uint8_t *) im->data;
-   for (i = 0; i < im->h; i++, dat += rowlen)
+   row = (uint16_t *) (hdr + 1);
+   for (i = 0; i < im->h; i++, dat += rowlen, row += rowlen)
      {
-        if (fread(row, sizeof(uint16_t), rowlen, im->fp) != (size_t)rowlen)
+        if (!mm_check(row + rowlen))
            goto quit;
 
         for (j = 0; j < rowlen; j += 4)
@@ -81,9 +85,10 @@ load2(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   free(row);
    if (rc <= 0)
       __imlib_FreeData(im);
+   if (fdata != MAP_FAILED)
+      munmap(fdata, im->fsize);
 
    return rc;
 }
