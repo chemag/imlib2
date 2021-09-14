@@ -4,9 +4,11 @@ int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   int                 w = 0, h = 0, alpha = 0;
+   int                 alpha;
    DATA32             *ptr;
    int                 y;
+   char                buf[256], buf2[256];
+
 #ifdef WORDS_BIGENDIAN
    int                 l;
 #endif
@@ -14,28 +16,24 @@ load2(ImlibImage * im, int load_data)
    rc = LOAD_FAIL;
 
    /* header */
-   {
-      char                buf[256], buf2[256];
 
-      buf[0] = '\0';
-      if (!fgets(buf, 255, im->fp))
-         goto quit;
+   buf[0] = '\0';
+   if (!fgets(buf, 255, im->fp))
+      goto quit;
 
-      buf2[0] = '\0';
-      sscanf(buf, "%s %i %i %i", buf2, &w, &h, &alpha);
-      if (strcmp(buf2, "ARGB"))
-         goto quit;
+   buf2[0] = '\0';
+   im->w = im->h = alpha = 0;
+   sscanf(buf, "%s %i %i %i", buf2, &im->w, &im->h, &alpha);
+   if (strcmp(buf2, "ARGB"))
+      goto quit;
 
-      if (!IMAGE_DIMENSIONS_OK(w, h))
-         goto quit;
+   if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
+      goto quit;
 
-      im->w = w;
-      im->h = h;
-      if (alpha)
-         SET_FLAG(im->flags, F_HAS_ALPHA);
-      else
-         UNSET_FLAG(im->flags, F_HAS_ALPHA);
-   }
+   if (alpha)
+      SET_FLAG(im->flags, F_HAS_ALPHA);
+   else
+      UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
    if (!load_data)
      {
@@ -49,7 +47,7 @@ load2(ImlibImage * im, int load_data)
    if (!ptr)
       goto quit;
 
-   for (y = 0; y < h; y++)
+   for (y = 0; y < im->h; y++)
      {
         if (fread(ptr, im->w, 4, im->fp) != 4)
            goto quit;
@@ -138,7 +136,6 @@ void
 formats(ImlibLoader * l)
 {
    static const char  *const list_formats[] = { "argb", "arg" };
-
    __imlib_LoaderSetFormats(l, list_formats,
                             sizeof(list_formats) / sizeof(char *));
 }
