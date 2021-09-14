@@ -1,17 +1,20 @@
 /* Farbfeld (http://tools.suckless.org/farbfeld) */
-#include <arpa/inet.h>
-#include <stdint.h>
-
 #include "loader_common.h"
+#include <stdint.h>
+#include <arpa/inet.h>
 
-#define LEN(x) (sizeof((x)) / sizeof(*(x)))
+typedef struct {
+   unsigned char       magic[8];
+   uint32_t            w, h;
+} ff_hdr_t;
 
 int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   size_t              rowlen, i, j;
-   uint32_t            hdr[2 + 1 + 1], w, h;
+   int                 rowlen, i, j;
+   ff_hdr_t            hdr_;
+   const ff_hdr_t     *hdr;
    uint16_t           *row;
    uint8_t            *dat;
 
@@ -19,12 +22,15 @@ load2(ImlibImage * im, int load_data)
    row = NULL;
 
    /* read and check the header */
-   if (fread(hdr, sizeof(uint32_t), LEN(hdr), im->fp) != LEN(hdr) ||
-       memcmp("farbfeld", hdr, sizeof("farbfeld") - 1))
+   hdr = &hdr_;
+   if (fread(&hdr_, 1, sizeof(ff_hdr_t), im->fp) != sizeof(ff_hdr_t))
       goto quit;
 
-   im->w = ntohl(hdr[2]);
-   im->h = ntohl(hdr[3]);
+   if (memcmp("farbfeld", hdr->magic, sizeof(hdr->magic)))
+      goto quit;
+
+   im->w = ntohl(hdr->w);
+   im->h = ntohl(hdr->h);
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
@@ -38,19 +44,17 @@ load2(ImlibImage * im, int load_data)
 
    /* Load data */
 
-   w = im->w;
-   h = im->h;
-   rowlen = w * (sizeof("RGBA") - 1);
-
    if (!__imlib_AllocateData(im))
       goto quit;
+
+   rowlen = 4 * im->w;          /* RGBA */
 
    row = malloc(rowlen * sizeof(uint16_t));
    if (!row)
       goto quit;
 
    dat = (uint8_t *) im->data;
-   for (i = 0; i < h; i++, dat += rowlen)
+   for (i = 0; i < im->h; i++, dat += rowlen)
      {
         if (fread(row, sizeof(uint16_t), rowlen, im->fp) != (size_t)rowlen)
            goto quit;
