@@ -53,8 +53,6 @@ load2(ImlibImage * im, int load_data)
    if (!encoded_data)
       goto quit;
 
-   lseek(fd, 0, SEEK_SET);
-
    /* Check signature */
    size = 12;
    if (read(fd, encoded_data, size) != (long)size)

@@ -18,7 +18,6 @@ load2(ImlibImage * im, int load_data)
    DATA32              colormap[256];
 
    fd = dup(fileno(im->fp));
-   lseek(fd, 0, SEEK_SET);
 
 #if GIFLIB_MAJOR >= 5
    gif = DGifOpenFileHandle(fd, NULL);
