@@ -735,6 +735,7 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
              /* if its not the best loader that already failed - try load */
              if (l == best_loader)
                 continue;
+             fflush(im->fp);
              rewind(im->fp);
              loader_ret = __imlib_LoadImageWrapper(l, im, immediate_load);
              if (loader_ret > 0)
