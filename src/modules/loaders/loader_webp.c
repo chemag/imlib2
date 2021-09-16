@@ -22,9 +22,9 @@ load2(ImlibImage * im, int load_data)
    if (im->fsize < 12)
       return rc;
 
-   fdata = mmap(0, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
    if (fdata == MAP_FAILED)
-      return rc;
+      return LOAD_BADFILE;
 
    webp_data.bytes = fdata;
    webp_data.size = im->fsize;
@@ -33,6 +33,8 @@ load2(ImlibImage * im, int load_data)
    demux = WebPDemux(&webp_data);
    if (!demux)
       goto quit;
+
+   rc = LOAD_BADIMAGE;          /* Format accepted */
 
    frame = 1;
    if (im->frame_num > 0)
@@ -48,7 +50,7 @@ load2(ImlibImage * im, int load_data)
           im->canvas_w, im->canvas_h, im->frame_count);
 
         if (frame > 1 && frame > im->frame_count)
-           goto quit;
+           QUIT_WITH_RC(LOAD_BADFRAME);
      }
 
    if (!WebPDemuxGetFrame(demux, frame, &iter))
@@ -77,15 +79,12 @@ load2(ImlibImage * im, int load_data)
    UPDATE_FLAG(im->flags, F_HAS_ALPHA, iter.has_alpha);
 
    if (!load_data)
-     {
-        rc = LOAD_SUCCESS;
-        goto quit;
-     }
+      QUIT_WITH_RC(LOAD_SUCCESS);
 
    /* Load data */
 
    if (!__imlib_AllocateData(im))
-      goto quit;
+      QUIT_WITH_RC(LOAD_OOM);
 
    if (WebPDecodeBGRAInto
        (iter.fragment.bytes, iter.fragment.size, (uint8_t *) im->data,
@@ -102,8 +101,7 @@ load2(ImlibImage * im, int load_data)
       __imlib_FreeData(im);
    if (demux)
       WebPDemuxDelete(demux);
-   if (fdata != MAP_FAILED)
-      munmap(fdata, im->fsize);
+   munmap(fdata, im->fsize);
 
    return rc;
 }

@@ -132,10 +132,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 
         /* report progress every row */
         if (im->lc && __imlib_LoadProgressRows(im, y, 1))
-          {
-             rc = LOAD_BREAK;
-             goto quit;
-          }
+           QUIT_WITH_RC(LOAD_BREAK);
      }
 
    /* write the header */
@@ -181,15 +178,14 @@ load2(ImlibImage * im, int load_data)
    unsigned int        pix16;
 
    rc = LOAD_FAIL;
-   fdata = MAP_FAILED;
 
    if (im->fsize < (int)(sizeof(tga_header)) ||
        (uintmax_t) im->fsize > SIZE_MAX)
-      goto quit;
+      return rc;
 
-   fdata = mmap(0, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
    if (fdata == MAP_FAILED)
-      goto quit;
+      return LOAD_BADFILE;
 
    fptr = fdata;
    header = fdata;
@@ -274,6 +270,8 @@ load2(ImlibImage * im, int load_data)
         break;
      }
 
+   rc = LOAD_BADIMAGE;          /* Format accepted */
+
    /* endian-safe loading of 16-bit sizes */
    im->w = (header->widthHi << 8) | header->widthLo;
    im->h = (header->heightHi << 8) | header->heightLo;
@@ -287,10 +285,7 @@ load2(ImlibImage * im, int load_data)
    UPDATE_FLAG(im->flags, F_HAS_ALPHA, hasa);
 
    if (!load_data)
-     {
-        rc = LOAD_SUCCESS;
-        goto quit;
-     }
+      QUIT_WITH_RC(LOAD_SUCCESS);
 
    /* find out how much data must be read from the file */
    /* (this is NOT simply width*height*4, due to compression) */
@@ -325,7 +320,7 @@ load2(ImlibImage * im, int load_data)
 
    /* allocate the destination buffer */
    if (!__imlib_AllocateData(im))
-      goto quit;
+      QUIT_WITH_RC(LOAD_OOM);
 
    /* dataptr is the next 32-bit pixel to be filled in */
    dataptr = im->data;
@@ -565,8 +560,7 @@ load2(ImlibImage * im, int load_data)
  quit:
    if (rc <= 0)
       __imlib_FreeData(im);
-   if (fdata != MAP_FAILED)
-      munmap(fdata, im->fsize);
+   munmap(fdata, im->fsize);
 
    return rc;
 }

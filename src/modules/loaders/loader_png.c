@@ -41,7 +41,7 @@ load2(ImlibImage * im, int load_data)
    fdata =
       mmap(NULL, PNG_BYTES_TO_CHECK, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
    if (fdata == MAP_FAILED)
-      return rc;
+      return LOAD_BADFILE;
 
    ok = png_sig_cmp(fdata, 0, PNG_BYTES_TO_CHECK) == 0;
 
@@ -58,11 +58,10 @@ load2(ImlibImage * im, int load_data)
    if (!info_ptr)
       goto quit;
 
+   rc = LOAD_BADIMAGE;          /* Format accepted */
+
    if (setjmp(png_jmpbuf(png_ptr)))
-     {
-        rc = LOAD_FAIL;
-        goto quit;
-     }
+      QUIT_WITH_RC(LOAD_BADIMAGE);
 
    png_init_io(png_ptr, im->fp);
    png_read_info(png_ptr, info_ptr);
@@ -85,10 +84,7 @@ load2(ImlibImage * im, int load_data)
    UPDATE_FLAG(im->flags, F_HAS_ALPHA, hasa);
 
    if (!load_data)
-     {
-        rc = LOAD_SUCCESS;
-        goto quit;
-     }
+      QUIT_WITH_RC(LOAD_SUCCESS);
 
    /* Load data */
 
@@ -129,11 +125,11 @@ load2(ImlibImage * im, int load_data)
 #endif
 
    if (!__imlib_AllocateData(im))
-      goto quit;
+      QUIT_WITH_RC(LOAD_OOM);
 
    pdata.lines = malloc(im->h * sizeof(unsigned char *));
    if (!pdata.lines)
-      goto quit;
+      QUIT_WITH_RC(LOAD_OOM);
 
    for (i = 0; i < im->h; i++)
       pdata.lines[i] = (unsigned char *)(im->data + i * im->w);
@@ -152,10 +148,7 @@ load2(ImlibImage * im, int load_data)
                   png_read_rows(png_ptr, &pdata.lines[y], NULL, nrows);
 
                   if (__imlib_LoadProgressRows(im, y, nrows))
-                    {
-                       rc = LOAD_BREAK;
-                       goto quit1;
-                    }
+                     QUITx_WITH_RC(LOAD_BREAK, quit1);
                }
           }
      }
@@ -330,10 +323,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
              png_write_rows(png_ptr, &row_ptr, 1);
 
              if (im->lc && __imlib_LoadProgressRows(im, y, 1))
-               {
-                  rc = LOAD_BREAK;
-                  goto quit;
-               }
+                QUIT_WITH_RC(LOAD_BREAK);
 
              ptr += im->w;
           }

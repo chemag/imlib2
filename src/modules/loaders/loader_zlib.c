@@ -38,11 +38,14 @@ uncompress_file(FILE * fp, int dest)
 int
 load2(ImlibImage * im, int load_data)
 {
+   int                 rc;
    ImlibLoader        *loader;
    int                 dest, res;
    const char         *s, *p, *q;
    char                tmp[] = "/tmp/imlib2_loader_zlib-XXXXXX";
    char               *real_ext;
+
+   rc = LOAD_FAIL;
 
    /* make sure this file ends in ".gz" and that there's another ext
     * (e.g. "foo.png.gz") */
@@ -54,18 +57,18 @@ load2(ImlibImage * im, int load_data)
         p = s + 1;
      }
    if (!q || strcasecmp(p, "gz"))
-      return 0;
+      return rc;
 
    if (!(real_ext = strndup(q, p - q - 1)))
-      return 0;
+      return rc;
 
    loader = __imlib_FindBestLoaderForFormat(real_ext, 0);
    free(real_ext);
    if (!loader)
-      return 0;
+      return rc;
 
    if ((dest = mkstemp(tmp)) < 0)
-      return 0;
+      return rc;
 
    res = uncompress_file(im->fp, dest);
    close(dest);

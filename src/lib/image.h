@@ -143,9 +143,13 @@ int                 __imlib_CurrentCacheSize(void);
 #define UPDATE_FLAG(flags, f, set) \
    do { if (set) SET_FLAG(flags, f); else UNSET_FLAG(flags, f); } while(0)
 
-#define LOAD_FAIL       0
-#define LOAD_SUCCESS    1
-#define LOAD_BREAK      2
+#define LOAD_BREAK       2      /* Break signaled by progress callback */
+#define LOAD_SUCCESS     1      /* Image loaded successfully           */
+#define LOAD_FAIL        0      /* Image was not recognized by loader  */
+#define LOAD_OOM        -1      /* Could not allocate memory           */
+#define LOAD_BADFILE    -2      /* File could not be accessed          */
+#define LOAD_BADIMAGE   -3      /* Image is corrupt                    */
+#define LOAD_BADFRAME   -4      /* Requested frame not found           */
 
 /* 32767 is the maximum pixmap dimension and ensures that
  * (w * h * sizeof(DATA32)) won't exceed ULONG_MAX */

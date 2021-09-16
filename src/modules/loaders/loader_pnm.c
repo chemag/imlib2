@@ -90,13 +90,11 @@ load2(ImlibImage * im, int load_data)
 
    fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
    if (fdata == MAP_FAILED)
-      return rc;
+      return LOAD_BADFILE;
 
    mm_init(fdata, im->fsize);
 
    /* read the header info */
-
-   rc = LOAD_FAIL;
 
    c = mm_getc();
    if (c != 'P')
@@ -163,6 +161,8 @@ load2(ImlibImage * im, int load_data)
    if ((v < 0) || (v > 255))
       goto quit;
 
+   rc = LOAD_BADIMAGE;          /* Format accepted */
+
    im->w = w;
    im->h = h;
    if (!IMAGE_DIMENSIONS_OK(w, h))
@@ -171,16 +171,13 @@ load2(ImlibImage * im, int load_data)
    UPDATE_FLAG(im->flags, F_HAS_ALPHA, p == '8');
 
    if (!load_data)
-     {
-        rc = LOAD_SUCCESS;
-        goto quit;
-     }
+      QUIT_WITH_RC(LOAD_SUCCESS);
 
    /* Load data */
 
    ptr2 = __imlib_AllocateData(im);
    if (!ptr2)
-      goto quit;
+      QUIT_WITH_RC(LOAD_OOM);
 
    /* start reading the data */
    switch (p)
@@ -261,7 +258,7 @@ load2(ImlibImage * im, int load_data)
      case '4':                 /* binary 1bit monochrome */
         data = malloc((w + 7) / 8 * sizeof(DATA8));
         if (!data)
-           goto quit;
+           QUIT_WITH_RC(LOAD_OOM);
 
         ptr2 = im->data;
         for (y = 0; y < h; y++)
@@ -291,7 +288,7 @@ load2(ImlibImage * im, int load_data)
      case '5':                 /* binary 8bit grayscale GGGGGGGG */
         data = malloc(1 * sizeof(DATA8) * w);
         if (!data)
-           goto quit;
+           QUIT_WITH_RC(LOAD_OOM);
 
         ptr2 = im->data;
         for (y = 0; y < h; y++)
@@ -330,7 +327,7 @@ load2(ImlibImage * im, int load_data)
      case '6':                 /* 24bit binary RGBRGBRGB */
         data = malloc(3 * sizeof(DATA8) * w);
         if (!data)
-           goto quit;
+           QUIT_WITH_RC(LOAD_OOM);
 
         ptr2 = im->data;
         for (y = 0; y < h; y++)
@@ -369,7 +366,7 @@ load2(ImlibImage * im, int load_data)
      case '7':                 /* XV's 8bit 332 format */
         data = malloc(1 * sizeof(DATA8) * w);
         if (!data)
-           goto quit;
+           QUIT_WITH_RC(LOAD_OOM);
 
         ptr2 = im->data;
         for (y = 0; y < h; y++)
@@ -401,7 +398,7 @@ load2(ImlibImage * im, int load_data)
      case '8':                 /* 24bit binary RGBARGBARGBA */
         data = malloc(4 * sizeof(DATA8) * w);
         if (!data)
-           goto quit;
+           QUIT_WITH_RC(LOAD_OOM);
 
         ptr2 = im->data;
         for (y = 0; y < h; y++)
@@ -448,8 +445,7 @@ load2(ImlibImage * im, int load_data)
  quit:
    free(idata);
    free(data);
-   if (fdata != MAP_FAILED)
-      munmap(fdata, im->fsize);
+   munmap(fdata, im->fsize);
 
    if (rc == 0)
       __imlib_FreeData(im);

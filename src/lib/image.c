@@ -359,7 +359,7 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
    if (rc <= LOAD_FAIL)
      {
         /* Failed - clean up */
-        DP("%s: Failed\n", __func__);
+        DP("%s: Failed (rc=%d)\n", __func__, rc);
 
         if (im->w != 0 || im->h != 0)
           {
@@ -552,13 +552,16 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    if (best_loader)
       loader_ret = __imlib_LoadImageWrapper(best_loader, im, ila->immed);
 
-   if (loader_ret > LOAD_FAIL)
+   switch (loader_ret)
      {
+     case LOAD_BREAK:          /* Break signaled by progress callback */
+     case LOAD_SUCCESS:        /* Image loaded successfully           */
+        /* Loader accepted image */
         im->loader = best_loader;
-     }
-   else
-     {
-        ImlibLoader       **loaders = __imlib_GetLoaderList();
+        break;
+
+     case LOAD_FAIL:           /* Image was not recognized by loader  */
+        ImlibLoader ** loaders = __imlib_GetLoaderList();
         ImlibLoader        *l, *previous_l;
 
         errno = 0;
@@ -588,6 +591,16 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
                   *loaders = l;
                }
           }
+        break;
+
+     default:                  /* We should not go here */
+     case LOAD_OOM:            /* Could not allocate memory           */
+     case LOAD_BADFILE:        /* File could not be accessed          */
+        /* Unlikely that another loader will succeed */
+     case LOAD_BADIMAGE:       /* Image is corrupt                    */
+     case LOAD_BADFRAME:       /* Requested frame not found           */
+        /* Signature was good but file was somehow not */
+        break;
      }
 
    im->lc = NULL;
@@ -596,11 +609,31 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
       fclose(im->fp);
    im->fp = NULL;
 
-   /* all loaders have been tried and they all failed. free the skeleton */
-   /* image struct we had and return NULL */
    if (loader_ret <= LOAD_FAIL)
      {
-        ila->err = IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
+        /* Image loading failed.
+         * Free the skeleton image struct we had and return NULL */
+        switch (loader_ret)
+          {
+          default:             /* We should not go here */
+             ila->err = IMLIB_LOAD_ERROR_UNKNOWN;
+             break;
+          case LOAD_FAIL:
+             ila->err = IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
+             break;
+          case LOAD_OOM:
+             ila->err = IMLIB_LOAD_ERROR_OUT_OF_MEMORY;
+             break;
+          case LOAD_BADFILE:
+             ila->err = IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ;
+             break;
+          case LOAD_BADIMAGE:
+             ila->err = IMLIB_LOAD_ERROR_IMAGE_READ;
+             break;
+          case LOAD_BADFRAME:
+             ila->err = IMLIB_LOAD_ERROR_IMAGE_FRAME;
+             break;
+          }
         __imlib_ConsumeImage(im);
         return NULL;
      }

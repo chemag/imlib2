@@ -51,7 +51,8 @@ load2(ImlibImage * im, int load_data)
    if (!gif)
       return LOAD_FAIL;
 
-   rc = LOAD_FAIL;
+   rc = LOAD_BADIMAGE;          /* Format accepted */
+
    rows = NULL;
    transp = -1;
    fcount = 0;
@@ -144,13 +145,13 @@ load2(ImlibImage * im, int load_data)
 
              rows = calloc(im->h, sizeof(GifRowType));
              if (!rows)
-                goto quit;
+                QUIT_WITH_RC(LOAD_OOM);
 
              for (i = 0; i < im->h; i++)
                {
                   rows[i] = calloc(im->w, sizeof(GifPixelType));
                   if (!rows[i])
-                     goto quit;
+                     QUIT_WITH_RC(LOAD_OOM);
                }
 
              if (gif->Image.Interlace)
@@ -221,19 +222,21 @@ load2(ImlibImage * im, int load_data)
       im->frame_flags |= FF_IMAGE_ANIMATED;
 
    if (!rows)
-      goto quit;
-
-   if (!load_data)
      {
-        rc = LOAD_SUCCESS;
+        if (frame > 1 && frame > im->frame_count)
+           QUIT_WITH_RC(LOAD_BADFRAME);
+
         goto quit;
      }
+
+   if (!load_data)
+      QUIT_WITH_RC(LOAD_SUCCESS);
 
    /* Load data */
 
    ptr = __imlib_AllocateData(im);
    if (!ptr)
-      goto quit;
+      QUIT_WITH_RC(LOAD_OOM);
 
    for (i = 0; i < im->h; i++)
      {
@@ -243,10 +246,7 @@ load2(ImlibImage * im, int load_data)
           }
 
         if (!multiframe && im->lc && __imlib_LoadProgressRows(im, i, 1))
-          {
-             rc = LOAD_BREAK;
-             goto quit;
-          }
+           QUIT_WITH_RC(LOAD_BREAK);
      }
 
    if (multiframe && im->lc)

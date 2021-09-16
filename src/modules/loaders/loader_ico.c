@@ -398,7 +398,7 @@ load2(ImlibImage * im, int load_data)
 
    fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
    if (fdata == MAP_FAILED)
-      return rc;
+      return LOAD_BADFILE;
 
    mm_init(fdata, im->fsize);
 
@@ -416,7 +416,7 @@ load2(ImlibImage * im, int load_data)
 
    ico.ie = calloc(ico.idir.icons, sizeof(ie_t));
    if (!ico.ie)
-      goto quit;
+      QUIT_WITH_RC(LOAD_OOM);
 
    D("Loading '%s' Nicons = %d\n", im->real_file, ico.idir.icons);
 
@@ -425,6 +425,8 @@ load2(ImlibImage * im, int load_data)
         ico_read_idir(&ico, i);
         ico_read_icon(&ico, i);
      }
+
+   rc = LOAD_BADIMAGE;          /* Format accepted */
 
    if (ico_load(&ico, im, load_data))
      {
@@ -437,8 +439,7 @@ load2(ImlibImage * im, int load_data)
    ico_delete(&ico);
    if (rc <= 0)
       __imlib_FreeData(im);
-   if (fdata != MAP_FAILED)
-      munmap(fdata, im->fsize);
+   munmap(fdata, im->fsize);
    return rc;
 }
 
