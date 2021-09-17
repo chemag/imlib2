@@ -8,10 +8,35 @@
  * - Fix 16 and 32 bit depth (old code was incorrect and it's commented)
  */
 #include "loader_common.h"
-#include <sys/stat.h>
+
+#include <sys/mman.h>
 
 #define DBG_PFX "LDR-bmp"
 #define Dx(fmt...)
+
+static struct {
+   const unsigned char *data, *dptr;
+   unsigned int        size;
+} mdata;
+
+static void
+mm_init(void *src, unsigned int size)
+{
+   mdata.data = mdata.dptr = src;
+   mdata.size = size;
+}
+
+static int
+mm_read(void *dst, unsigned int len)
+{
+   if (mdata.dptr + len > mdata.data + mdata.size)
+      return 1;                 /* Out of data */
+
+   memcpy(dst, mdata.dptr, len);
+   mdata.dptr += len;
+
+   return 0;
+}
 
 /* The BITMAPFILEHEADER (size 14) */
 typedef struct {
@@ -132,7 +157,8 @@ int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   struct stat         st;
+   void               *fdata;
+   const unsigned char *fptr;
    bfh_t               bfh;
    unsigned int        bfh_offset;
    unsigned int        size, comp, imgsize;
@@ -142,7 +168,7 @@ load2(ImlibImage * im, int load_data)
    unsigned int        i, k;
    int                 w, h, x, y, j, l;
    DATA32             *ptr, pixel;
-   unsigned char      *buffer_ptr, *buffer, *buffer_end, *buffer_end_safe;
+   const unsigned char *buffer_ptr, *buffer_end, *buffer_end_safe;
    RGBQUAD             rgbQuads[256];
    DATA32              argbCmap[256];
    unsigned int        amask, rmask, gmask, bmask;
@@ -151,20 +177,23 @@ load2(ImlibImage * im, int load_data)
    bih_t               bih;
 
    rc = LOAD_FAIL;
-   buffer = NULL;
+
+   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   if (fdata == MAP_FAILED)
+      return rc;
+
+   fptr = fdata;
+   mm_init(fdata, im->fsize);
 
    /* Load header */
 
-   if (fstat(fileno(im->fp), &st) < 0)
-      goto quit;
-
-   if (fread(&bfh, sizeof(bfh), 1, im->fp) != 1)
+   if (mm_read(&bfh, sizeof(bfh)))
       goto quit;
 
    if (bfh.header[0] != 'B' || bfh.header[1] != 'M')
       goto quit;
 
-   size = st.st_size;
+   size = im->fsize;
 #define WORD_LE_32(p8) (((p8)[3] << 24) | ((p8)[2] << 16) | ((p8)[1] << 8) | (p8)[0])
    bfh_offset = WORD_LE_32(bfh.offs);
 
@@ -172,7 +201,7 @@ load2(ImlibImage * im, int load_data)
       goto quit;
 
    memset(&bih, 0, sizeof(bih));
-   if (fread(&bih, 4, 1, im->fp) != 1)
+   if (mm_read(&bih.header_size, sizeof(bih.header_size)))
       goto quit;
 
    SWAP_LE_32_INPLACE(bih.header_size);
@@ -183,7 +212,7 @@ load2(ImlibImage * im, int load_data)
    if (bih.header_size < 12 || bih.header_size > sizeof(bih))
       goto quit;
 
-   if (fread(&bih.header_size + 1, bih.header_size - 4, 1, im->fp) != 1)
+   if (mm_read(&bih.header_size + 1, bih.header_size - 4))
       goto quit;
 
    comp = BI_RGB;
@@ -215,7 +244,7 @@ load2(ImlibImage * im, int load_data)
              if (bih.header_size == 40)
                {
                   ncols = (comp == BI_ALPHABITFIELDS) ? 4 : 3;
-                  if (fread(&bih.bih.mask_r, 4, ncols, im->fp) != ncols)
+                  if (mm_read(&bih.bih.mask_r, 4 * ncols))
                      goto quit;
                }
              rmask = SWAP_LE_32(bih.bih.mask_r);
@@ -256,7 +285,7 @@ load2(ImlibImage * im, int load_data)
              if (ncols > 256)
                 ncols = 256;
              for (i = 0; i < ncols; i++)
-                if (fread(&rgbQuads[i], 3, 1, im->fp) != 1)
+                if (mm_read(&rgbQuads[i], 3))
                    goto quit;
           }
         else
@@ -264,7 +293,7 @@ load2(ImlibImage * im, int load_data)
              ncols /= 4;
              if (ncols > 256)
                 ncols = 256;
-             if (fread(rgbQuads, 4, ncols, im->fp) != ncols)
+             if (mm_read(rgbQuads, 4 * ncols))
                 goto quit;
           }
         for (i = 0; i < ncols; i++)
@@ -377,20 +406,13 @@ load2(ImlibImage * im, int load_data)
 
    /* Load data */
 
-   fseek(im->fp, bfh_offset, SEEK_SET);
-
    if (!__imlib_AllocateData(im))
       goto quit;
 
-   buffer = malloc(imgsize);
-   if (!buffer)
-      goto quit;
+   fptr += bfh_offset;
 
-   if (fread(buffer, imgsize, 1, im->fp) != 1)
-      goto quit;
-
-   buffer_ptr = buffer;
-   buffer_end = buffer + imgsize;
+   buffer_ptr = fptr;
+   buffer_end = fptr + imgsize;
 
    ptr = im->data + ((h - 1) * w);
 
@@ -765,7 +787,8 @@ load2(ImlibImage * im, int load_data)
  quit:
    if (rc <= 0)
       __imlib_FreeData(im);
-   free(buffer);
+   if (fdata != MAP_FAILED)
+      munmap(fdata, im->fsize);
 
    return rc;
 }
