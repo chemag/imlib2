@@ -1,3 +1,21 @@
+v1.7.4 - 2021-09-16
+-------------------
+Kim Woelders (14):
+      imlib2_view: Move property stuff to separate file
+      imlib2_view: Cleanups
+      imlib2_view: By default scale large images to fit on screen
+      imlib2_view: Add some debug
+      imlib2_view: Fix issue with new default scaling
+      WEBP loader: Remove forgotten debug printout
+      WEBP loader: Rename fd variable to be same as everywhere else
+      LBM loader: Fix potential out-of-bounds memory access
+      GIF, TIFF, WEBP loaders: Fix loading if filename does not have usual suffix
+      Revert "GIF, TIFF, WEBP loaders: Fix loading if filename does not have usual suffix"
+      GIF, TIFF, WEBP loaders: Fix loading if filename does not have usual suffix - take 2
+      Add script to generate Changelog
+      Update Changelog to new format
+      image.c: Use the LOAD_... macros to check loader return values
+
 v1.7.3 - 2021-08-08
 -------------------
 Kim Woelders (2):
