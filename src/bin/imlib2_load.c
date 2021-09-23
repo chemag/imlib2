@@ -22,6 +22,7 @@ static FILE        *fout;
    "OPTIONS:\n" \
    "  -e  : Break on error\n" \
    "  -f  : Load with imlib_load_image_fd()\n" \
+   "  -i  : Load with imlib_load_image_immediately()\n" \
    "  -n N: Reeat load N times\n" \
    "  -p  : Check that progress is called\n" \
    "  -x  : Print to stderr\n"
@@ -89,15 +90,17 @@ main(int argc, char **argv)
    int                 show_time;
    int                 load_cnt, cnt;
    int                 load_fd;
+   int                 load_now;
 
    fout = stdout;
    check_progress = 0;
    break_on_error = 0;
-   load_cnt = 1;
    show_time = 0;
+   load_cnt = 1;
    load_fd = 0;
+   load_now = 0;
 
-   while ((opt = getopt(argc, argv, "efn:px")) != -1)
+   while ((opt = getopt(argc, argv, "efin:px")) != -1)
      {
         switch (opt)
           {
@@ -106,6 +109,9 @@ main(int argc, char **argv)
              break;
           case 'f':
              load_fd = 1;
+             break;
+          case 'i':
+             load_now = 1;
              break;
           case 'n':
              load_cnt = atoi(optarg);
@@ -154,6 +160,8 @@ main(int argc, char **argv)
                 im = imlib_load_image_with_error_return(argv[0], &lerr);
              else if (load_fd)
                 im = image_load_fd(argv[0]);
+             else if (load_now)
+                im = imlib_load_image_immediately(argv[0]);
              else
                 im = imlib_load_image(argv[0]);
 
@@ -168,7 +176,7 @@ main(int argc, char **argv)
 
              imlib_context_set_image(im);
 
-             if (!check_progress)
+             if (!check_progress && !load_now)
                 imlib_image_get_data();
 
              imlib_free_image_and_decache();
