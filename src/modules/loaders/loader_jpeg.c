@@ -1,6 +1,14 @@
 #include "loader_common.h"
 #include <jpeglib.h>
 #include <setjmp.h>
+#include "exif.h"
+
+#define DEBUG 0
+#if DEBUG
+#define D(fmt...) fprintf(stdout, "JPEG loader: " fmt)
+#else
+#define D(fmt...)
+#endif
 
 typedef struct {
    struct jpeg_error_mgr jem;
@@ -65,7 +73,8 @@ load2(ImlibImage * im, int load_data)
    ImLib_JPEG_data     jdata;
    DATA8              *ptr, *line[16];
    DATA32             *ptr2;
-   int                 x, y, l, scans;
+   int                 x, y, l, scans, inc;
+   ExifInfo            ei = { 0 };
 
    /* set up error handling */
    jds.err = _jdata_init(&jdata);
@@ -79,12 +88,37 @@ load2(ImlibImage * im, int load_data)
 
    jpeg_create_decompress(&jds);
    jpeg_stdio_src(&jds, im->fp);
+   jpeg_save_markers(&jds, JPEG_APP0 + 1, 256);
    jpeg_read_header(&jds, TRUE);
 
-   im->w = w = jds.image_width;
-   im->h = h = jds.image_height;
+   /* Get orientation */
+   ei.orientation = ORIENT_TOPLEFT;
+
+   if (jds.marker_list)
+     {
+        jpeg_saved_marker_ptr m = jds.marker_list;
+
+        D("Markers: %p: m=%02x len=%d/%d\n", m,
+          m->marker, m->original_length, m->data_length);
+
+        exif_parse(m->data, m->data_length, &ei);
+     }
+
+   w = jds.image_width;
+   h = jds.image_height;
    if (!IMAGE_DIMENSIONS_OK(w, h))
       goto quit;
+
+   if (ei.swap_wh)
+     {
+        im->w = h;
+        im->h = w;
+     }
+   else
+     {
+        im->w = w;
+        im->h = h;
+     }
 
    UNSET_FLAG(im->flags, F_HAS_ALPHA);
 
@@ -127,6 +161,45 @@ load2(ImlibImage * im, int load_data)
           {
              ptr = line[y];
 
+             switch (ei.orientation)
+               {
+               default:
+               case ORIENT_TOPLEFT:
+                  ptr2 = im->data + (l + y) * w;
+                  inc = 1;
+                  break;
+               case ORIENT_TOPRIGHT:
+                  ptr2 = im->data + (l + y) * w + w - 1;
+                  inc = -1;
+                  break;
+               case ORIENT_BOTRIGHT:
+                  ptr2 = im->data + (h - 1 - (l + y)) * w + w - 1;
+                  inc = -1;
+                  break;
+               case ORIENT_BOTLEFT:
+                  ptr2 = im->data + (h - 1 - (l + y)) * w;
+                  inc = 1;
+                  break;
+               case ORIENT_LEFTTOP:
+                  ptr2 = im->data + (l + y);
+                  inc = h;
+                  break;
+               case ORIENT_RIGHTTOP:
+                  ptr2 = im->data + (h - 1 - (l + y));
+                  inc = h;
+                  break;
+               case ORIENT_RIGHTBOT:
+                  ptr2 = im->data + (h - 1 - (l + y)) + (w - 1) * h;
+                  inc = -h;
+                  break;
+               case ORIENT_LEFTBOT:
+                  ptr2 = im->data + (l + y) + (w - 1) * h;
+                  inc = -h;
+                  break;
+               }
+             D("l,s,y=%d,%d, %d - x,y=%4ld,%4ld\n", l, y, l + y,
+               (ptr2 - im->data) % im->w, (ptr2 - im->data) / im->w);
+
              switch (jds.out_color_space)
                {
                default:
@@ -136,7 +209,7 @@ load2(ImlibImage * im, int load_data)
                     {
                        *ptr2 = PIXEL_ARGB(0xff, ptr[0], ptr[0], ptr[0]);
                        ptr++;
-                       ptr2++;
+                       ptr2 += inc;
                     }
                   break;
                case JCS_RGB:
@@ -144,7 +217,7 @@ load2(ImlibImage * im, int load_data)
                     {
                        *ptr2 = PIXEL_ARGB(0xff, ptr[0], ptr[1], ptr[2]);
                        ptr += jds.output_components;
-                       ptr2++;
+                       ptr2 += inc;
                     }
                   break;
                case JCS_CMYK:
@@ -154,17 +227,25 @@ load2(ImlibImage * im, int load_data)
                                           ptr[1] * ptr[3] / 255,
                                           ptr[2] * ptr[3] / 255);
                        ptr += jds.output_components;
-                       ptr2++;
+                       ptr2 += inc;
                     }
                   break;
                }
           }
 
+        if (ei.orientation != ORIENT_TOPLEFT &&
+            ei.orientation != ORIENT_TOPRIGHT)
+           continue;
         if (im->lc && __imlib_LoadProgressRows(im, l, scans))
           {
              rc = LOAD_BREAK;
              goto quit;
           }
+     }
+   if (ei.orientation != ORIENT_TOPLEFT && ei.orientation != ORIENT_TOPRIGHT)
+     {
+        if (im->lc)
+           __imlib_LoadProgressRows(im, 0, im->h);
      }
 
    jpeg_finish_decompress(&jds);

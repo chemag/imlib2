@@ -88,7 +88,7 @@ id3_la_LDFLAGS       = -module -avoid-version
 id3_la_LIBADD        = $(ID3_LIBS) $(top_builddir)/src/lib/libImlib2.la
 id3_la_LIBTOOLFLAGS = --tag=disable-static
 
-jpeg_la_SOURCES      = loader_jpeg.c
+jpeg_la_SOURCES      = loader_jpeg.c exif.c exif.h
 jpeg_la_CPPFLAGS     = $(JPEG_CFLAGS) $(AM_CPPFLAGS)
 jpeg_la_LDFLAGS      = -module -avoid-version
 jpeg_la_LIBADD       = $(JPEG_LIBS) $(top_builddir)/src/lib/libImlib2.la
