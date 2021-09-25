@@ -2,6 +2,8 @@
 #
 noinst_PROGRAMS = $(GTESTS)
 
+CLEANFILES = file.c img_save-*.*
+
  GTEST_LIBS = -lgtest -lstdc++
 
  GTESTS  = test_file
@@ -21,9 +23,11 @@ noinst_PROGRAMS = $(GTESTS)
  LIBS  = -L$(top_builddir)/src/lib -lImlib2
  LIBS += $(GTEST_LIBS)
 
-vpath %.c   $(top_srcdir)/src/lib
+%.c: $(top_srcdir)/src/lib/%.c
+	ln -s $< $@
 
-test_file_SOURCES = test_file.cpp file.c
+test_file_SOURCES = test_file.cpp
+nodist_test_file_SOURCES = file.c
 test_file_LDADD = $(LIBS)
 
 test_load_SOURCES = test_load.cpp
