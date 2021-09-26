@@ -74,7 +74,7 @@ ff_la_LIBTOOLFLAGS   = --tag=disable-static
 
 gif_la_SOURCES       = loader_gif.c
 gif_la_LDFLAGS       = -module -avoid-version
-gif_la_LIBADD        = @GIFLIBS@ $(top_builddir)/src/lib/libImlib2.la
+gif_la_LIBADD        = $(GIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
 gif_la_LIBTOOLFLAGS = --tag=disable-static
 
 ico_la_SOURCES       = loader_ico.c

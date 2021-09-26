@@ -236,7 +236,6 @@ AM_CONDITIONAL(BUILD_TIFF_LOADER, test "$tiff_ok" = yes)
 
 
 AC_MSG_CHECKING(whether to enable gif support)
-gif_lib=any
 AC_ARG_WITH([gif],
   [AS_HELP_STRING([--without-gif], [Disable GIF image loader])],
   [
@@ -244,10 +243,6 @@ AC_ARG_WITH([gif],
      gif_loader=no
    else
      gif_loader=yes
-     case "$withval" in
-       giflib)   gif_lib=giflib;;
-       libungif) gif_lib=libungif;;
-     esac
    fi
   ],
   [ gif_loader=auto ]
@@ -255,28 +250,12 @@ AC_ARG_WITH([gif],
 AC_MSG_RESULT($gif_loader)
 
 if test "$gif_loader" != no ; then
-  AC_MSG_CHECKING(for preferred gif provider)
-  AC_MSG_RESULT($gif_lib)
-
-  if test "$gif_lib" != libungif ; then
-    AC_CHECK_LIB(gif, DGifOpenFileName, gif_libs="-lgif" gif_ok=yes, gif_ok=no)
+  AC_CHECK_LIB(gif, DGifOpenFileName, gif_libs="-lgif" gif_ok=yes, gif_ok=no)
+  if test "$gif_ok" = yes; then
+    AC_CHECK_HEADER([gif_lib.h], , gif_ok=no)
     if test "$gif_ok" = yes; then
-      AC_CHECK_HEADER([gif_lib.h], , gif_ok=no)
-      if test "$gif_ok" = yes; then
-        GIFLIBS=$gif_libs
-        gif_lib=giflib
-      fi
-    fi
-  fi
-
-  if test "$gif_lib" != giflib ; then
-    AC_CHECK_LIB(ungif, DGifOpenFileName, gif_libs="-lungif" gif_ok=yes, gif_ok=no)
-    if test "$gif_ok" = yes; then
-      AC_CHECK_HEADER([gif_lib.h], , gif_ok=no)
-      if test "$gif_ok" = yes; then
-        GIFLIBS=$gif_libs
-        gif_lib=libungif
-      fi
+      GIF_LIBS=$gif_libs
+      AC_SUBST(GIF_LIBS)
     fi
   fi
 
@@ -291,7 +270,6 @@ else
   gif_ok=no
 fi
 AM_CONDITIONAL(BUILD_GIF_LOADER, test "$gif_ok" = yes)
-AC_SUBST(GIFLIBS)
 
 
 AC_MSG_CHECKING(whether to enable zlib support)
