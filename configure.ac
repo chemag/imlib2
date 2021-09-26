@@ -373,12 +373,20 @@ EC_C_WARNINGS()
 EC_C_VISIBILITY(yes)
 EC_C_ASAN()
 
+VERSION_MAJOR=`echo $VERSION | awk -F. '{print $1}'`
+VERSION_MINOR=`echo $VERSION | awk -F. '{print $2}'`
+VERSION_MICRO=`echo $VERSION | awk -F. '{print $3}'`
+AC_SUBST(VERSION_MAJOR)
+AC_SUBST(VERSION_MINOR)
+AC_SUBST(VERSION_MICRO)
+
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES([
 Makefile
 imlib2.pc
 src/Makefile
 src/lib/Makefile
+src/lib/Imlib2.h
 src/bin/Makefile
 src/modules/Makefile
 src/modules/filters/Makefile
