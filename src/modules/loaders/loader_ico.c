@@ -408,23 +408,26 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
 int
 load2(ImlibImage * im, int load_data)
 {
+   int                 rc;
    ico_t              *ico;
-   int                 ok;
+
+   rc = LOAD_FAIL;
 
    ico = ico_read(im);
    if (!ico)
-      return 0;
+      goto quit;
 
-   ok = ico_load(ico, im, load_data);
-   if (ok)
+   if (ico_load(ico, im, load_data))
      {
         if (im->lc)
            __imlib_LoadProgressRows(im, 0, im->h);
+        rc = LOAD_SUCCESS;
      }
 
    ico_delete(ico);
 
-   return ok;
+ quit:
+   return rc;
 }
 
 void
