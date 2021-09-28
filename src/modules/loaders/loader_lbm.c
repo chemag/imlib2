@@ -13,6 +13,8 @@
 
 #include "loader_common.h"
 
+#include <sys/mman.h>
+
 #define DBG_PFX "LDR-lbm"
 
 #define L2RLONG(a) ((((int)((a)[0]) & 0xff) << 24) + (((int)((a)[1]) & 0xff) << 16) + (((int)((a)[2]) & 0xff) << 8) + ((int)((a)[3]) & 0xff))
@@ -20,7 +22,7 @@
 
 typedef struct {
    int                 size;
-   unsigned char      *data;
+   const unsigned char *data;
 } CHUNK;
 
 typedef struct {
@@ -30,6 +32,7 @@ typedef struct {
    CHUNK               ctbl;
    CHUNK               sham;
    CHUNK               body;
+   unsigned char      *cmap_alloc;      /* Modified colormap */
 
    int                 depth;
    int                 mask;
@@ -49,21 +52,10 @@ typedef struct {
 static void
 freeilbm(ILBM * ilbm)
 {
-   if (ilbm->bmhd.data)
-      free(ilbm->bmhd.data);
-   if (ilbm->camg.data)
-      free(ilbm->camg.data);
-   if (ilbm->cmap.data)
-      free(ilbm->cmap.data);
-   if (ilbm->ctbl.data)
-      free(ilbm->ctbl.data);
-   if (ilbm->sham.data)
-      free(ilbm->sham.data);
-   if (ilbm->body.data)
-      free(ilbm->body.data);
-
-   memset(ilbm, 0, sizeof(*ilbm));
+   free(ilbm->cmap_alloc);
 }
+
+#define mm_check(p) ((const unsigned char *)(p) <= fptr + size)
 
 /*------------------------------------------------------------------------------
  * Reads the given chunks out of a file, returns 0 if the file had a problem.
@@ -71,19 +63,17 @@ freeilbm(ILBM * ilbm)
  * Format FORMsizeILBMtag.size....tag.size....tag.size....
  *------------------------------------------------------------------------------*/
 static int
-loadchunks(FILE * f, ILBM * ilbm, int full)
+loadchunks(const unsigned char *fptr, unsigned int size, ILBM * ilbm, int full)
 {
    CHUNK              *c;
-   size_t              s;
-   long                pos;
    int                 formsize, z;
-   int                 ok, seek;
-   char                buf[12];
+   int                 ok;
+   const unsigned char *buf;
 
    ok = 0;
 
-   s = fread(buf, 1, 12, f);
-   if (s != 12)
+   buf = fptr;
+   if (!mm_check(buf + 12))
       return ok;
 
    if (memcmp(buf, "FORM", 4) != 0 || memcmp(buf + 8, "ILBM", 4) != 0)
@@ -93,15 +83,13 @@ loadchunks(FILE * f, ILBM * ilbm, int full)
 
    D("%s: %.4s %.4s formsize=%d\n", __func__, buf, buf + 8, formsize);
 
+   buf += 12;
+
    while (1)
      {
-        pos = ftell(f);
-        if (pos < 0 || pos >= formsize + 8)
-           break;               /* Error or FORM data is finished. */
-        seek = 1;
-
-        s = fread(buf, 1, 8, f);
-        if (s != 8)
+        if (buf >= fptr + formsize + 8)
+           break;
+        if (!mm_check(buf + 8))
            break;               /* Error or short file. */
 
         z = L2RLONG(buf + 4);
@@ -127,18 +115,15 @@ loadchunks(FILE * f, ILBM * ilbm, int full)
                 c = &(ilbm->body);
           }
 
+        buf += 8;
+
         if (c && !c->data)
           {
              c->size = z;
-             c->data = malloc(c->size);
-             if (!c->data)
-                break;          /* Out of memory. */
+             if (!mm_check(buf + c->size))
+                break;
+             c->data = buf;
 
-             s = fread(c->data, 1, c->size, f);
-             if (s != (size_t)c->size)
-                break;          /* Error or short file. */
-
-             seek = 0;
              if (!full)
                {                /* Only BMHD required. */
                   ok = 1;
@@ -146,11 +131,7 @@ loadchunks(FILE * f, ILBM * ilbm, int full)
                }
           }
 
-        if (pos + 8 + z >= formsize + 8)
-           break;               /* This was last chunk. */
-
-        if (seek && fseek(f, z, SEEK_CUR) != 0)
-           break;
+        buf += z;
      }
 
    /* File may end strangely, especially if body size is uneven, but it's
@@ -286,8 +267,12 @@ scalecmap(ILBM * ilbm)
       if (ilbm->cmap.data[i] & 0x0f)
          return;
 
+   ilbm->cmap_alloc = malloc((unsigned int)ilbm->cmap.size);
+
    for (i = 0; i < ilbm->cmap.size; i++)
-      ilbm->cmap.data[i] |= ilbm->cmap.data[i] >> 4;
+      ilbm->cmap_alloc[i] = ilbm->cmap.data[i] | ilbm->cmap.data[i] >> 4;
+
+   ilbm->cmap.data = ilbm->cmap_alloc;
 }
 
 /*------------------------------------------------------------------------------
@@ -457,6 +442,7 @@ int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
+   void               *fdata;
    char               *env;
    int                 i, n, y, z;
    unsigned char      *plane[40];
@@ -466,11 +452,15 @@ load2(ImlibImage * im, int load_data)
    plane[0] = NULL;
    memset(&ilbm, 0, sizeof(ilbm));
 
+   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   if (fdata == MAP_FAILED)
+      return rc;
+
   /*----------
    * Load the chunk(s) we're interested in. If load_data is not true, then we only
    * want the image size and format.
    *----------*/
-   if (!loadchunks(im->fp, &ilbm, load_data))
+   if (!loadchunks(fdata, im->fsize, &ilbm, load_data))
       goto quit;
 
   /*----------
@@ -586,6 +576,9 @@ load2(ImlibImage * im, int load_data)
    free(plane[0]);
 
    freeilbm(&ilbm);
+
+   if (fdata != MAP_FAILED)
+      munmap(fdata, im->fsize);
 
    return rc;
 }
