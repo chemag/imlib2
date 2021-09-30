@@ -2,9 +2,11 @@
 /* o Need code to handle tiff with different orientations */
 
 #include "loader_common.h"
+
 #include <setjmp.h>
 #include <stdint.h>
 #include <tiffio.h>
+#include <sys/mman.h>
 
 /* This is a wrapper data structure for TIFFRGBAImage, so that data can be */
 /* passed into the callbacks. More elegent, I think, than a bunch of globals */
@@ -235,26 +237,34 @@ put_separate_and_raster(TIFFRGBAImage * img, uint32_t * rast,
 int
 load2(ImlibImage * im, int load_data)
 {
-   int                 rc;
+   int                 rc, fd;
+   void               *fdata;
    TIFF               *tif = NULL;
-   int                 fd;
    uint16_t            magic_number;
    TIFFRGBAImage_Extra rgba_image;
    uint32_t           *rast = NULL;
    char                txt[1024];
 
    rc = LOAD_FAIL;
+   fd = fileno(im->fp);
    rgba_image.image = NULL;
 
-   fd = fileno(im->fp);
-   if (read(fd, &magic_number, sizeof(uint16_t)) != sizeof(uint16_t))
-      goto quit;
+   /* Do initial signature check */
+#define TIFF_BYTES_TO_CHECK sizeof(magic_number)
 
-   if ((magic_number != TIFF_BIGENDIAN) /* Checks if actually tiff file */
-       && (magic_number != TIFF_LITTLEENDIAN))
-      goto quit;
+   if (im->fsize < (int)TIFF_BYTES_TO_CHECK)
+      return rc;
 
-   lseek(fd, 0, SEEK_SET);
+   fdata = mmap(NULL, TIFF_BYTES_TO_CHECK, PROT_READ, MAP_SHARED, fd, 0);
+   if (fdata == MAP_FAILED)
+      return rc;
+
+   magic_number = *(uint16_t *) fdata;
+
+   munmap(fdata, TIFF_BYTES_TO_CHECK);
+
+   if (magic_number != TIFF_BIGENDIAN && magic_number != TIFF_LITTLEENDIAN)
+      return rc;
 
    fd = dup(fd);
    tif = TIFFFdOpen(fd, im->real_file, "r");
