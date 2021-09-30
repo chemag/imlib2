@@ -1,5 +1,7 @@
 #include "loader_common.h"
+
 #include <png.h>
+#include <sys/mman.h>
 
 /* this is a quick sample png loader module... nice and small isn't it? */
 
@@ -7,7 +9,6 @@
 #define PNG_BYTES_TO_CHECK 4
 
 typedef struct {
-   unsigned char       buf[PNG_BYTES_TO_CHECK];
    unsigned char     **lines;
 } ImLib_PNG_data;
 
@@ -20,7 +21,8 @@ comment_free(ImlibImage * im, void *data)
 int
 load2(ImlibImage * im, int load_data)
 {
-   int                 rc;
+   int                 rc, ok;
+   void               *fdata;
    png_uint_32         w32, h32;
    char                hasa;
    png_structp         png_ptr = NULL;
@@ -33,13 +35,20 @@ load2(ImlibImage * im, int load_data)
    rc = LOAD_FAIL;
    pdata.lines = NULL;
 
-   if (fread(pdata.buf, 1, PNG_BYTES_TO_CHECK, im->fp) != PNG_BYTES_TO_CHECK)
-      goto quit;
+   if (im->fsize < PNG_BYTES_TO_CHECK)
+      return rc;
 
-   if (png_sig_cmp(pdata.buf, 0, PNG_BYTES_TO_CHECK))
-      goto quit;
+   fdata =
+      mmap(NULL, PNG_BYTES_TO_CHECK, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   if (fdata == MAP_FAILED)
+      return rc;
 
-   rewind(im->fp);
+   ok = png_sig_cmp(fdata, 0, PNG_BYTES_TO_CHECK) == 0;
+
+   munmap(fdata, PNG_BYTES_TO_CHECK);
+
+   if (!ok)
+      return rc;
 
    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
    if (!png_ptr)
