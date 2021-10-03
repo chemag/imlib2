@@ -3,7 +3,47 @@
  */
 #include "loader_common.h"
 
+#include <sys/mman.h>
+
 #define DBG_PFX "LDR-xbm"
+
+static struct {
+   const char         *data, *dptr;
+   unsigned int        size;
+} mdata;
+
+static void
+mm_init(void *src, unsigned int size)
+{
+   mdata.data = mdata.dptr = src;
+   mdata.size = size;
+}
+
+static const char  *
+mm_gets(char *dst, unsigned int len)
+{
+   int                 left = mdata.data + mdata.size - mdata.dptr;
+   int                 cnt;
+   const char         *ptr;
+
+   if (left <= 0)
+      return NULL;              /* Out of data */
+
+   ptr = memchr(mdata.dptr, '\n', left);
+
+   cnt = (ptr) ? ptr - mdata.dptr : left;
+   if (cnt >= (int)len)
+      cnt = len - 1;
+
+   memcpy(dst, mdata.dptr, cnt);
+   dst[cnt] = '\0';
+
+   if (ptr)
+      cnt += 1;
+   mdata.dptr += cnt;
+
+   return dst;
+}
 
 static const DATA32 _bitmap_colors[2] = { 0xffffffff, 0xff000000 };
 
@@ -43,6 +83,7 @@ int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
+   void               *fdata;
    char                buf[4096], tok1[1024], tok2[1024];
    DATA32             *ptr, pixel;
    int                 i, x, y, bit;
@@ -50,13 +91,20 @@ load2(ImlibImage * im, int load_data)
    int                 header, val, nlen;
 
    rc = LOAD_FAIL;
+
+   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   if (fdata == MAP_FAILED)
+      return rc;
+
+   mm_init(fdata, im->fsize);
+
    ptr = NULL;
    x = y = 0;
 
    header = 1;
    for (;;)
      {
-        s = fgets(buf, sizeof(buf), im->fp);
+        s = mm_gets(buf, sizeof(buf));
         if (!s)
            break;
 
@@ -155,6 +203,8 @@ load2(ImlibImage * im, int load_data)
  quit:
    if (rc <= 0)
       __imlib_FreeData(im);
+   if (fdata != MAP_FAILED)
+      munmap(fdata, im->fsize);
 
    return rc;
 }
