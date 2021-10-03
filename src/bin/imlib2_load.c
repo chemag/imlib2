@@ -16,6 +16,8 @@
 static char         progress_called;
 static FILE        *fout;
 
+#define Vprintf(fmt...) if (verbose) fprintf(fout, fmt)
+
 #define HELP \
    "Usage:\n" \
    "  imlib2_load [OPTIONS] FILE...\n" \
@@ -25,6 +27,7 @@ static FILE        *fout;
    "  -i  : Load with imlib_load_image_immediately()\n" \
    "  -n N: Reeat load N times\n" \
    "  -p  : Check that progress is called\n" \
+   "  -v  : Increase verbosity\n" \
    "  -x  : Print to stderr\n"
 
 static void
@@ -85,6 +88,7 @@ main(int argc, char **argv)
    Imlib_Image         im;
    Imlib_Load_Error    lerr;
    unsigned int        t0;
+   int                 verbose;
    int                 check_progress;
    int                 break_on_error;
    int                 show_time;
@@ -93,6 +97,7 @@ main(int argc, char **argv)
    int                 load_now;
 
    fout = stdout;
+   verbose = 0;
    check_progress = 0;
    break_on_error = 0;
    show_time = 0;
@@ -100,7 +105,7 @@ main(int argc, char **argv)
    load_fd = 0;
    load_now = 0;
 
-   while ((opt = getopt(argc, argv, "efin:px")) != -1)
+   while ((opt = getopt(argc, argv, "efin:pvx")) != -1)
      {
         switch (opt)
           {
@@ -116,9 +121,14 @@ main(int argc, char **argv)
           case 'n':
              load_cnt = atoi(optarg);
              show_time = 1;
+             verbose = 1;
              break;
           case 'p':
              check_progress = 1;
+             verbose = 1;
+             break;
+          case 'v':
+             verbose = 1;
              break;
           case 'x':
              fout = stderr;
@@ -147,7 +157,7 @@ main(int argc, char **argv)
      {
         progress_called = 0;
 
-        fprintf(fout, "Loading image: '%s'\n", argv[0]);
+        Vprintf("Loading image: '%s'\n", argv[0]);
 
         if (show_time)
            t0 = time_us();
