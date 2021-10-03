@@ -141,11 +141,14 @@ load2(ImlibImage * im, int load_data)
 
                        x = 0;
                        y += 1;
+                       if (y >= im->h)
+                          goto done;
                     }
                }
           }
      }
 
+ done:
    rc = LOAD_SUCCESS;
 
  quit:
