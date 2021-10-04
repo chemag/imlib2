@@ -67,6 +67,7 @@ struct _imlibimage {
    ImlibImageDataMemoryFunction data_memory_func;
    ImlibLdCtx         *lc;
    FILE               *fp;
+   off_t               fsize;
 };
 
 #ifdef BUILD_X11
