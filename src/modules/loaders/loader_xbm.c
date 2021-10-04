@@ -46,7 +46,7 @@ load2(ImlibImage * im, int load_data)
    char                buf[4096], tok1[1024], tok2[1024];
    DATA32             *ptr, pixel;
    int                 i, x, y, bit;
-   char               *s;
+   const char         *s;
    int                 header, val, nlen;
 
    rc = LOAD_FAIL;
@@ -57,9 +57,10 @@ load2(ImlibImage * im, int load_data)
    for (;;)
      {
         s = fgets(buf, sizeof(buf), im->fp);
-        D(">>>%s", buf);
         if (!s)
            break;
+
+        D(">>>%s\n", buf);
 
         if (header)
           {
@@ -116,7 +117,7 @@ load2(ImlibImage * im, int load_data)
                {
                   nlen = -1;
                   sscanf(s, "%i%n", &val, &nlen);
-                  D("Data %02x (%d)\n", val, nlen);
+                  D("Data '%s': %02x (%d)\n", s, val, nlen);
                   if (nlen < 0)
                      break;
                   s += nlen;
