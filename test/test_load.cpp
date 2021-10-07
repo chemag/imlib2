@@ -25,6 +25,7 @@ static const char  *const pfxs[] = {
    "jpeg",
    "ilbm",                      // lbm
    "png",
+   "pbm",                       // pnm
    "ppm",                       // pnm
    "tga",
    "tiff",
