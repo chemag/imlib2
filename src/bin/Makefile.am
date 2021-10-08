@@ -3,7 +3,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CFLAGS   = $(CFLAGS_WARNINGS) $(CFLAGS_ASAN)
 AM_CPPFLAGS = \
 -DPACKAGE_DATA_DIR=\"$(datadir)/$(PACKAGE)\" \
--I$(top_srcdir)/src/lib \
+-I$(top_builddir)/src/lib \
 $(X_CFLAGS)
 
 if BUILD_X11
