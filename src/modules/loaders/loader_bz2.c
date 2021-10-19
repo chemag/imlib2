@@ -1,4 +1,5 @@
 #include "loader_common.h"
+
 #include <bzlib.h>
 
 #define OUTBUF_SIZE 16384

@@ -592,10 +592,6 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
 }
 #endif
 
-/*------------------------------------------------------------------------------
- * Identifies the file extensions this loader handles. Standard code from other
- * loaders.
- *------------------------------------------------------------------------------*/
 void
 formats(ImlibLoader * l)
 {

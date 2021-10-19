@@ -1,4 +1,5 @@
 #include "loader_common.h"
+
 #include <jpeglib.h>
 #include <setjmp.h>
 #include "exif.h"

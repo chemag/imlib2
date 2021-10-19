@@ -1,4 +1,5 @@
 #include "loader_common.h"
+
 #include <gif_lib.h>
 
 int
