@@ -1,6 +1,7 @@
 /*
  * XBM loader
  */
+#define _GNU_SOURCE             /* memmem() */
 #include "loader_common.h"
 
 #include <sys/mman.h>
@@ -92,9 +93,19 @@ load2(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
+   if (im->fsize < 64)
+      return rc;                /* Not XBM */
+
    fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
    if (fdata == MAP_FAILED)
       return rc;
+
+   /* Signature check ("#define") allow longish initial comment */
+   s = fdata;
+   nlen = s[0] == '/' && s[1] == '*' ? 4096 : 256;
+   nlen = im->fsize > nlen ? nlen : im->fsize;
+   if (!memmem(s, nlen, "#define", 7))
+      goto quit;
 
    mm_init(fdata, im->fsize);
 
@@ -134,7 +145,7 @@ load2(ImlibImage * im, int load_data)
                        im->h = val;
                     }
                }
-             else if (strcmp(tok1, "static") == 0)
+             else if (strcmp(tok1, "static") == 0 && strstr(buf + 6, "_bits"))
                {
                   if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
                      goto quit;
@@ -155,7 +166,7 @@ load2(ImlibImage * im, int load_data)
                }
              else
                {
-                  goto quit;
+                  continue;
                }
           }
         else
