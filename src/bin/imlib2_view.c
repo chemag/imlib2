@@ -405,7 +405,10 @@ main(int argc, char **argv)
                   image_width = 0;
                   im2 = imlib_load_image(file);
                   if (!im2)
-                     continue;
+                    {
+                       Vprintf("*** Error loading image: %s\n", file);
+                       continue;
+                    }
                   zoom = 1.0;
                   zoom_mode = 0;
                   imlib_context_set_image(im);
