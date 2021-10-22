@@ -129,6 +129,16 @@ AM_CONDITIONAL(BUILD_X11, test "x$have_x" = "xyes")
 AC_CHECK_LIB(dl, dlopen, DLOPEN_LIBS=-ldl)
 AC_SUBST(DLOPEN_LIBS)
 
+AC_CHECK_FUNCS([clock_gettime], [have_clock_gettime=yes],
+  [AC_CHECK_LIB([rt], [clock_gettime], [have_clock_gettime=-lrt],
+     [have_clock_gettime=no])])
+if test "x$have_clock_gettime" != xno; then
+  AC_DEFINE(USE_MONOTONIC_CLOCK, 1, [Use monotonic clock from clock_gettime()])
+  if test "x$have_clock_gettime" != xyes; then
+    AC_SUBST(CLOCK_LIBS, [$have_clock_gettime])
+  fi
+fi
+
 
 AC_MSG_CHECKING(whether to enable jpeg support)
 AC_ARG_WITH([jpeg],

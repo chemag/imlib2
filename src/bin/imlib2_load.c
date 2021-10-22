@@ -4,7 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#if USE_MONOTONIC_CLOCK
+#include <time.h>
+#else
 #include <sys/time.h>
+#endif
 
 #ifndef X_DISPLAY_MISSING
 #define X_DISPLAY_MISSING
