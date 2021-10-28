@@ -97,16 +97,13 @@ __imlib_RemoveAllLoaders(void)
 
 /* find all the loaders we can find and load them up to see what they can */
 /* load / save */
-void
+static void
 __imlib_LoadAllLoaders(void)
 {
    int                 i, num;
    char              **list;
 
    DP("%s\n", __func__);
-
-   if (loaders)
-      return;
 
    /* list all the loaders imlib can find */
    list = __imlib_ListModules(__imlib_PathToLoaders(), &num);
@@ -133,6 +130,9 @@ __imlib_FindBestLoaderForFormat(const char *format, int for_save)
 
    if (!format || format[0] == '\0')
       return NULL;
+
+   if (!loaders)
+      __imlib_LoadAllLoaders();
 
    /* go through the loaders - first loader that claims to handle that */
    /* image type (extension wise) wins as a first guess to use - NOTE */

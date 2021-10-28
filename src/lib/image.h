@@ -90,7 +90,6 @@ struct _imlibimagepixmap {
 };
 #endif
 
-void                __imlib_LoadAllLoaders(void);
 void                __imlib_RemoveAllLoaders(void);
 ImlibLoader       **__imlib_GetLoaderList(void);
 ImlibLoader        *__imlib_FindBestLoaderForFile(const char *file,

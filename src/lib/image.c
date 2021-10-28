@@ -736,8 +736,6 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
         immediate_load = 1;
      }
 
-   __imlib_LoadAllLoaders();
-
    loader_ret = LOAD_FAIL;
 
    /* take a guess by extension on the best loader to use */
@@ -1004,8 +1002,6 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
            *er = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
         return;
      }
-
-   __imlib_LoadAllLoaders();
 
    /* find the laoder for the format - if its null use the extension */
    l = __imlib_FindBestLoaderForFileFormat(file, im->format, 1);
