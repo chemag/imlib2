@@ -121,18 +121,12 @@ __imlib_GetLoaderList(void)
    return &loaders;
 }
 
-__EXPORT__ ImlibLoader *
-__imlib_FindBestLoaderForFormat(const char *format, int for_save)
+static ImlibLoader *
+__imlib_LookupLoadedLoader(const char *format, int for_save)
 {
    ImlibLoader        *l;
 
    DP("%s: fmt='%s'\n", __func__, format);
-
-   if (!format || format[0] == '\0')
-      return NULL;
-
-   if (!loaders)
-      __imlib_LoadAllLoaders();
 
    /* go through the loaders - first loader that claims to handle that */
    /* image type (extension wise) wins as a first guess to use - NOTE */
@@ -165,6 +159,25 @@ __imlib_FindBestLoaderForFormat(const char *format, int for_save)
      }
 
  done:
+   DP("%s: fmt='%s': %s\n", __func__, format, l ? l->file : "-");
+   return l;
+}
+
+__EXPORT__ ImlibLoader *
+__imlib_FindBestLoaderForFormat(const char *format, int for_save)
+{
+   ImlibLoader        *l;
+
+   DP("%s: fmt='%s'\n", __func__, format);
+
+   if (!format || format[0] == '\0')
+      return NULL;
+
+   if (!loaders)
+      __imlib_LoadAllLoaders();
+
+   l = __imlib_LookupLoadedLoader(format, for_save);
+
    DP("%s: fmt='%s': %s\n", __func__, format, l ? l->file : "-");
    return l;
 }
