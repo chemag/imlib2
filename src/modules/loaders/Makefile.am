@@ -1,5 +1,6 @@
 AM_CFLAGS            = $(CFLAGS_WARNINGS) $(CFLAGS_VISIBILITY) $(CFLAGS_ASAN)
-AM_CPPFLAGS          = -I$(top_builddir) -I$(top_srcdir)/src/lib
+AM_CPPFLAGS          = -I$(top_builddir) -I$(top_srcdir)/src/lib \
+		       -D PACKAGE_DATA_DIR=\"$(pkgdatadir)\"
 
 pkgdir               = $(libdir)/imlib2/loaders
 
