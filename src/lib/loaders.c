@@ -15,12 +15,6 @@
 
 static ImlibLoader *loaders = NULL;
 
-ImlibLoader       **
-__imlib_GetLoaderList(void)
-{
-   return &loaders;
-}
-
 /* try dlopen()ing the file if we succeed finish filling out the malloced */
 /* loader struct and return it */
 static ImlibLoader *
@@ -119,6 +113,12 @@ __imlib_LoadAllLoaders(void)
         free(list[i]);
      }
    free(list);
+}
+
+ImlibLoader       **
+__imlib_GetLoaderList(void)
+{
+   return &loaders;
 }
 
 __EXPORT__ ImlibLoader *
