@@ -24,7 +24,7 @@ __imlib_GetLoaderList(void)
 /* try dlopen()ing the file if we succeed finish filling out the malloced */
 /* loader struct and return it */
 static ImlibLoader *
-__imlib_ProduceLoader(char *file)
+__imlib_ProduceLoader(const char *file)
 {
    ImlibLoader        *l;
    void                (*l_formats)(ImlibLoader * l);
@@ -55,6 +55,10 @@ __imlib_ProduceLoader(char *file)
    l_formats(l);
    l->file = strdup(file);
    l->next = NULL;
+
+   l->next = loaders;
+   loaders = l;
+
    return l;
 }
 
@@ -114,16 +118,8 @@ __imlib_LoadAllLoaders(void)
    /* (or try) and if it succeeds, append to our loader list */
    for (i = num - 1; i >= 0; i--)
      {
-        ImlibLoader        *l;
-
-        l = __imlib_ProduceLoader(list[i]);
-        if (l)
-          {
-             l->next = loaders;
-             loaders = l;
-          }
-        if (list[i])
-           free(list[i]);
+        __imlib_ProduceLoader(list[i]);
+        free(list[i]);
      }
    free(list);
 }
