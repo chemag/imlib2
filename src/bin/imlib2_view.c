@@ -20,6 +20,7 @@ static int          image_width = 0, image_height = 0;
 static int          window_width = 0, window_height = 0;
 static Imlib_Image  bg_im = NULL;
 
+static char         opt_cache = 0;
 static char         opt_scale = 0;
 static double       opt_scale_x = 1.;
 static double       opt_scale_y = 1.;
@@ -39,6 +40,7 @@ static int          opt_progress_delay = 0;
    "Usage:\n" \
    "  imlib2_view [OPTIONS] FILE...\n" \
    "OPTIONS:\n" \
+   "  -c  : Enable image caching\n" \
    "  -d  : Enable debug\n" \
    "  -g N: Set progress granularity to N%% (default 10(%%))\n" \
    "  -l N: Introduce N ms delay in progress callback (default 0)\n" \
@@ -185,10 +187,13 @@ main(int argc, char **argv)
 
    verbose = 0;
 
-   while ((opt = getopt(argc, argv, "dg:l:ps:v")) != -1)
+   while ((opt = getopt(argc, argv, "cdg:l:ps:v")) != -1)
      {
         switch (opt)
           {
+          case 'c':
+             opt_cache = 1;
+             break;
           case 'd':
              debug += 1;
              break;
@@ -412,7 +417,8 @@ main(int argc, char **argv)
                   zoom = 1.0;
                   zoom_mode = 0;
                   imlib_context_set_image(im);
-                  imlib_free_image_and_decache();
+                  if (!opt_cache)
+                     imlib_free_image_and_decache();
                   no = no2;
                   im = im2;
                   imlib_context_set_image(im);
