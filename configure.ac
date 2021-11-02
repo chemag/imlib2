@@ -214,7 +214,7 @@ AC_ARG_WITH([webp],
 AC_MSG_RESULT($webp_loader)
 
 if test "$webp_loader" != no ; then
-  PKG_CHECK_MODULES(WEBP, libwebp, [ webp_ok="yes" ], [ webp_ok="no" ])
+  PKG_CHECK_MODULES(WEBP, libwebpdemux, [ webp_ok="yes" ], [ webp_ok="no" ])
 else
   webp_ok="no"
 fi

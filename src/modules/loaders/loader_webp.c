@@ -2,43 +2,20 @@
 
 #include <sys/mman.h>
 #include <webp/decode.h>
+#include <webp/demux.h>
 #include <webp/encode.h>
 
-#if 0                           /* Unused */
-static const char  *
-webp_strerror(VP8StatusCode code)
-{
-   switch (code)
-     {
-     case VP8_STATUS_OK:
-        return "No Error";
-     case VP8_STATUS_OUT_OF_MEMORY:
-        return "Out of memory";
-     case VP8_STATUS_INVALID_PARAM:
-        return "Invalid API parameter";
-     case VP8_STATUS_BITSTREAM_ERROR:
-        return "Bitstream Error";
-     case VP8_STATUS_UNSUPPORTED_FEATURE:
-        return "Unsupported Feature";
-     case VP8_STATUS_SUSPENDED:
-        return "Suspended";
-     case VP8_STATUS_USER_ABORT:
-        return "User abort";
-     case VP8_STATUS_NOT_ENOUGH_DATA:
-        return "Not enough data/truncated file";
-     default:
-        return "Unknown error";
-     }
-}
-#endif
+#define DBG_PFX "LDR-webp"
 
 int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
-   WebPBitstreamFeatures features;
-   VP8StatusCode       vp8return;
+   WebPData            webp_data;
+   WebPDemuxer        *demux;
+   WebPIterator        iter;
+   int                 frame;
 
    rc = LOAD_FAIL;
 
@@ -47,19 +24,40 @@ load2(ImlibImage * im, int load_data)
 
    fdata = mmap(0, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
    if (fdata == MAP_FAILED)
+      return rc;
+
+   webp_data.bytes = fdata;
+   webp_data.size = im->fsize;
+
+   /* Init (includes signature check) */
+   demux = WebPDemux(&webp_data);
+   if (!demux)
       goto quit;
 
-   vp8return = WebPGetFeatures(fdata, im->fsize, &features);
-   if (vp8return != VP8_STATUS_OK)
+   /* Key may select frame other than first */
+   frame = 1;
+   if (im->key)
+     {
+        frame = atoi(im->key);
+        if (frame > iter.num_frames)
+           frame = 0;           /* Select last */
+     }
+
+   if (!WebPDemuxGetFrame(demux, frame, &iter))
       goto quit;
 
-   im->w = features.width;
-   im->h = features.height;
+   D("Frame=%d/%d X,Y=%d,%d WxH=%dx%d\n", iter.frame_num, iter.num_frames,
+     iter.x_offset, iter.y_offset, iter.width, iter.height);
+
+   WebPDemuxReleaseIterator(&iter);
+
+   im->w = iter.width;
+   im->h = iter.height;
 
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   UPDATE_FLAG(im->flags, F_HAS_ALPHA, features.has_alpha);
+   UPDATE_FLAG(im->flags, F_HAS_ALPHA, iter.has_alpha);
 
    if (!load_data)
      {
@@ -72,8 +70,9 @@ load2(ImlibImage * im, int load_data)
    if (!__imlib_AllocateData(im))
       goto quit;
 
-   if (WebPDecodeBGRAInto(fdata, im->fsize, (uint8_t *) im->data,
-                          sizeof(DATA32) * im->w * im->h, im->w * 4) == NULL)
+   if (WebPDecodeBGRAInto
+       (iter.fragment.bytes, iter.fragment.size, (uint8_t *) im->data,
+        sizeof(DATA32) * im->w * im->h, im->w * 4) == NULL)
       goto quit;
 
    if (im->lc)
@@ -84,6 +83,8 @@ load2(ImlibImage * im, int load_data)
  quit:
    if (rc <= 0)
       __imlib_FreeData(im);
+   if (demux)
+      WebPDemuxDelete(demux);
    if (fdata != MAP_FAILED)
       munmap(fdata, im->fsize);
 
