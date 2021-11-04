@@ -18,6 +18,8 @@
 #define __PRINTF__   __PRINTF_N__(1)
 #define __PRINTF_2__ __PRINTF_N__(2)
 
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
 #define DATABIG unsigned long long
 #define DATA64  unsigned long long
 #define DATA32  unsigned int

@@ -416,7 +416,7 @@ static const char  *const id3_pic_types[] = {
 };
 
 #define NUM_OF_ID3_PIC_TYPES \
-    (sizeof(id3_pic_types) / sizeof(id3_pic_types[0]))
+    (ARRAY_SIZE(id3_pic_types))
 
 static const char  *const id3_text_encodings[] = {
    /* $00 */ "ISO-8859-1",
@@ -426,7 +426,7 @@ static const char  *const id3_text_encodings[] = {
 };
 
 #define NUM_OF_ID3_TEXT_ENCODINGS \
-    (sizeof(id3_text_encodings) / sizeof(id3_text_encodings[0]))
+    (ARRAY_SIZE(id3_text_encodings))
 
 static void
 write_tags(ImlibImage * im, lopt * opt)
@@ -599,6 +599,5 @@ void
 formats(ImlibLoader * l)
 {
    static const char  *const list_formats[] = { "mp3" };
-   __imlib_LoaderSetFormats(l, list_formats,
-                            sizeof(list_formats) / sizeof(char *));
+   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
 }

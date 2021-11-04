@@ -849,6 +849,5 @@ void
 formats(ImlibLoader * l)
 {
    static const char  *const list_formats[] = { "bmp" };
-   __imlib_LoaderSetFormats(l, list_formats,
-                            sizeof(list_formats) / sizeof(char *));
+   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
 }
