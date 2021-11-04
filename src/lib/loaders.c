@@ -124,8 +124,9 @@ __imlib_ProduceLoader(const char *file)
         free(l);
         return NULL;
      }
-   l->load = dlsym(l->handle, "load");
    l->load2 = dlsym(l->handle, "load2");
+   if (!l->load2)
+      l->load = dlsym(l->handle, "load");
    l->save = dlsym(l->handle, "save");
    l_formats = dlsym(l->handle, "formats");
 
