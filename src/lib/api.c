@@ -1754,14 +1754,7 @@ imlib_image_set_irrelevant_format(char irrelevant)
    CHECK_PARAM_POINTER("imlib_image_set_irrelevant_format", "image",
                        ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if (irrelevant)
-     {
-        SET_FLAG(im->flags, F_FORMAT_IRRELEVANT);
-     }
-   else
-     {
-        UNSET_FLAG(im->flags, F_FORMAT_IRRELEVANT);
-     }
+   UPDATE_FLAG(im->flags, F_FORMAT_IRRELEVANT, irrelevant);
 }
 
 /**
@@ -1780,14 +1773,7 @@ imlib_image_set_irrelevant_border(char irrelevant)
    CHECK_PARAM_POINTER("imlib_image_set_irrelevant_border", "image",
                        ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if (irrelevant)
-     {
-        SET_FLAG(im->flags, F_BORDER_IRRELEVANT);
-     }
-   else
-     {
-        UNSET_FLAG(im->flags, F_BORDER_IRRELEVANT);
-     }
+   UPDATE_FLAG(im->flags, F_BORDER_IRRELEVANT, irrelevant);
 }
 
 /**
@@ -1806,14 +1792,7 @@ imlib_image_set_irrelevant_alpha(char irrelevant)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_set_irrelevant_alpha", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if (irrelevant)
-     {
-        SET_FLAG(im->flags, F_ALPHA_IRRELEVANT);
-     }
-   else
-     {
-        UNSET_FLAG(im->flags, F_ALPHA_IRRELEVANT);
-     }
+   UPDATE_FLAG(im->flags, F_ALPHA_IRRELEVANT, irrelevant);
 }
 
 /**
@@ -1847,10 +1826,7 @@ imlib_image_set_has_alpha(char has_alpha)
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_image_set_has_alpha", "image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if (has_alpha)
-      SET_FLAG(im->flags, F_HAS_ALPHA);
-   else
-      UNSET_FLAG(im->flags, F_HAS_ALPHA);
+   UPDATE_FLAG(im->flags, F_HAS_ALPHA, has_alpha);
 }
 
 #ifdef BUILD_X11
@@ -2265,10 +2241,7 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
                                   ctx->colormap, ctx->depth, x, y, width,
                                   height, &domask, need_to_grab_x))
      {
-        if (domask)
-           SET_FLAG(im->flags, F_HAS_ALPHA);
-        else
-           UNSET_FLAG(im->flags, F_HAS_ALPHA);
+        UPDATE_FLAG(im->flags, F_HAS_ALPHA, domask);
      }
    else
      {
@@ -2450,10 +2423,7 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
                               ctx->visual, ctx->colormap, ctx->depth, 0, 0,
                               destination_width, destination_height, &domask,
                               need_to_grab_x);
-   if (domask)
-      SET_FLAG(im->flags, F_HAS_ALPHA);
-   else
-      UNSET_FLAG(im->flags, F_HAS_ALPHA);
+   UPDATE_FLAG(im->flags, F_HAS_ALPHA, domask);
 
    if (mgc)
       XFreeGC(ctx->display, mgc);

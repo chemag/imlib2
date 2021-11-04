@@ -82,10 +82,7 @@ load2(ImlibImage * im, int load_data)
       hasa = 1;
    if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
       hasa = 1;
-   if (hasa)
-      SET_FLAG(im->flags, F_HAS_ALPHA);
-   else
-      UNSET_FLAG(im->flags, F_HAS_ALPHA);
+   UPDATE_FLAG(im->flags, F_HAS_ALPHA, hasa);
 
    if (!load_data)
      {

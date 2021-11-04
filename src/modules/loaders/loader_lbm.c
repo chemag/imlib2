@@ -486,10 +486,7 @@ load2(ImlibImage * im, int load_data)
 
    ilbm.mask = ilbm.bmhd.data[9];
 
-   if (ilbm.mask || ilbm.depth == 32)
-      SET_FLAG(im->flags, F_HAS_ALPHA);
-   else
-      UNSET_FLAG(im->flags, F_HAS_ALPHA);
+   UPDATE_FLAG(im->flags, F_HAS_ALPHA, ilbm.mask || ilbm.depth == 32);
 
    env = getenv("IMLIB2_LBM_NOMASK");
    if (env

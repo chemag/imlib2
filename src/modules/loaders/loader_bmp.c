@@ -220,8 +220,6 @@ load2(ImlibImage * im, int load_data)
    ashift1 = rshift1 = gshift1 = bshift1 = 0;
    ashift2 = rshift2 = gshift2 = bshift2 = 1;
 
-   UNSET_FLAG(im->flags, F_HAS_ALPHA);
-
    if (bih.header_size == 12)
      {
         w = SWAP_LE_16(bih.bch.width);
@@ -251,14 +249,14 @@ load2(ImlibImage * im, int load_data)
              gmask = SWAP_LE_32(bih.bih.mask_g);
              bmask = SWAP_LE_32(bih.bih.mask_b);
              amask = SWAP_LE_32(bih.bih.mask_a);
-             if (amask)
-                SET_FLAG(im->flags, F_HAS_ALPHA);
           }
      }
    else
      {
         goto quit;
      }
+
+   UPDATE_FLAG(im->flags, F_HAS_ALPHA, amask);
 
    imgsize = size - bfh_offset;
    D("w=%3d h=%3d bitcount=%d comp=%d imgsize=%d\n",

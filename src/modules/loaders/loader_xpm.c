@@ -360,10 +360,7 @@ load2(ImlibImage * im, int load_data)
                           qsort(cmap, ncolors, sizeof(cmap_t), xpm_cmap_sort);
                        context++;
 
-                       if (transp >= 0)
-                          SET_FLAG(im->flags, F_HAS_ALPHA);
-                       else
-                          UNSET_FLAG(im->flags, F_HAS_ALPHA);
+                       UPDATE_FLAG(im->flags, F_HAS_ALPHA, transp >= 0);
 
                        if (!load_data)
                          {

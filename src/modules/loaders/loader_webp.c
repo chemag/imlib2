@@ -59,10 +59,7 @@ load2(ImlibImage * im, int load_data)
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   if (features.has_alpha == 0)
-      UNSET_FLAG(im->flags, F_HAS_ALPHA);
-   else
-      SET_FLAG(im->flags, F_HAS_ALPHA);
+   UPDATE_FLAG(im->flags, F_HAS_ALPHA, features.has_alpha);
 
    if (!load_data)
      {

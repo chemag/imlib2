@@ -311,10 +311,8 @@ load2(ImlibImage * im, int load_data)
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   if (rgba_image.rgba.alpha != EXTRASAMPLE_UNSPECIFIED)
-      SET_FLAG(im->flags, F_HAS_ALPHA);
-   else
-      UNSET_FLAG(im->flags, F_HAS_ALPHA);
+   UPDATE_FLAG(im->flags, F_HAS_ALPHA,
+               rgba_image.rgba.alpha != EXTRASAMPLE_UNSPECIFIED);
 
    if (!load_data)
      {

@@ -171,6 +171,8 @@ int                 __imlib_CurrentCacheSize(void);
 
 #define SET_FLAG(flags, f) ((flags) |= (f))
 #define UNSET_FLAG(flags, f) ((flags) &= (~f))
+#define UPDATE_FLAG(flags, f, set) \
+   do { if (set) SET_FLAG(flags, f); else UNSET_FLAG(flags, f); } while(0)
 
 #define LOAD_FAIL       0
 #define LOAD_SUCCESS    1
