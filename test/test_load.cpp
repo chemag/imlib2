@@ -5,7 +5,8 @@
 
 int                 debug = 0;
 
-#define D(...) if (debug) printf(__VA_ARGS__)
+#define D(...)  if (debug) printf(__VA_ARGS__)
+#define D2(...) if (debug > 1) printf(__VA_ARGS__)
 
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
@@ -40,8 +41,8 @@ static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
 {
-   D("%s: %3d%% %4d,%4d %4dx%4d\n",
-     __func__, percent, update_x, update_y, update_w, update_h);
+   D2("%s: %3d%% %4d,%4d %4dx%4d\n",
+      __func__, percent, update_x, update_y, update_w, update_h);
 
    return 1;                    /* Continue */
 }
@@ -79,11 +80,14 @@ test_load(void)
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMGDIR, "icon-64", pfxs[i]);
         D("Load '%s'\n", fileo);
         im = imlib_load_image_with_error_return(fileo, &lerr);
+        EXPECT_TRUE(im);
         EXPECT_EQ(lerr, 0);
-        if (lerr)
-           D("Error %d loading '%s'\n", lerr, fileo);
+        if (!im || lerr)
+           D("Error %d im=%p loading '%s'\n", lerr, im, fileo);
         if (im)
            image_free(im);
+
+        imlib_flush_loaders();
 
         if (strchr(pfxs[i], '.') == 0)
           {
@@ -97,9 +101,10 @@ test_load(void)
                   symlink(filei, fileo);
                   D("Load incorrect suffix '%s'\n", fileo);
                   im = imlib_load_image_with_error_return(fileo, &lerr);
+                  EXPECT_TRUE(im);
                   EXPECT_EQ(lerr, 0);
-                  if (lerr)
-                     D("Error %d loading '%s'\n", lerr, fileo);
+                  if (!im || lerr)
+                     D("Error %d im=%p loading '%s'\n", lerr, im, fileo);
                   if (im)
                      image_free(im);
                }
@@ -113,9 +118,7 @@ test_load(void)
         D("Load empty '%s'\n", fileo);
         im = imlib_load_image_with_error_return(fileo, &lerr);
         D("  err = %d\n", lerr);
-        EXPECT_TRUE(lerr == IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT ||
-                    lerr == IMLIB_LOAD_ERROR_UNKNOWN ||
-                    lerr == IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST);
+        EXPECT_TRUE(lerr == IMLIB_LOAD_ERROR_UNKNOWN);
 
         // Non-existing files of all types
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMGDIR, "nonex", pfxs[i]);
