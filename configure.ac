@@ -29,6 +29,13 @@ AC_SUBST(lt_version)
 
 PKG_PROG_PKG_CONFIG
 
+AC_DEFUN([EC_LOADER], [
+  if test "$2" = "yes"; then
+    AC_DEFINE([$1], [ 1 ], [ Build $3 loader ])
+  fi
+  AM_CONDITIONAL([$1], [ test "$2" = "yes" ])
+])
+
 
 mmx=no
 amd64=no
@@ -166,9 +173,7 @@ if test "$jpeg_loader" != no ; then
 else
   jpeg_ok=no
 fi
-ldr_ok=`expr "$jpeg_ok" = yes`
-AM_CONDITIONAL(BUILD_JPEG_LOADER, [ test $ldr_ok ])
-AC_DEFINE_UNQUOTED(BUILD_JPEG_LOADER, [ $ldr_ok ], [ Build JPEG loader ])
+EC_LOADER(BUILD_JPEG_LOADER, $jpeg_ok, JPEG)
 
 
 AC_MSG_CHECKING(whether to enable png support)
@@ -194,9 +199,7 @@ if test "$png_loader" != no ; then
 else
   png_ok="no"
 fi
-ldr_ok=`expr "$png_ok" = yes`
-AM_CONDITIONAL(BUILD_PNG_LOADER, [ test $ldr_ok ])
-AC_DEFINE_UNQUOTED(BUILD_PNG_LOADER, [ $ldr_ok ], [ Build PNG loader ])
+EC_LOADER(BUILD_PNG_LOADER, $png_ok, PNG)
 
 
 AC_MSG_CHECKING(whether to enable webp support)
@@ -218,9 +221,7 @@ if test "$webp_loader" != no ; then
 else
   webp_ok="no"
 fi
-ldr_ok=`expr "$webp_ok" = yes`
-AM_CONDITIONAL(BUILD_WEBP_LOADER, [ test $ldr_ok ])
-AC_DEFINE_UNQUOTED(BUILD_WEBP_LOADER, [ $ldr_ok ], [ Build WEBP loader ])
+EC_LOADER(BUILD_WEBP_LOADER, $webp_ok, WEBP)
 
 
 AC_MSG_CHECKING(whether to enable tiff support)
@@ -249,9 +250,7 @@ if test "$tiff_loader" != no ; then
 else
   tiff_ok=no
 fi
-ldr_ok=`expr "$tiff_ok" = yes`
-AM_CONDITIONAL(BUILD_TIFF_LOADER, [ test $ldr_ok ])
-AC_DEFINE_UNQUOTED(BUILD_TIFF_LOADER, [ $ldr_ok ], [ Build TIFF loader ])
+EC_LOADER(BUILD_TIFF_LOADER, $tiff_ok, TIFF)
 
 
 AC_MSG_CHECKING(whether to enable gif support)
@@ -288,9 +287,7 @@ if test "$gif_loader" != no ; then
 else
   gif_ok=no
 fi
-ldr_ok=`expr "$gif_ok" = yes`
-AM_CONDITIONAL(BUILD_GIF_LOADER, [ test $ldr_ok ])
-AC_DEFINE_UNQUOTED(BUILD_GIF_LOADER, [ $ldr_ok ], [ Build GIF loader ])
+EC_LOADER(BUILD_GIF_LOADER, $gif_ok, GIF)
 
 
 AC_MSG_CHECKING(whether to enable zlib support)
@@ -319,9 +316,7 @@ if test "$zlib_loader" != no ; then
 else
   zlib_ok=no
 fi
-ldr_ok=`expr "$zlib_ok" = yes`
-AM_CONDITIONAL(BUILD_ZLIB_LOADER, [ test $ldr_ok ])
-AC_DEFINE_UNQUOTED(BUILD_ZLIB_LOADER, [ $ldr_ok ], [ Build ZLIB loader ])
+EC_LOADER(BUILD_ZLIB_LOADER, $zlib_ok, ZLIB)
 
 
 AC_MSG_CHECKING(whether to enable bzip2 support)
@@ -359,9 +354,7 @@ if test "$bz2_loader" != no ; then
 else
   bz2_ok=no
 fi
-ldr_ok=`expr "$bz2_ok" = yes`
-AM_CONDITIONAL(BUILD_BZ2_LOADER, [ test $ldr_ok ])
-AC_DEFINE_UNQUOTED(BUILD_BZ2_LOADER, [ $ldr_ok ], [ Build BZ2 loader ])
+EC_LOADER(BUILD_BZ2_LOADER, $bz2_ok, BZ2)
 
 
 AC_MSG_CHECKING(whether to enable id3 support)
@@ -390,9 +383,7 @@ if test "$id3_loader" != no ; then
 else
   id3_ok=no
 fi
-ldr_ok=`expr "$bz2_ok" = yes`
-AM_CONDITIONAL(BUILD_ID3_LOADER, [ test $ldr_ok ])
-AC_DEFINE_UNQUOTED(BUILD_ID3_LOADER, [ $ldr_ok ], [ Build ID3 loader ])
+EC_LOADER(BUILD_ID3_LOADER, $id3_ok, ID3)
 
 
 AM_CONDITIONAL(BUILD_TEST, false)
