@@ -1,13 +1,13 @@
 #include "common.h"
-#ifdef BUILD_X11
+
 #include <X11/Xlib.h>
 #include <X11/extensions/XShm.h>
 
 #include "blend.h"
 #include "colormod.h"
-#include "draw.h"
 #include "image.h"
-#include "rend.h"
+#include "x11_draw.h"
+#include "x11_rend.h"
 
 char
 __imlib_CreatePixmapsForImage(Display * d, Drawable w, Visual * v, int depth,
@@ -88,5 +88,3 @@ __imlib_CreatePixmapsForImage(Display * d, Drawable w, Visual * v, int depth,
 #endif
    return 1;
 }
-
-#endif /* BUILD_X11 */

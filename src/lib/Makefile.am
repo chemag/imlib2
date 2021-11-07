@@ -14,64 +14,34 @@ include_HEADERS      = Imlib2.h
 libImlib2_la_SOURCES = \
 api.c \
 asm.h \
-blend.c \
-blend.h \
-color.c \
-color.h \
-color_helpers.c \
-color_helpers.h \
-colormod.c \
-colormod.h \
+blend.c		blend.h		\
+color_helpers.c	color_helpers.h \
+colormod.c	colormod.h	\
 common.h \
-context.c \
-context.h \
-debug.c \
-debug.h \
-draw.c \
-draw.h \
-dynamic_filters.c \
-dynamic_filters.h \
+debug.c		debug.h		\
+dynamic_filters.c	dynamic_filters.h \
 ellipse.c \
-file.c \
-file.h \
-filter.c \
-filter.h \
+file.c		file.h		\
+filter.c	filter.h	\
 font.h \
 font_draw.c \
 font_load.c \
 font_main.c \
 font_query.c \
-grab.c \
-grab.h \
-grad.c \
-grad.h \
-image.c \
-image.h \
+grad.c		grad.h		\
+image.c		image.h		\
 image_tags.c \
 line.c \
-loaders.c \
-loaders.h \
+loaders.c	loaders.h	\
 modules.c \
 polygon.c \
 rectangle.c \
-rend.c \
-rend.h \
-rgba.c \
-rgba.h \
-rgbadraw.c \
-rgbadraw.h \
-rotate.c \
-rotate.h \
-scale.c \
-scale.h \
-script.c \
-script.h \
-span.c \
-span.h \
-updates.c \
-updates.h \
-ximage.c \
-ximage.h
+rgbadraw.c	rgbadraw.h	\
+rotate.c	rotate.h	\
+scale.c		scale.h		\
+script.c	script.h	\
+span.c		span.h		\
+updates.c	updates.h
 
 MMX_SRCS = \
 asm_blend.S \
@@ -91,6 +61,14 @@ EXTRA_DIST = $(MMX_SRCS) $(AMD64_SRCS) asm_loadimmq.S
 
 MY_LIBS = $(FREETYPE_LIBS) $(DLOPEN_LIBS) -lm
 if BUILD_X11
+libImlib2_la_SOURCES += \
+x11_color.c	x11_color.h	\
+x11_context.c	x11_context.h	\
+x11_draw.c	x11_draw.h	\
+x11_grab.c	x11_grab.h	\
+x11_rend.c	x11_rend.h	\
+x11_rgba.c	x11_rgba.h	\
+x11_ximage.c	x11_ximage.h
 MY_LIBS += -lXext -lX11 @X_SHM_FD_LIBS@
 endif
 if BUILD_DEBUG

@@ -1,20 +1,20 @@
 #include "common.h"
-#ifdef BUILD_X11
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/XShm.h>
 
 #include "blend.h"
-#include "color.h"
 #include "colormod.h"
-#include "context.h"
-#include "grab.h"
 #include "image.h"
-#include "rend.h"
-#include "rgba.h"
 #include "rotate.h"
 #include "scale.h"
-#include "ximage.h"
+#include "x11_color.h"
+#include "x11_context.h"
+#include "x11_grab.h"
+#include "x11_rend.h"
+#include "x11_rgba.h"
+#include "x11_ximage.h"
 
 /* size of the lines per segment we scale / render at a time */
 #define LINESIZE 16
@@ -592,5 +592,3 @@ __imlib_RenderImageSkewed(Display * d, ImlibImage * im, Drawable w, Drawable m,
                        OP_COPY);
    __imlib_FreeImage(back);
 }
-
-#endif /* BUILD_X11 */

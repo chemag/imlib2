@@ -1,5 +1,5 @@
-#ifndef __GRAB
-#define __GRAB 1
+#ifndef X11_GRAB_H
+#define X11_GRAB_H 1
 
 #include "common.h"
 
@@ -15,4 +15,4 @@ void                __imlib_GrabXImageToRGBA(DATA32 * data, int ox, int oy,
                                              Visual * v, int depth, int x,
                                              int y, int w, int h, char grab);
 
-#endif
+#endif /* X11_GRAB_H */

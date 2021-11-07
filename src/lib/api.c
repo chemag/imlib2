@@ -27,11 +27,11 @@
 #include "span.h"
 #include "updates.h"
 #ifdef BUILD_X11
-#include "color.h"
-#include "draw.h"
-#include "grab.h"
-#include "rend.h"
-#include "ximage.h"
+#include "x11_color.h"
+#include "x11_draw.h"
+#include "x11_grab.h"
+#include "x11_rend.h"
+#include "x11_ximage.h"
 #endif
 
 /* convenience macros */

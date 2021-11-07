@@ -1,5 +1,5 @@
 #include "common.h"
-#ifdef BUILD_X11
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/shape.h>
@@ -7,8 +7,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#include "grab.h"
-#include "ximage.h"
+#include "x11_grab.h"
+#include "x11_ximage.h"
 
 static char         _x_err = 0;
 static DATA8        rtab[256], gtab[256], btab[256];
@@ -829,5 +829,3 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int ox, int oy, int ow, int oh,
 
    return 1;
 }
-
-#endif /* BUILD_X11 */

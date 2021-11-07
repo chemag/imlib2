@@ -1,5 +1,5 @@
 #include "common.h"
-#ifdef BUILD_X11
+
 #include <X11/Xlib.h>
 #include <X11/extensions/XShm.h>
 #include <X11/Xutil.h>
@@ -11,7 +11,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#include "ximage.h"
+#include "x11_ximage.h"
 
 static signed char  x_does_shm = -1;
 
@@ -472,5 +472,3 @@ __imlib_ProduceXImage(Display * d, Visual * v, int depth, int w, int h,
    /* return out image */
    return xim;
 }
-
-#endif /* BUILD_X11 */
