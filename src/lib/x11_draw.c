@@ -7,6 +7,7 @@
 #include "colormod.h"
 #include "image.h"
 #include "x11_draw.h"
+#include "x11_pixmap.h"
 #include "x11_rend.h"
 
 char
