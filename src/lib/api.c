@@ -3,8 +3,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
-#include <ft2build.h>
-#include FT_FREETYPE_H
 #ifdef BUILD_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
