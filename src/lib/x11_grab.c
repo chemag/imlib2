@@ -23,7 +23,7 @@ Tmp_HandleXError(Display * d, XErrorEvent * ev)
 void
 __imlib_GrabXImageToRGBA(DATA32 * data, int ox, int oy, int ow, int oh,
                          Display * d, XImage * xim, XImage * mxim, Visual * v,
-                         int depth, int x, int y, int w, int h, char grab)
+                         int depth, int x, int y, int w, int h, int grab)
 {
    int                 inx, iny;
    const DATA32       *src;
@@ -588,11 +588,11 @@ __imlib_GrabXImageToRGBA(DATA32 * data, int ox, int oy, int ow, int oh,
       XUngrabServer(d);
 }
 
-char
+int
 __imlib_GrabDrawableToRGBA(DATA32 * data, int ox, int oy, int ow, int oh,
                            Display * d, Drawable p, Pixmap m, Visual * v,
                            Colormap cm, int depth, int x, int y,
-                           int w, int h, char *pdomask, char grab)
+                           int w, int h, char *pdomask, int grab)
 {
    XErrorHandler       prev_erh = NULL;
    XWindowAttributes   xatt, ratt;
