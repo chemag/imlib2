@@ -151,8 +151,7 @@ __imlib_ProduceLoader(const char *file)
 static void
 __imlib_ConsumeLoader(ImlibLoader * l)
 {
-   if (l->file)
-      free(l->file);
+   free(l->file);
    if (l->handle)
       dlclose(l->handle);
    if (l->formats)

@@ -333,8 +333,7 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
    if (!xim)
      {
         __imlib_FreeScaleInfo(scaleinfo);
-        if (back)
-           free(back);
+        free(back);
         return;
      }
    if (m)
@@ -344,8 +343,7 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
           {
              __imlib_ConsumeXImage(d, xim);
              __imlib_FreeScaleInfo(scaleinfo);
-             if (back)
-                free(back);
+             free(back);
              return;
           }
         memset(mxim->data, 0, mxim->bytes_per_line * mxim->height);
@@ -361,8 +359,7 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
              if (m)
                 __imlib_ConsumeXImage(d, mxim);
              __imlib_FreeScaleInfo(scaleinfo);
-             if (back)
-                free(back);
+             free(back);
              return;
           }
      }
@@ -426,8 +423,7 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
                        if (m)
                           __imlib_ConsumeXImage(d, mxim);
                        __imlib_FreeScaleInfo(scaleinfo);
-                       if (back)
-                          free(back);
+                       free(back);
                        return;
                     }
                   memcpy(buf, im->data + ((y + sy) * im->w),
@@ -463,12 +459,10 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
         h -= LINESIZE;
      }
    /* free up our buffers and poit tables */
-   if (buf)
-      free(buf);
+   free(buf);
    if (scaleinfo)
       __imlib_FreeScaleInfo(scaleinfo);
-   if (back)
-      free(back);
+   free(back);
    /* if we changed diplays or depth since last time... free old gc */
    if ((gc) && ((last_depth != depth) || (disp != d)))
      {

@@ -165,8 +165,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
  quit:
    /* finish off */
 #ifdef WORDS_BIGENDIAN
-   if (buf)
-      free(buf);
+   free(buf);
 #endif
    fclose(f);
 

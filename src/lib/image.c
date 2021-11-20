@@ -106,14 +106,12 @@ __imlib_ConsumeImage(ImlibImage * im)
 
    if (im->real_file && im->real_file != im->file)
       free(im->real_file);
-   if (im->file)
-      free(im->file);
-   if (im->key)
-      free(im->key);
+   free(im->file);
+   free(im->key);
    if ((IMAGE_FREE_DATA(im)) && (im->data))
       __imlib_FreeData(im);
-   if (im->format)
-      free(im->format);
+   free(im->format);
+
    free(im);
 
 #ifdef BUILD_X11
@@ -328,8 +326,7 @@ __imlib_ConsumeImagePixmap(ImlibImagePixmap * ip)
       XFreePixmap(ip->display, ip->pixmap);
    if (ip->mask)
       XFreePixmap(ip->display, ip->mask);
-   if (ip->file)
-      free(ip->file);
+   free(ip->file);
    free(ip);
 }
 

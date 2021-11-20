@@ -288,8 +288,7 @@ __imlib_FileFreeDirList(char **l, int num)
    if (!l)
       return;
    while (num--)
-      if (l[num])
-         free(l[num]);
+      free(l[num]);
    free(l);
 }
 

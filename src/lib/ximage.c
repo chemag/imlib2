@@ -330,8 +330,7 @@ __imlib_FlushXImage(Display * d)
 
              if (list_num == 0)
                {
-                  if (xim_cache)
-                     free(xim_cache);
+                  free(xim_cache);
                   xim_cache = NULL;
                }
              else
