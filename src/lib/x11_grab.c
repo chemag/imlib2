@@ -880,7 +880,6 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
    Pixmap              psc, msc;
 
    h_tmp = h_dst > h_src ? h_dst : h_src;
-   psc = XCreatePixmap(d, p, w_dst, h_tmp, depth);
 
    gcv.foreground = 0;
    gcv.subwindow_mode = IncludeInferiors;
@@ -896,11 +895,21 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
 
    if (w_dst == w_src && h_dst == h_src)
      {
-        XCopyArea(d, p, psc, gc, x_src, y_src, w_src, h_src, 0, 0);
+        if (x_src == 0 && y_src == 0)
+          {
+             psc = p;
+          }
+        else
+          {
+             psc = XCreatePixmap(d, p, w_src, h_tmp, depth);
+             XCopyArea(d, p, psc, gc, x_src, y_src, w_src, h_src, 0, 0);
+          }
         msc = m;
      }
    else
      {
+        psc = XCreatePixmap(d, p, w_dst, h_tmp, depth);
+
         if (*pdomask)
           {
              msc = XCreatePixmap(d, p, w_dst, h_tmp, 1);
@@ -953,7 +962,8 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
    if (m != None && m != m_)
       XFreePixmap(d, m);
    XFreeGC(d, gc);
-   XFreePixmap(d, psc);
+   if (psc != p)
+      XFreePixmap(d, psc);
 
    return rc;
 }
