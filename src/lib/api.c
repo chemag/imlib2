@@ -3,11 +3,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
-#ifdef BUILD_X11
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/extensions/shape.h>
-#endif
 
 #include "Imlib2.h"
 #include "blend.h"
@@ -2315,123 +2310,27 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
                                         char get_mask_from_shape)
 {
    ImlibImage         *im;
-   char                domask = 0, tmpmask = 0;
-   int                 x, xx;
-   XGCValues           gcv;
-   GC                  gc = 0, mgc = 0;
-   Pixmap              p, m;
+   char                domask;
 
    CHECK_CONTEXT(ctx);
    if (!IMAGE_DIMENSIONS_OK(source_width, source_height))
       return NULL;
    if (!IMAGE_DIMENSIONS_OK(destination_width, destination_height))
       return NULL;
-   if ((mask) || (get_mask_from_shape))
-      domask = 1;
 
-   p = XCreatePixmap(ctx->display, ctx->drawable, destination_width,
-                     source_height, ctx->depth);
-
-   gcv.foreground = 0;
-   gcv.subwindow_mode = IncludeInferiors;
-   gcv.graphics_exposures = False;
-   gc = XCreateGC(ctx->display, ctx->drawable,
-                  GCSubwindowMode | GCGraphicsExposures, &gcv);
-
-   if ((domask) && (!mask))
-     {
-        XRectangle         *rect;
-        int                 rect_num, rect_ord;
-
-        rect = XShapeGetRectangles(ctx->display, ctx->drawable, ShapeBounding,
-                                   &rect_num, &rect_ord);
-
-        if (rect && (rect_num == 1 &&
-                     rect[0].x == 0 && rect[0].y == 0 &&
-                     rect[0].width == source_width &&
-                     rect[0].height == source_height))
-          {
-             domask = 0;
-             XFree(rect);
-          }
-        else
-          {
-             tmpmask = 1;
-             mask =
-                XCreatePixmap(ctx->display, ctx->drawable, source_width,
-                              source_height, 1);
-             mgc = XCreateGC(ctx->display, mask,
-                             GCForeground | GCGraphicsExposures, &gcv);
-             XFillRectangle(ctx->display, mask, mgc, 0, 0, source_width,
-                            source_height);
-             if (rect)
-               {
-                  XSetForeground(ctx->display, mgc, 1);
-                  for (x = 0; x < rect_num; x++)
-                     XFillRectangle(ctx->display, mask, mgc, rect[x].x,
-                                    rect[x].y, rect[x].width, rect[x].height);
-                  XFree(rect);
-               }
-          }
-     }
-
-   if ((destination_width == source_width) &&
-       (destination_height == source_height))
-     {
-        XCopyArea(ctx->display, ctx->drawable, p, gc, source_x, source_y,
-                  source_width, source_height, 0, 0);
-        m = mask;
-     }
-   else
-     {
-        if (domask)
-          {
-             m = XCreatePixmap(ctx->display, ctx->drawable, destination_width,
-                               source_height, 1);
-             if (!mgc)
-                mgc = XCreateGC(ctx->display, m,
-                                GCForeground | GCGraphicsExposures, &gcv);
-          }
-        else
-           m = None;
-
-        for (x = 0; x < destination_width; x++)
-          {
-             xx = (source_width * x) / destination_width;
-             XCopyArea(ctx->display, ctx->drawable, p, gc,
-                       source_x + xx, source_y, 1, source_height, x, 0);
-             if (m != None)
-                XCopyArea(ctx->display, mask, m, mgc,
-                          xx, 0, 1, source_height, x, 0);
-          }
-        for (x = 0; x < destination_height; x++)
-          {
-             xx = (source_height * x) / destination_height;
-             XCopyArea(ctx->display, p, p, gc,
-                       0, xx, destination_width, 1, 0, x);
-             if (m != None)
-                XCopyArea(ctx->display, m, m, mgc,
-                          0, xx, destination_width, 1, 0, x);
-          }
-     }
+   domask = mask != 0 || get_mask_from_shape;
 
    im = __imlib_CreateImage(destination_width, destination_height, NULL);
    im->data = malloc(destination_width * destination_height * sizeof(DATA32));
-   __imlib_GrabDrawableToRGBA(im->data, 0, 0, destination_width,
-                              source_height, ctx->display, p, m,
-                              ctx->visual, ctx->colormap, ctx->depth, 0, 0,
-                              destination_width, destination_height, &domask,
-                              need_to_grab_x);
-   UPDATE_FLAG(im->flags, F_HAS_ALPHA, domask);
 
-   if (mgc)
-      XFreeGC(ctx->display, mgc);
-   if (m != None && m != mask)
-      XFreePixmap(ctx->display, m);
-   if (tmpmask)
-      XFreePixmap(ctx->display, mask);
-   XFreeGC(ctx->display, gc);
-   XFreePixmap(ctx->display, p);
+   __imlib_GrabDrawableScaledToRGBA(im->data, source_x, source_y,
+                                    source_width, source_height,
+                                    ctx->display, ctx->drawable, mask,
+                                    ctx->visual, ctx->colormap, ctx->depth, 0,
+                                    0, destination_width, destination_height,
+                                    &domask, need_to_grab_x);
+
+   UPDATE_FLAG(im->flags, F_HAS_ALPHA, domask);
 
    return (Imlib_Image) im;
 }
