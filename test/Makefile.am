@@ -10,6 +10,7 @@ CLEANFILES = file.c img_save-*.*
  GTESTS += test_load
  GTESTS += test_load_2
  GTESTS += test_save
+ GTESTS += test_grab
 
  AM_CFLAGS  = -Wall -Wextra -Werror -Wno-unused-parameter
  AM_CFLAGS += $(CFLAGS_ASAN)
@@ -40,6 +41,9 @@ test_load_2_LDADD = $(LIBS) -lz
 
 test_save_SOURCES = test_save.cpp
 test_save_LDADD = $(LIBS)
+
+test_grab_SOURCES = test_grab.cpp
+test_grab_LDADD = $(LIBS)
 
  TESTS_RUN = $(addprefix run-, $(GTESTS))
 
