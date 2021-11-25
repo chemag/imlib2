@@ -131,14 +131,8 @@ _test_grab_1(int w, int h, int x0, int y0)
 
    xs = xd.scale > 0 ? xd.scale * x0 : x0;
    ws = xd.scale > 0 ? xd.scale * w : w;
-#if 0
-   // FIXME - y scaling doesn't work
    ys = xd.scale > 0 ? xd.scale * y0 : y0;
    hs = xd.scale > 0 ? xd.scale * h : h;
-#else
-   ys = y0;
-   hs = h;
-#endif
 
    if (xd.scale == 0)
       im = imlib_create_image_from_drawable(None, x0, y0, w, h, 0);

@@ -846,12 +846,13 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
 {
    int                 rc;
    int                 tmpmask = 0;
-   int                 i, xx;
+   int                 h_tmp, i, xx;
    XGCValues           gcv;
    GC                  gc = 0, mgc = 0;
    Pixmap              psc, msc;
 
-   psc = XCreatePixmap(d, p, w_dst, h_src, depth);
+   h_tmp = h_dst > h_src ? h_dst : h_src;
+   psc = XCreatePixmap(d, p, w_dst, h_tmp, depth);
 
    gcv.foreground = 0;
    gcv.subwindow_mode = IncludeInferiors;
@@ -897,7 +898,7 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
      {
         if (*pdomask)
           {
-             msc = XCreatePixmap(d, p, w_dst, h_src, 1);
+             msc = XCreatePixmap(d, p, w_dst, h_tmp, 1);
              if (!mgc)
                 mgc =
                    XCreateGC(d, msc, GCForeground | GCGraphicsExposures, &gcv);
@@ -912,16 +913,33 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
              if (msc != None)
                 XCopyArea(d, m, msc, mgc, xx, 0, 1, h_src, i, 0);
           }
-        for (i = 0; i < h_dst; i++)
+        if (h_dst > h_src)
           {
-             xx = (h_src * i) / h_dst;
-             XCopyArea(d, psc, psc, gc, 0, xx, w_dst, 1, 0, i);
-             if (msc != None)
-                XCopyArea(d, msc, msc, mgc, 0, xx, w_dst, 1, 0, i);
+             for (i = h_dst - 1; i > 0; i--)
+               {
+                  xx = (h_src * i) / h_dst;
+                  if (xx == i)
+                     continue;  /* Don't copy onto self */
+                  XCopyArea(d, psc, psc, gc, 0, xx, w_dst, 1, 0, i);
+                  if (msc != None)
+                     XCopyArea(d, msc, msc, mgc, 0, xx, w_dst, 1, 0, i);
+               }
+          }
+        else
+          {
+             for (i = 0; i < h_dst; i++)
+               {
+                  xx = (h_src * i) / h_dst;
+                  if (xx == i)
+                     continue;  /* Don't copy onto self */
+                  XCopyArea(d, psc, psc, gc, 0, xx, w_dst, 1, 0, i);
+                  if (msc != None)
+                     XCopyArea(d, msc, msc, mgc, 0, xx, w_dst, 1, 0, i);
+               }
           }
      }
 
-   rc = __imlib_GrabDrawableToRGBA(data, 0, 0, w_dst, h_src, d, psc, msc,
+   rc = __imlib_GrabDrawableToRGBA(data, 0, 0, w_dst, h_dst, d, psc, msc,
                                    v, cm, depth, 0, 0, w_dst, h_dst,
                                    pdomask, grab);
 
