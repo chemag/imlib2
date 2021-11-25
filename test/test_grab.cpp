@@ -129,10 +129,17 @@ _test_grab_1(int w, int h, int x0, int y0)
    int                 xs, ys, ws, hs;
    char                buf[128];
 
-   xs = xd.scale > 0 ? xd.scale * x0 : x0;
-   ws = xd.scale > 0 ? xd.scale * w : w;
-   ys = xd.scale > 0 ? xd.scale * y0 : y0;
-   hs = xd.scale > 0 ? xd.scale * h : h;
+   xs = x0;
+   ws = w;
+   ys = y0;
+   hs = h;
+   if (xd.scale > 0)
+     {
+        xs *= xd.scale;
+        ws *= xd.scale;
+        ys *= xd.scale;
+        hs *= xd.scale;
+     }
 
    if (xd.scale == 0)
       im = imlib_create_image_from_drawable(None, x0, y0, w, h, 0);
@@ -178,7 +185,7 @@ _test_grab_1(int w, int h, int x0, int y0)
 }
 
 static void
-_test_grab_1(const char *test, int depth, int scale, int opt)
+_test_grab(const char *test, int depth, int scale, int opt)
 {
    Pixmap              pmap;
    int                 w, h, d;
@@ -216,75 +223,65 @@ _test_grab_1(const char *test, int depth, int scale, int opt)
    _x11_fini();
 }
 
-#define ENABLE_S2 1
-
 TEST(GRAB, grab_noof_24_s0)
 {
-   _test_grab_1("grab_noof_24_s0", 24, 0, 0);
+   _test_grab("grab_noof_24_s0", 24, 0, 0);
 }
 
 TEST(GRAB, grab_noof_24_s1)
 {
-   _test_grab_1("grab_noof_24_s1", 24, 1, 0);
+   _test_grab("grab_noof_24_s1", 24, 1, 0);
 }
 
-#if ENABLE_S2
-TEST(GRAB, grab_noof_24_s2)
+TEST(GRAB, grab_noof_24_su2)
 {
-   _test_grab_1("grab_noof_24_s2", 24, 2, 0);
+   _test_grab("grab_noof_24_su2", 24, 2, 0);
 }
-#endif
 
 TEST(GRAB, grab_noof_32_s0)
 {
-   _test_grab_1("grab_noof_32_s0", 32, 0, 0);
+   _test_grab("grab_noof_32_s0", 32, 0, 0);
 }
 
 TEST(GRAB, grab_noof_32_s1)
 {
-   _test_grab_1("grab_noof_32_s1", 32, 1, 0);
+   _test_grab("grab_noof_32_s1", 32, 1, 0);
 }
 
-#if ENABLE_S2
-TEST(GRAB, grab_noof_32_s2)
+TEST(GRAB, grab_noof_32_su2)
 {
-   _test_grab_1("grab_noof_32_s2", 32, 2, 0);
+   _test_grab("grab_noof_32_su2", 32, 2, 0);
 }
-#endif
 
 TEST(GRAB, grab_offs_24_s0)
 {
-   _test_grab_1("grab_offs_24_s0", 24, 0, 1);
+   _test_grab("grab_offs_24_s0", 24, 0, 1);
 }
 
 TEST(GRAB, grab_offs_24_s1)
 {
-   _test_grab_1("grab_offs_24_s1", 24, 1, 1);
+   _test_grab("grab_offs_24_s1", 24, 1, 1);
 }
 
-#if ENABLE_S2
-TEST(GRAB, grab_offs_24_s2)
+TEST(GRAB, grab_offs_24_su2)
 {
-   _test_grab_1("grab_offs_24_s2", 24, 2, 1);
+   _test_grab("grab_offs_24_su2", 24, 2, 1);
 }
-#endif
 
 TEST(GRAB, grab_offs_32_s0)
 {
-   _test_grab_1("grab_offs_32_s0", 32, 0, 1);
+   _test_grab("grab_offs_32_s0", 32, 0, 1);
 }
 
 TEST(GRAB, grab_offs_32_s1)
 {
-   _test_grab_1("grab_offs_32_s1", 32, 1, 1);
+   _test_grab("grab_offs_32_s1", 32, 1, 1);
 }
 
-#if ENABLE_S2
-TEST(GRAB, grab_offs_32_s2)
+TEST(GRAB, grab_offs_32_su2)
 {
-   _test_grab_1("grab_offs_32_s2", 32, 2, 1);
+   _test_grab("grab_offs_32_su2", 32, 2, 1);
 }
-#endif
 
 int
 main(int argc, char **argv)
