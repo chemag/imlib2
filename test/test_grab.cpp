@@ -15,8 +15,12 @@ typedef struct {
    Visual             *argb_vis;
    Colormap            argb_cmap;
    int                 depth;
-   int                 scale;
+
    const char         *test;
+   int                 scale;
+   bool                do_mask;
+
+   unsigned int        color;
 } xd_t;
 
 static xd_t         xd;
@@ -49,12 +53,13 @@ _x11_vis_argb(void)
    XFree(xvi);
 
    xd.argb_vis = vis;
-   xd.argb_cmap = XCreateColormap(xd.dpy, xd.root, vis, AllocNone);
+   xd.argb_cmap =
+      (vis) ? XCreateColormap(xd.dpy, xd.root, vis, AllocNone) : None;
 
    return vis;
 }
 
-static void
+static int
 _x11_init(int depth)
 {
    xd.dpy = XOpenDisplay(NULL);
@@ -64,11 +69,21 @@ _x11_init(int depth)
         exit(1);
      }
 
+   if (depth != 32)
+      depth = DefaultDepth(xd.dpy, DefaultScreen(xd.dpy));
+   xd.depth = depth;
+
    xd.root = DefaultRootWindow(xd.dpy);
    if (depth == 32)
      {
         xd.vis = _x11_vis_argb();
         xd.cmap = xd.argb_cmap;
+        if (!xd.vis)
+          {
+             fprintf(stderr, "No 32 bit depthh visual\n");
+             return 1;
+          }
+
      }
    else
      {
@@ -79,6 +94,8 @@ _x11_init(int depth)
    imlib_context_set_display(xd.dpy);
    imlib_context_set_visual(xd.vis);
    imlib_context_set_colormap(xd.cmap);
+
+   return 0;
 }
 
 static void
@@ -93,10 +110,44 @@ _pmap_mk_fill_solid(int w, int h, unsigned int color)
    XGCValues           gcv;
    GC                  gc;
    Pixmap              pmap;
+   XColor              xc;
+
+   xc.red = ((color >> 16) & 0xff) * 0x101;
+   xc.green = ((color >> 8) & 0xff) * 0x101;
+   xc.blue = ((color >> 0) & 0xff) * 0x101;
+   XAllocColor(xd.dpy, xd.cmap, &xc);
+   D("color RGB = %#06x %#06x %#06x  %#08lx\n",
+     xc.red, xc.green, xc.blue, xc.pixel);
+#if 0
+   xc.red = xc.green = xc.blue = 0;
+   XQueryColor(xd.dpy, xd.cmap, &xc);
+   D("color RGB = %#06x %#06x %#06x  %#08lx\n",
+     xc.red, xc.green, xc.blue, xc.pixel);
+#endif
 
    pmap = XCreatePixmap(xd.dpy, xd.root, w, h, xd.depth);
 
-   gcv.foreground = color;
+   gcv.foreground = xc.pixel;
+   gcv.graphics_exposures = False;
+   gc = XCreateGC(xd.dpy, pmap, GCForeground | GCGraphicsExposures, &gcv);
+
+   XFillRectangle(xd.dpy, pmap, gc, 0, 0, w, h);
+
+   XFreeGC(xd.dpy, gc);
+
+   return pmap;
+}
+
+static              Pixmap
+_pmap_mk_mask(int w, int h, int x, int y)
+{
+   XGCValues           gcv;
+   GC                  gc;
+   Pixmap              pmap;
+
+   pmap = XCreatePixmap(xd.dpy, xd.root, w, h, 1);
+
+   gcv.foreground = 1;
    gcv.graphics_exposures = False;
    gc = XCreateGC(xd.dpy, pmap, GCForeground | GCGraphicsExposures, &gcv);
 
@@ -118,8 +169,6 @@ _img_dump(Imlib_Image im, const char *file)
    imlib_save_image(buf);
 }
 
-DATA32              color = 0;
-
 static void
 _test_grab_1(int w, int h, int x0, int y0)
 {
@@ -128,6 +177,7 @@ _test_grab_1(int w, int h, int x0, int y0)
    int                 x, y, err;
    int                 xs, ys, ws, hs;
    char                buf[128];
+   Pixmap              mask;
 
    xs = x0;
    ws = w;
@@ -151,11 +201,17 @@ _test_grab_1(int w, int h, int x0, int y0)
    D("%s: %3dx%3d(%3d,%3d) -> %3dx%3d(%d,%d)\n", __func__,
      w, h, x0, y0, ws, hs, xs, ys);
 
+   mask = xd.do_mask ? _pmap_mk_mask(w, h, 0, 0) : None;
+
    if (xd.scale == 0)
-      im = imlib_create_image_from_drawable(None, x0, y0, w, h, 0);
+      im = imlib_create_image_from_drawable(mask, x0, y0, w, h, 0);
    else
-      im = imlib_create_scaled_image_from_drawable(None, x0, y0, w, h,
+      im = imlib_create_scaled_image_from_drawable(mask, x0, y0, w, h,
                                                    ws, hs, 0, 0);
+
+   if (mask != None)
+      XFreePixmap(xd.dpy, mask);
+
    imlib_context_set_image(im);
    snprintf(buf, sizeof(buf), "%s/%s-%%d.png", IMG_GEN, xd.test);
    _img_dump(im, buf);
@@ -178,7 +234,7 @@ _test_grab_1(int w, int h, int x0, int y0)
                }
              else
                {
-                  col = color;
+                  col = xd.color;
                }
              if (pix != col)
                {
@@ -195,23 +251,27 @@ _test_grab_1(int w, int h, int x0, int y0)
 }
 
 static void
-_test_grab(const char *test, int depth, int scale, int opt)
+_test_grab_2(const char *test, int depth, int scale, int opt)
 {
    Pixmap              pmap;
    int                 w, h, d;
 
-   color = 0xffff0000;
+   D("%s: %s\n", __func__, test);
 
-   _x11_init(depth);
+   xd.color = 0xff0000ff;       // B ok
+   xd.color = 0xff00ff00;       // G ok
+   xd.color = 0xffff0000;       // R ok
 
-   xd.depth = depth;
+   if (_x11_init(depth))
+      return;
+
    xd.scale = scale;
    xd.test = test;
 
    w = 32;
    h = 45;
 
-   pmap = _pmap_mk_fill_solid(w, h, color);
+   pmap = _pmap_mk_fill_solid(w, h, xd.color);
    imlib_context_set_drawable(pmap);
 
    switch (opt)
@@ -241,82 +301,69 @@ _test_grab(const char *test, int depth, int scale, int opt)
    _x11_fini();
 }
 
-TEST(GRAB, grab_noof_24_s0)
+static void
+_test_grab(const char *test, int scale, int opt)
 {
-   _test_grab("grab_noof_24_s0", 24, 0, 0);
+   char                buf[64];
+   int                 depth;
+
+   xd.do_mask = false;
+
+   depth = 24;
+   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d", test, depth, scale, opt);
+   _test_grab_2(buf, depth, scale, opt);
+
+   depth = 32;
+   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d", test, depth, scale, opt);
+   _test_grab_2(buf, 32, scale, opt);
+
+   xd.do_mask = true;
+
+   depth = 24;
+   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d_m", test, depth, scale, opt);
+   _test_grab_2(buf, depth, scale, opt);
+
+   depth = 32;
+   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d_m", test, depth, scale, opt);
+   _test_grab_2(buf, 32, scale, opt);
 }
 
-TEST(GRAB, grab_noof_24_s1)
+TEST(GRAB, grab_noof_s0)
 {
-   _test_grab("grab_noof_24_s1", 24, 1, 0);
+   _test_grab("grab_noof", 0, 0);
 }
 
-TEST(GRAB, grab_noof_24_su2)
+TEST(GRAB, grab_noof_s1)
 {
-   _test_grab("grab_noof_24_su2", 24, 2, 0);
+   _test_grab("grab_noof", 1, 0);
 }
 
-TEST(GRAB, grab_noof_24_sd2)
+TEST(GRAB, grab_noof_su2)
 {
-   _test_grab("grab_noof_24_sd2", 24, -2, 0);
+   _test_grab("grab_noof", 2, 0);
 }
 
-TEST(GRAB, grab_noof_32_s0)
+TEST(GRAB, grab_noof_sd2)
 {
-   _test_grab("grab_noof_32_s0", 32, 0, 0);
+   _test_grab("grab_noof", -2, 0);
 }
 
-TEST(GRAB, grab_noof_32_s1)
+TEST(GRAB, grab_offs_s0)
 {
-   _test_grab("grab_noof_32_s1", 32, 1, 0);
+   _test_grab("grab_offs", 0, 1);
 }
 
-TEST(GRAB, grab_noof_32_su2)
+TEST(GRAB, grab_offs_s1)
 {
-   _test_grab("grab_noof_32_su2", 32, 2, 0);
+   _test_grab("grab_offs", 1, 1);
 }
 
-TEST(GRAB, grab_noof_32_sd2)
+TEST(GRAB, grab_offs_su2)
 {
-   _test_grab("grab_noof_32_sd2", 32, -2, 0);
+   _test_grab("grab_offs", 2, 1);
 }
 
-TEST(GRAB, grab_offs_24_s0)
+TEST(GRAB, grab_offs_sd2)
 {
-   _test_grab("grab_offs_24_s0", 24, 0, 1);
-}
-
-TEST(GRAB, grab_offs_24_s1)
-{
-   _test_grab("grab_offs_24_s1", 24, 1, 1);
-}
-
-TEST(GRAB, grab_offs_24_su2)
-{
-   _test_grab("grab_offs_24_su2", 24, 2, 1);
-}
-
-TEST(GRAB, grab_offs_24_sd2)
-{
-   _test_grab("grab_offs_24_sd2", 24, -2, 1);
-}
-
-TEST(GRAB, grab_offs_32_s0)
-{
-   _test_grab("grab_offs_32_s0", 32, 0, 1);
-}
-
-TEST(GRAB, grab_offs_32_s1)
-{
-   _test_grab("grab_offs_32_s1", 32, 1, 1);
-}
-
-TEST(GRAB, grab_offs_32_su2)
-{
-   _test_grab("grab_offs_32_su2", 32, 2, 1);
-}
-
-TEST(GRAB, grab_offs_32_sd2)
-{
-   _test_grab("grab_offs_32_sd2", 32, -2, 1);
+   _test_grab("grab_offs", -2, 1);
 }
