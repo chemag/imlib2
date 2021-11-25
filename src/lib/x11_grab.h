@@ -10,6 +10,14 @@ int                 __imlib_GrabDrawableToRGBA(DATA32 * data, int ox, int oy,
                                                int y, int w, int h,
                                                char *domask, int grab);
 
+int                 __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int ox,
+                                                     int oy, int ow, int oh,
+                                                     Display * d, Drawable p,
+                                                     Pixmap m, Visual * v,
+                                                     Colormap cm, int depth,
+                                                     int x, int y, int w, int h,
+                                                     char *pdomask, int grab);
+
 void                __imlib_GrabXImageToRGBA(DATA32 * data, int ox, int oy,
                                              int ow, int oh, Display * d,
                                              XImage * xim, XImage * mxim,

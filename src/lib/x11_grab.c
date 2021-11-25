@@ -829,3 +829,101 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int ox, int oy, int ow, int oh,
 
    return 1;
 }
+
+int
+__imlib_GrabDrawableScaledToRGBA(DATA32 * data, int ox, int oy, int ow, int oh,
+                                 Display * d, Drawable p, Pixmap m, Visual * v,
+                                 Colormap cm, int depth, int x, int y,
+                                 int w, int h, char *pdomask, int grab)
+{
+   int                 rc;
+   int                 tmpmask = 0;
+   int                 i, xx;
+   XGCValues           gcv;
+   GC                  gc = 0, mgc = 0;
+   Pixmap              psc, msc;
+
+   psc = XCreatePixmap(d, p, ow, h, depth);
+
+   gcv.foreground = 0;
+   gcv.subwindow_mode = IncludeInferiors;
+   gcv.graphics_exposures = False;
+   gc = XCreateGC(d, p, GCSubwindowMode | GCGraphicsExposures, &gcv);
+
+   if (*pdomask && !m)
+     {
+        XRectangle         *rect;
+        int                 rect_num, rect_ord;
+
+        rect = XShapeGetRectangles(d, p, ShapeBounding, &rect_num, &rect_ord);
+
+        if (rect && (rect_num == 1 && rect[0].x == 0 && rect[0].y == 0 &&
+                     rect[0].width == w && rect[0].height == h))
+          {
+             *pdomask = 0;
+             XFree(rect);
+          }
+        else
+          {
+             tmpmask = 1;
+             m = XCreatePixmap(d, p, w, h, 1);
+             mgc = XCreateGC(d, m, GCForeground | GCGraphicsExposures, &gcv);
+             XFillRectangle(d, m, mgc, 0, 0, w, h);
+             if (rect)
+               {
+                  XSetForeground(d, mgc, 1);
+                  for (i = 0; i < rect_num; i++)
+                     XFillRectangle(d, m, mgc, rect[i].x, rect[i].y,
+                                    rect[i].width, rect[i].height);
+                  XFree(rect);
+               }
+          }
+     }
+
+   if (ow == w && oh == h)
+     {
+        XCopyArea(d, p, psc, gc, x, y, w, h, 0, 0);
+        msc = m;
+     }
+   else
+     {
+        if (*pdomask)
+          {
+             msc = XCreatePixmap(d, p, ow, h, 1);
+             if (!mgc)
+                mgc =
+                   XCreateGC(d, msc, GCForeground | GCGraphicsExposures, &gcv);
+          }
+        else
+           msc = None;
+
+        for (i = 0; i < ow; i++)
+          {
+             xx = (w * i) / ow;
+             XCopyArea(d, p, psc, gc, x + xx, y, 1, h, i, 0);
+             if (msc != None)
+                XCopyArea(d, m, msc, mgc, xx, 0, 1, h, i, 0);
+          }
+        for (i = 0; i < oh; i++)
+          {
+             xx = (h * i) / oh;
+             XCopyArea(d, psc, psc, gc, 0, xx, ow, 1, 0, i);
+             if (msc != None)
+                XCopyArea(d, msc, msc, mgc, 0, xx, ow, 1, 0, i);
+          }
+     }
+
+   rc = __imlib_GrabDrawableToRGBA(data, 0, 0, ow, h, d, psc, msc,
+                                   v, cm, depth, 0, 0, ow, oh, pdomask, grab);
+
+   if (mgc)
+      XFreeGC(d, mgc);
+   if (msc != None && msc != m)
+      XFreePixmap(d, msc);
+   if (tmpmask)
+      XFreePixmap(d, m);
+   XFreeGC(d, gc);
+   XFreePixmap(d, psc);
+
+   return rc;
+}
