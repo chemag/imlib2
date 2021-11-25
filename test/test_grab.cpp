@@ -140,6 +140,16 @@ _test_grab_1(int w, int h, int x0, int y0)
         ys *= xd.scale;
         hs *= xd.scale;
      }
+   if (xd.scale < 0)
+     {
+        xs = (xs & ~1) / -xd.scale;
+        ws /= -xd.scale;
+        ys = (ys & ~1) / -xd.scale;
+        hs /= -xd.scale;
+     }
+
+   D("%s: %3dx%3d(%3d,%3d) -> %3dx%3d(%d,%d)\n", __func__,
+     w, h, x0, y0, ws, hs, xs, ys);
 
    if (xd.scale == 0)
       im = imlib_create_image_from_drawable(None, x0, y0, w, h, 0);
@@ -215,6 +225,14 @@ _test_grab(const char *test, int depth, int scale, int opt)
         _test_grab_1(w, h, -d, d);
         _test_grab_1(w, h, d, d);
         _test_grab_1(w, h, d, -d);
+        if (scale < 0)
+          {
+             d = 2;
+             _test_grab_1(w, h, -d, -d);
+             _test_grab_1(w, h, -d, d);
+             _test_grab_1(w, h, d, d);
+             _test_grab_1(w, h, d, -d);
+          }
         break;
      }
 
@@ -238,6 +256,11 @@ TEST(GRAB, grab_noof_24_su2)
    _test_grab("grab_noof_24_su2", 24, 2, 0);
 }
 
+TEST(GRAB, grab_noof_24_sd2)
+{
+   _test_grab("grab_noof_24_sd2", 24, -2, 0);
+}
+
 TEST(GRAB, grab_noof_32_s0)
 {
    _test_grab("grab_noof_32_s0", 32, 0, 0);
@@ -251,6 +274,11 @@ TEST(GRAB, grab_noof_32_s1)
 TEST(GRAB, grab_noof_32_su2)
 {
    _test_grab("grab_noof_32_su2", 32, 2, 0);
+}
+
+TEST(GRAB, grab_noof_32_sd2)
+{
+   _test_grab("grab_noof_32_sd2", 32, -2, 0);
 }
 
 TEST(GRAB, grab_offs_24_s0)
@@ -268,6 +296,11 @@ TEST(GRAB, grab_offs_24_su2)
    _test_grab("grab_offs_24_su2", 24, 2, 1);
 }
 
+TEST(GRAB, grab_offs_24_sd2)
+{
+   _test_grab("grab_offs_24_sd2", 24, -2, 1);
+}
+
 TEST(GRAB, grab_offs_32_s0)
 {
    _test_grab("grab_offs_32_s0", 32, 0, 1);
@@ -281,6 +314,11 @@ TEST(GRAB, grab_offs_32_s1)
 TEST(GRAB, grab_offs_32_su2)
 {
    _test_grab("grab_offs_32_su2", 32, 2, 1);
+}
+
+TEST(GRAB, grab_offs_32_sd2)
+{
+   _test_grab("grab_offs_32_sd2", 32, -2, 1);
 }
 
 int
