@@ -39,6 +39,7 @@ load2(ImlibImage * im, int load_data)
    if (im->key)
      {
         frame = atoi(im->key);
+        iter.num_frames = WebPDemuxGetI(demux, WEBP_FF_FRAME_COUNT);
         if (frame > iter.num_frames)
            frame = 0;           /* Select last */
      }
