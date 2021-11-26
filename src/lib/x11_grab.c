@@ -592,30 +592,34 @@ __imlib_GrabXImageToRGBA(DATA32 * data,
 
 int
 __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
-                           int h_dst, Display * d, Drawable p, Pixmap m,
+                           int h_dst, Display * d, Drawable p, Pixmap m_,
                            Visual * v, Colormap cm, int depth, int x_src,
                            int y_src, int w_src, int h_src, char *pdomask,
                            int grab)
 {
    XErrorHandler       prev_erh = NULL;
    XWindowAttributes   xatt, ratt;
-   char                is_pixmap = 0, created_mask = 0, is_shm = 0, is_mshm = 0;
+   char                is_pixmap = 0, is_shm = 0, is_mshm = 0;
    char                domask;
    int                 i;
    int                 src_x, src_y, src_w, src_h;
    int                 width, height, clipx, clipy;
+   Pixmap              m = m_;
    XShmSegmentInfo     shminfo, mshminfo;
    XImage             *xim, *mxim;
    XColor              cols[256];
 
    domask = (pdomask) ? *pdomask : 0;
+
    /* FIXME: h_dst isn't used - i wonder if there's a bug looming... */
    h_dst = 0;
+
    if (grab)
       XGrabServer(d);
    XSync(d, False);
    prev_erh = XSetErrorHandler(Tmp_HandleXError);
    _x_err = 0;
+
    /* lets see if its a pixmap or not */
    XGetWindowAttributes(d, p, &xatt);
    XSync(d, False);
@@ -623,6 +627,7 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
       is_pixmap = 1;
    /* reset our error handler */
    XSetErrorHandler((XErrorHandler) prev_erh);
+
    if (is_pixmap)
      {
         Window              dw;
@@ -666,18 +671,21 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
         if ((src_y + y_src + height) > ratt.height)
            height = ratt.height - (src_y + y_src);
      }
+
    if (x_src < 0)
      {
         clipx = -x_src;
         width += x_src;
         x_src = 0;
      }
+
    if (y_src < 0)
      {
         clipy = -y_src;
         height += y_src;
         y_src = 0;
      }
+
    if (!is_pixmap)
      {
         if ((src_x + x_src) < 0)
@@ -693,15 +701,17 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
              y_src = -src_y;
           }
      }
+
    if ((width <= 0) || (height <= 0))
      {
         if (grab)
            XUngrabServer(d);
         return 0;
      }
+
    w_src = width;
    h_src = height;
-   if ((!is_pixmap) && (domask) && (!m))
+   if ((!is_pixmap) && (domask) && (m == None))
      {
         int                 ord, rect_no = 0;
         XRectangle         *r = NULL;
@@ -716,7 +726,6 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
                   XGCValues           gcv;
                   GC                  gc;
 
-                  created_mask = 1;
                   m = XCreatePixmap(d, p, w_src, h_src, 1);
                   gcv.foreground = 0;
                   gc = XCreateGC(d, m, GCForeground, &gcv);
@@ -733,9 +742,8 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
      }
 
    /* Create an Ximage (shared or not) */
-   xim =
-      __imlib_ShmGetXImage(d, v, p, xatt.depth, x_src, y_src, w_src, h_src,
-                           &shminfo);
+   xim = __imlib_ShmGetXImage(d, v, p, xatt.depth, x_src, y_src, w_src, h_src,
+                              &shminfo);
    is_shm = !!xim;
 
    if (!xim)
@@ -804,6 +812,7 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
              btab[i] = cols[i].blue >> 8;
           }
      }
+
    __imlib_GrabXImageToRGBA(data, x_dst + clipx, y_dst + clipy, w_dst, h_dst,
                             d, xim, mxim, v, xatt.depth, x_src, y_src, w_src,
                             h_src, 0);
@@ -821,7 +830,8 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
         else
            XDestroyImage(mxim);
      }
-   if (created_mask)
+
+   if (m != None && m != m_)
       XFreePixmap(d, m);
 
    if (pdomask)
@@ -829,7 +839,7 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
         /* Set domask according to whether or not we have useful alpha data */
         if (xatt.depth == 32)
            *pdomask = 1;
-        else if (!m)
+        else if (m == None)
            *pdomask = 0;
      }
 
@@ -839,16 +849,16 @@ __imlib_GrabDrawableToRGBA(DATA32 * data, int x_dst, int y_dst, int w_dst,
 int
 __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
                                  int w_dst, int h_dst,
-                                 Display * d, Drawable p, Pixmap m,
+                                 Display * d, Drawable p, Pixmap m_,
                                  Visual * v, Colormap cm, int depth,
                                  int x_src, int y_src, int w_src, int h_src,
                                  char *pdomask, int grab)
 {
    int                 rc;
-   int                 tmpmask = 0;
    int                 h_tmp, i, xx;
    XGCValues           gcv;
-   GC                  gc = 0, mgc = 0;
+   GC                  gc = NULL, mgc = NULL;
+   Pixmap              m = m_;
    Pixmap              psc, msc;
 
    h_tmp = h_dst > h_src ? h_dst : h_src;
@@ -859,7 +869,7 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
    gcv.graphics_exposures = False;
    gc = XCreateGC(d, p, GCSubwindowMode | GCGraphicsExposures, &gcv);
 
-   if (*pdomask && !m)
+   if (*pdomask && m == None)
      {
         XRectangle         *rect;
         int                 rect_num, rect_ord;
@@ -874,7 +884,6 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
           }
         else
           {
-             tmpmask = 1;
              m = XCreatePixmap(d, p, w_src, h_src, 1);
              mgc = XCreateGC(d, m, GCForeground | GCGraphicsExposures, &gcv);
              XFillRectangle(d, m, mgc, 0, 0, w_src, h_src);
@@ -947,7 +956,7 @@ __imlib_GrabDrawableScaledToRGBA(DATA32 * data, int nu_x_dst, int nu_y_dst,
       XFreeGC(d, mgc);
    if (msc != None && msc != m)
       XFreePixmap(d, msc);
-   if (tmpmask)
+   if (m != None && m != m_)
       XFreePixmap(d, m);
    XFreeGC(d, gc);
    XFreePixmap(d, psc);
