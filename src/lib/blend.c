@@ -1847,10 +1847,6 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
         int                 psx, psy, psw, psh;
         int                 y, h, hh;
 
-#ifdef DO_MMX_ASM
-        int                 do_mmx;
-#endif
-
         sx = ssx;
         sy = ssy;
         sw = ssw;
@@ -1939,9 +1935,6 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
                 blend = 1;
           }
         /* scale in LINESIZE Y chunks and convert to depth */
-#ifdef DO_MMX_ASM
-        do_mmx = __imlib_get_cpuid() & CPUID_MMX;
-#endif
         for (y = 0; y < dh; y += LINESIZE)
           {
              hh = LINESIZE;
@@ -1950,12 +1943,6 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
              /* scale the imagedata for this LINESIZE lines chunk of image */
              if (aa)
                {
-#ifdef DO_MMX_ASM
-                  if (do_mmx)
-                     __imlib_Scale_mmx_AARGBA(scaleinfo, buf, dxx, dyy + y,
-                                              0, 0, dw, hh, dw, im_src->w);
-                  else
-#endif
                   if (IMAGE_HAS_ALPHA(im_src))
                      __imlib_ScaleAARGBA(scaleinfo, buf, dxx, dyy + y,
                                          0, 0, dw, hh, dw, im_src->w);

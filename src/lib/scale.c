@@ -312,10 +312,23 @@ __imlib_ScaleAARGBA(ImlibScaleInfo * isi, DATA32 * dest, int dxx, int dyy,
 {
    DATA32             *sptr, *dptr;
    int                 x, y, end;
-   DATA32            **ypoints = isi->ypoints;
-   int                *xpoints = isi->xpoints;
-   int                *xapoints = isi->xapoints;
-   int                *yapoints = isi->yapoints;
+   DATA32            **ypoints;
+   int                *xpoints;
+   int                *xapoints;
+   int                *yapoints;
+
+#ifdef DO_MMX_ASM
+   if (__imlib_get_cpuid() & CPUID_MMX)
+     {
+        __imlib_Scale_mmx_AARGBA(isi, dest, dxx, dyy, dx, dy, dw, dh, dow, sow);
+        return;
+     }
+#endif
+
+   ypoints = isi->ypoints;
+   xpoints = isi->xpoints;
+   xapoints = isi->xapoints;
+   yapoints = isi->yapoints;
 
    end = dxx + dw;
    /* scaling up both ways */
@@ -960,10 +973,23 @@ __imlib_ScaleAARGB(ImlibScaleInfo * isi, DATA32 * dest, int dxx, int dyy,
 {
    DATA32             *sptr, *dptr;
    int                 x, y, end;
-   DATA32            **ypoints = isi->ypoints;
-   int                *xpoints = isi->xpoints;
-   int                *xapoints = isi->xapoints;
-   int                *yapoints = isi->yapoints;
+   DATA32            **ypoints;
+   int                *xpoints;
+   int                *xapoints;
+   int                *yapoints;
+
+#ifdef DO_MMX_ASM
+   if (__imlib_get_cpuid() & CPUID_MMX)
+     {
+        __imlib_Scale_mmx_AARGBA(isi, dest, dxx, dyy, dx, dy, dw, dh, dow, sow);
+        return;
+     }
+#endif
+
+   ypoints = isi->ypoints;
+   xpoints = isi->xpoints;
+   xapoints = isi->xapoints;
+   yapoints = isi->yapoints;
 
    end = dxx + dw;
    /* scaling up both ways */

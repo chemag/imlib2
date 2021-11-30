@@ -265,10 +265,6 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
    ImlibMaskFunction   masker = NULL;
    ImlibBlendFunction  blender = NULL;
 
-#ifdef DO_MMX_ASM
-   int                 do_mmx;
-#endif
-
    blender = __imlib_GetBlendFunction(op, 1, 0,
                                       (!(im->flags & F_HAS_ALPHA)), NULL);
 
@@ -372,9 +368,6 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
                                     hiq, ct->palette_type);
    if (m)
       masker = __imlib_GetMaskFunction(dither_mask);
-#ifdef DO_MMX_ASM
-   do_mmx = __imlib_get_cpuid() & CPUID_MMX;
-#endif
    for (y = 0; y < dh; y += LINESIZE)
      {
         hh = LINESIZE;
@@ -386,14 +379,6 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
              /* scale the imagedata for this LINESIZE lines chunk of image data */
              if (antialias)
                {
-#ifdef DO_MMX_ASM
-                  if (do_mmx)
-                     __imlib_Scale_mmx_AARGBA(scaleinfo, buf,
-                                              ((sx * dw) / sw),
-                                              ((sy * dh) / sh) + y,
-                                              0, 0, dw, hh, dw, im->w);
-                  else
-#endif
                   if (IMAGE_HAS_ALPHA(im))
                      __imlib_ScaleAARGBA(scaleinfo, buf, ((sx * dw) / sw),
                                          ((sy * dh) / sh) + y,
