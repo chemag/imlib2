@@ -4679,15 +4679,8 @@ imlib_create_rotated_image(double angle)
 
    if (ctx->anti_alias)
      {
-#ifdef DO_MMX_ASM
-        if (__imlib_get_cpuid() & CPUID_MMX)
-           __imlib_mmx_RotateAA(im_old->data, im->data, im_old->w, im_old->w,
-                                im_old->h, im->w, sz, sz, x, y, dx, dy, -dy,
-                                dx);
-        else
-#endif
-           __imlib_RotateAA(im_old->data, im->data, im_old->w, im_old->w,
-                            im_old->h, im->w, sz, sz, x, y, dx, dy, -dy, dx);
+        __imlib_RotateAA(im_old->data, im->data, im_old->w, im_old->w,
+                         im_old->h, im->w, sz, sz, x, y, dx, dy, -dy, dx);
      }
    else
      {
@@ -4747,15 +4740,8 @@ imlib_rotate_image_from_buffer(double angle, Imlib_Image source_image)
 
    if (ctx->anti_alias)
      {
-#ifdef DO_MMX_ASM
-        if (__imlib_get_cpuid() & CPUID_MMX)
-           __imlib_mmx_RotateAA(im_old->data, im->data, im_old->w, im_old->w,
-                                im_old->h, im->w, sz, sz, x, y, dx, dy, -dy,
-                                dx);
-        else
-#endif
-           __imlib_RotateAA(im_old->data, im->data, im_old->w, im_old->w,
-                            im_old->h, im->w, sz, sz, x, y, dx, dy, -dy, dx);
+        __imlib_RotateAA(im_old->data, im->data, im_old->w, im_old->w,
+                         im_old->h, im->w, sz, sz, x, y, dx, dy, -dy, dx);
      }
    else
      {
