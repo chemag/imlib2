@@ -260,14 +260,14 @@ scalecmap(ILBM * ilbm)
 {
    int                 i;
 
-   if (!ilbm->cmap.data)
+   if (!ilbm->cmap.data || ilbm->cmap.size <= 0)
       return;
 
    for (i = 0; i < ilbm->cmap.size; i++)
       if (ilbm->cmap.data[i] & 0x0f)
          return;
 
-   ilbm->cmap_alloc = malloc((unsigned int)ilbm->cmap.size);
+   ilbm->cmap_alloc = malloc(ilbm->cmap.size);
 
    for (i = 0; i < ilbm->cmap.size; i++)
       ilbm->cmap_alloc[i] = ilbm->cmap.data[i] | ilbm->cmap.data[i] >> 4;
