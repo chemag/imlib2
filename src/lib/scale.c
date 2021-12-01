@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include "asm_c.h"
 #include "blend.h"
 #include "colormod.h"
 #include "image.h"
@@ -318,7 +319,7 @@ __imlib_ScaleAARGBA(ImlibScaleInfo * isi, DATA32 * dest, int dxx, int dyy,
    int                *yapoints;
 
 #ifdef DO_MMX_ASM
-   if (__imlib_get_cpuid() & CPUID_MMX)
+   if (__imlib_do_asm())
      {
         __imlib_Scale_mmx_AARGBA(isi, dest, dxx, dyy, dx, dy, dw, dh, dow, sow);
         return;
@@ -979,7 +980,7 @@ __imlib_ScaleAARGB(ImlibScaleInfo * isi, DATA32 * dest, int dxx, int dyy,
    int                *yapoints;
 
 #ifdef DO_MMX_ASM
-   if (__imlib_get_cpuid() & CPUID_MMX)
+   if (__imlib_do_asm())
      {
         __imlib_Scale_mmx_AARGBA(isi, dest, dxx, dyy, dx, dy, dw, dh, dow, sow);
         return;

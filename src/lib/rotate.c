@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "asm_c.h"
 #include "blend.h"
 #include "rotate.h"
 
@@ -211,7 +212,7 @@ __imlib_RotateAA(DATA32 * src, DATA32 * dest, int sow, int sw, int sh,
       return;
 
 #ifdef DO_MMX_ASM
-   if (__imlib_get_cpuid() & CPUID_MMX)
+   if (__imlib_do_asm())
      {
         __imlib_mmx_RotateAA(src, dest, sow, sw, sh, dow, dw, dh, x, y,
                              dxh, dyh, dxv, dyv);

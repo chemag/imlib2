@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "asm_c.h"
 #include "blend.h"
 #include "colormod.h"
 #include "image.h"
@@ -1721,10 +1722,8 @@ __imlib_GetBlendFunction(ImlibOp op, char blend, char merge_alpha, char rgb_src,
    if (op < OP_COPY || op > OP_RESHADE)
       return NULL;
 
-#ifdef DO_MMX_ASM
-   do_mmx = !!(__imlib_get_cpuid() & CPUID_MMX);
-#elif DO_AMD64_ASM
-   do_mmx = 1;                  // instruction set is always present
+#if defined(DO_MMX_ASM) || defined(DO_AMD64_ASM)
+   do_mmx = __imlib_do_asm();
 #endif
 
    if (cm && rgb_src && (A_CMOD(cm, 0xff) == 0xff))

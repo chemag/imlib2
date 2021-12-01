@@ -2,6 +2,7 @@
 
 #include <X11/Xlib.h>
 
+#include "asm_c.h"
 #include "x11_context.h"
 #include "x11_rgba.h"
 
@@ -4824,7 +4825,7 @@ __imlib_GetRGBAFunction(int depth,
         else
           {
 #ifdef DO_MMX_ASM
-             if (__imlib_get_cpuid() && CPUID_MMX)
+             if (__imlib_do_asm())
                {
                   if ((rm == 0xf800) && (gm == 0x7e0) && (bm == 0x1f))
                      return __imlib_mmx_rgb565_fast;

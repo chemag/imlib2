@@ -55,13 +55,6 @@
 #define PIXEL_G(argb)  (((argb) >>  8) & 0xff)
 #define PIXEL_B(argb)  (((argb)      ) & 0xff)
 
-#ifdef DO_MMX_ASM
-int                 __imlib_get_cpuid(void);
-
-#define CPUID_MMX (1 << 23)
-#define CPUID_XMM (1 << 25)
-#endif
-
 #define CLIP(x, y, w, h, xx, yy, ww, hh) \
     if (x < (xx)) { w += (x - (xx)); x = (xx); } \
     if (y < (yy)) { h += (y - (yy)); y = (yy); } \

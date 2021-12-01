@@ -13,6 +13,7 @@ include_HEADERS      = Imlib2.h
 libImlib2_la_SOURCES = \
 api.c \
 asm.h \
+asm_c.c		asm_c.h		\
 blend.c		blend.h		\
 color_helpers.c	color_helpers.h \
 colormod.c	colormod.h	\
