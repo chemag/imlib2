@@ -61,7 +61,7 @@ tiff_parse_ifd(int lvl, const unsigned char *p, unsigned int len,
 
    D("%s: len=%x(%d)\n", __func__, len, len);
 
-   if (pp + 2 - p > len)
+   if (pp + 2 - p > (int)len)
      {
         D("Bad IFD offset\n");
         return;
@@ -72,7 +72,7 @@ tiff_parse_ifd(int lvl, const unsigned char *p, unsigned int len,
 
    for (iifd = 0; iifd < nifd; iifd++, pp += 12)
      {
-        if (pp + 12 - p > len)
+        if (pp + 12 - p > (int)len)
           {
              D("Bad offset, break\n");
              return;
