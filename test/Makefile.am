@@ -11,6 +11,8 @@ CLEANFILES = file.c img_save-*.*
  GTESTS += test_load_2
  GTESTS += test_save
  GTESTS += test_grab
+ GTESTS += test_scale
+ GTESTS += test_rotate
 
  AM_CFLAGS  = -Wall -Wextra -Werror -Wno-unused-parameter
  AM_CFLAGS += $(CFLAGS_ASAN)
@@ -44,6 +46,12 @@ test_save_LDADD = $(LIBS)
 
 test_grab_SOURCES = test_grab.cpp
 test_grab_LDADD = $(LIBS)
+
+test_scale_SOURCES = test_scale.cpp
+test_scale_LDADD = $(LIBS) -lz
+
+test_rotate_SOURCES = test_rotate.cpp
+test_rotate_LDADD = $(LIBS) -lz
 
  TESTS_RUN = $(addprefix run-, $(GTESTS))
 
