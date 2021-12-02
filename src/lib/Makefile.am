@@ -53,9 +53,6 @@ AMD64_SRCS = \
 amd64_blend.S \
 amd64_blend_cmod.S
 
-MMX_OBJS = $(MMX_SRCS:.S=.lo)
-AMD64_OBJS = $(AMD64_SRCS:.S=.lo)
-
 EXTRA_DIST = $(MMX_SRCS) $(AMD64_SRCS) asm_loadimmq.S
 
 MY_LIBS = $(FREETYPE_LIBS) $(DLOPEN_LIBS) -lm
@@ -76,18 +73,11 @@ MY_LIBS += $(CLOCK_LIBS)
 endif
 
 if BUILD_MMX
-libImlib2_la_LIBADD       = $(MMX_OBJS) $(MY_LIBS)
-libImlib2_la_DEPENDENCIES = $(top_builddir)/config.h $(MMX_OBJS)
-EXTRA_libImlib2_la_SOURCES = $(MMX_SRCS) 
-else
+libImlib2_la_SOURCES += $(MMX_SRCS)
+endif
 if BUILD_AMD64
-libImlib2_la_LIBADD       = $(AMD64_OBJS) $(MY_LIBS)
-libImlib2_la_DEPENDENCIES = $(top_builddir)/config.h $(AMD64_OBJS)
-EXTRA_libImlib2_la_SOURCES = $(AMD64_SRCS)
-else
-libImlib2_la_LIBADD       = $(MY_LIBS)
-libImlib2_la_DEPENDENCIES = $(top_builddir)/config.h
+libImlib2_la_SOURCES += $(AMD64_SRCS)
 endif
-endif
-libImlib2_la_LDFLAGS      = -version-info @lt_version@
 
+libImlib2_la_LIBADD  = $(MY_LIBS)
+libImlib2_la_LDFLAGS = -version-info @lt_version@
