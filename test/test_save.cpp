@@ -2,17 +2,17 @@
 
 #include <Imlib2.h>
 
-#if 0
-#define D(...) printf(__VA_ARGS__)
-#else
-#define D(...) do { } while (0)
-#endif
+int                 debug = 0;
+
+#define D(...)  if (debug) printf(__VA_ARGS__)
 
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
 
 #define TOPDIR  	SRC_DIR
-#define FILE_REF	"test/images/icon-64.bmp"
+#define FILE_DIR	"test/images"
+#define FILE_REF1	"icon-64"       // RGB
+#define FILE_REF2	"xeyes" // ARGB (shaped)
 
 static const char  *const pfxs[] = {
    "argb",
@@ -43,7 +43,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
 }
 
 static void
-test_save(void)
+test_save(const char *file, int prog)
 {
    char                filei[256];
    char                fileo[256];
@@ -52,9 +52,16 @@ test_save(void)
    Imlib_Image         im, im1, im2, im3;
    Imlib_Load_Error    lerr;
 
-   snprintf(filei, sizeof(filei), "%s/%s", TOPDIR, FILE_REF);
+   if (prog)
+     {
+        imlib_context_set_progress_function(progress);
+        imlib_context_set_progress_granularity(10);
+     }
+
+   snprintf(filei, sizeof(filei), "%s/%s/%s.png", TOPDIR, FILE_DIR, file);
    D("Load '%s'\n", filei);
    im = imlib_load_image(filei);
+   ASSERT_TRUE(im);
    if (!im)
      {
         printf("Error loading '%s'\n", filei);
@@ -68,7 +75,6 @@ test_save(void)
    im2 = imlib_create_cropped_scaled_image(0, 0, w, h, w + 2, h + 2);
    im3 = imlib_create_cropped_scaled_image(0, 0, w, h, w + 3, h + 3);
 
-   ASSERT_TRUE(im);
    ASSERT_TRUE(im1);
    ASSERT_TRUE(im2);
    ASSERT_TRUE(im3);
@@ -79,8 +85,8 @@ test_save(void)
         imlib_image_set_format(pfxs[i]);
         w = imlib_image_get_width();
         h = imlib_image_get_height();
-        snprintf(fileo, sizeof(fileo), "%s/%s-%dx%d.%s",
-                 ".", "img_save", w, h, pfxs[i]);
+        snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
+                 ".", file, w, h, pfxs[i]);
         D("Save '%s'\n", fileo);
         imlib_save_image_with_error_return(fileo, &lerr);
         EXPECT_EQ(lerr, 0);
@@ -91,8 +97,8 @@ test_save(void)
         imlib_image_set_format(pfxs[i]);
         w = imlib_image_get_width();
         h = imlib_image_get_height();
-        snprintf(fileo, sizeof(fileo), "%s/%s-%dx%d.%s",
-                 ".", "img_save", w, h, pfxs[i]);
+        snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
+                 ".", file, w, h, pfxs[i]);
         D("Save '%s'\n", fileo);
         imlib_save_image_with_error_return(fileo, &lerr);
         EXPECT_EQ(lerr, 0);
@@ -103,8 +109,8 @@ test_save(void)
         imlib_image_set_format(pfxs[i]);
         w = imlib_image_get_width();
         h = imlib_image_get_height();
-        snprintf(fileo, sizeof(fileo), "%s/%s-%dx%d.%s",
-                 ".", "img_save", w, h, pfxs[i]);
+        snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
+                 ".", file, w, h, pfxs[i]);
         D("Save '%s'\n", fileo);
         imlib_save_image_with_error_return(fileo, &lerr);
         EXPECT_EQ(lerr, 0);
@@ -115,8 +121,8 @@ test_save(void)
         imlib_image_set_format(pfxs[i]);
         w = imlib_image_get_width();
         h = imlib_image_get_height();
-        snprintf(fileo, sizeof(fileo), "%s/%s-%dx%d.%s",
-                 ".", "img_save", w, h, pfxs[i]);
+        snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
+                 ".", file, w, h, pfxs[i]);
         D("Save '%s'\n", fileo);
         imlib_save_image_with_error_return(fileo, &lerr);
         EXPECT_EQ(lerr, 0);
@@ -134,21 +140,49 @@ test_save(void)
    imlib_free_image_and_decache();
 }
 
-TEST(SAVE, save_1)
+TEST(SAVE, save_1_rgb)
 {
-   test_save();
+   imlib_context_set_progress_function(NULL);
+
+   test_save(FILE_REF1, 0);
 }
 
-TEST(SAVE, save_2)
+TEST(SAVE, save_2_rgb)
 {
-   imlib_context_set_progress_function(progress);
-   imlib_context_set_progress_granularity(10);
-   test_save();
+   test_save(FILE_REF1, 1);
+}
+
+TEST(SAVE, save_1_argb)
+{
+   imlib_context_set_progress_function(NULL);
+
+   test_save(FILE_REF2, 0);
+}
+
+TEST(SAVE, save_2_argb)
+{
+   test_save(FILE_REF2, 1);
 }
 
 int
 main(int argc, char **argv)
 {
+   const char         *s;
+
    ::testing::InitGoogleTest(&argc, argv);
+
+   for (argc--, argv++; argc > 0; argc--, argv++)
+     {
+        s = argv[0];
+        if (*s++ != '-')
+           break;
+        switch (*s)
+          {
+          case 'd':
+             debug++;
+             break;
+          }
+     }
+
    return RUN_ALL_TESTS();
 }
