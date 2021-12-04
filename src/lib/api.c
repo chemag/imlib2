@@ -1296,16 +1296,15 @@ imlib_get_best_visual(Display * display, int screen, int *depth_return)
 EAPI                Imlib_Image
 imlib_load_image(const char *file)
 {
-   Imlib_Image         im = NULL;
-   Imlib_Image         prev_ctxt_image;
+   Imlib_Image         im;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_load_image", "file", file, NULL);
-   prev_ctxt_image = ctx->image;
+
    im = __imlib_LoadImage(file, NULL,
                           (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 0, 0, NULL);
-   ctx->image = prev_ctxt_image;
+
    return (Imlib_Image) im;
 }
 
@@ -1321,17 +1320,16 @@ imlib_load_image(const char *file)
 EAPI                Imlib_Image
 imlib_load_image_immediately(const char *file)
 {
-   Imlib_Image         im = NULL;
-   Imlib_Image         prev_ctxt_image;
+   Imlib_Image         im;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_immediately", "file", file,
                               NULL);
-   prev_ctxt_image = ctx->image;
+
    im = __imlib_LoadImage(file, NULL,
                           (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 1, 0, NULL);
-   ctx->image = prev_ctxt_image;
+
    return (Imlib_Image) im;
 }
 
@@ -1345,17 +1343,16 @@ imlib_load_image_immediately(const char *file)
 EAPI                Imlib_Image
 imlib_load_image_without_cache(const char *file)
 {
-   Imlib_Image         im = NULL;
-   Imlib_Image         prev_ctxt_image;
+   Imlib_Image         im;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_without_cache", "file",
                               file, NULL);
-   prev_ctxt_image = ctx->image;
+
    im = __imlib_LoadImage(file, NULL,
                           (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 0, 1, NULL);
-   ctx->image = prev_ctxt_image;
+
    return (Imlib_Image) im;
 }
 
@@ -1370,17 +1367,16 @@ imlib_load_image_without_cache(const char *file)
 EAPI                Imlib_Image
 imlib_load_image_immediately_without_cache(const char *file)
 {
-   Imlib_Image         im = NULL;
-   Imlib_Image         prev_ctxt_image;
+   Imlib_Image         im;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_immediately_without_cache",
                               "file", file, NULL);
-   prev_ctxt_image = ctx->image;
+
    im = __imlib_LoadImage(file, NULL,
                           (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 1, 1, NULL);
-   ctx->image = prev_ctxt_image;
+
    return (Imlib_Image) im;
 }
 
@@ -1400,26 +1396,26 @@ imlib_load_image_immediately_without_cache(const char *file)
 EAPI                Imlib_Image
 imlib_load_image_fd(int fd, const char *file)
 {
-   Imlib_Image         im = NULL;
-   Imlib_Image         prev_ctxt_image;
+   Imlib_Image         im;
    FILE               *fp;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_fd", "file", file, NULL);
+
    fp = fdopen(fd, "rb");
    if (fp)
      {
-        prev_ctxt_image = ctx->image;
         im = __imlib_LoadImage(file, fp,
                                (ImlibProgressFunction) ctx->progress_func,
                                ctx->progress_granularity, 1, 1, NULL);
         fclose(fp);
-        ctx->image = prev_ctxt_image;
      }
    else
      {
+        im = NULL;
         close(fd);
      }
+
    return (Imlib_Image) im;
 }
 
@@ -1436,18 +1432,17 @@ EAPI                Imlib_Image
 imlib_load_image_with_error_return(const char *file,
                                    Imlib_Load_Error * error_return)
 {
-   Imlib_Image         im = NULL;
+   Imlib_Image         im;
    ImlibLoadError      er;
-   Imlib_Image         prev_ctxt_image;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER_RETURN("imlib_load_image_with_error_return", "file",
                               file, NULL);
-   prev_ctxt_image = ctx->image;
+
    im = __imlib_LoadImage(file, NULL,
                           (ImlibProgressFunction) ctx->progress_func,
                           ctx->progress_granularity, 1, 0, &er);
-   ctx->image = prev_ctxt_image;
+
    if (im)
       *error_return = IMLIB_LOAD_ERROR_NONE;
    else
@@ -1457,6 +1452,7 @@ imlib_load_image_with_error_return(const char *file,
         else
            *error_return = (Imlib_Load_Error) er;
      }
+
    return im;
 }
 
@@ -4592,18 +4588,17 @@ EAPI void
 imlib_save_image(const char *filename)
 {
    ImlibImage         *im;
-   Imlib_Image         prev_ctxt_image;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_save_image", "image", ctx->image);
    CHECK_PARAM_POINTER("imlib_save_image", "filename", filename);
    CAST_IMAGE(im, ctx->image);
+
    if (__imlib_LoadImageData(im))
       return;
-   prev_ctxt_image = ctx->image;
+
    __imlib_SaveImage(im, filename, (ImlibProgressFunction) ctx->progress_func,
                      ctx->progress_granularity, NULL);
-   ctx->image = prev_ctxt_image;
 }
 
 /**
@@ -4618,7 +4613,6 @@ imlib_save_image_with_error_return(const char *filename,
                                    Imlib_Load_Error * error_return)
 {
    ImlibImage         *im;
-   Imlib_Image         prev_ctxt_image;
 
    CHECK_CONTEXT(ctx);
    CHECK_PARAM_POINTER("imlib_save_image_with_error_return", "image",
@@ -4628,12 +4622,12 @@ imlib_save_image_with_error_return(const char *filename,
    CHECK_PARAM_POINTER("imlib_save_image_with_error_return", "error_return",
                        error_return);
    CAST_IMAGE(im, ctx->image);
+
    if (__imlib_LoadImageData(im))
       return;
-   prev_ctxt_image = ctx->image;
+
    __imlib_SaveImage(im, filename, (ImlibProgressFunction) ctx->progress_func,
                      ctx->progress_granularity, error_return);
-   ctx->image = prev_ctxt_image;
 }
 
 /**
