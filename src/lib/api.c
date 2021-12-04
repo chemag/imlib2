@@ -56,6 +56,11 @@ if (!(param)) \
   return; \
 }
 
+#define ILA0(ctx, imm, noc) \
+   .pfunc = (ImlibProgressFunction)(ctx)->progress_func, \
+   .pgran = (ctx)->progress_granularity, \
+   .immed = imm, .nocache = noc
+
 /* internal typedefs for function pointers */
 typedef void        (*Imlib_Internal_Progress_Function)(void *, char, int, int,
                                                         int, int);
@@ -1198,12 +1203,11 @@ EAPI                Imlib_Image
 imlib_load_image(const char *file)
 {
    Imlib_Image         im;
+   ImlibLoadArgs       ila = { ILA0(ctx, 0, 0) };
 
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
-   im = __imlib_LoadImage(file, NULL,
-                          (ImlibProgressFunction) ctx->progress_func,
-                          ctx->progress_granularity, 0, 0, NULL);
+   im = __imlib_LoadImage(file, &ila);
 
    return (Imlib_Image) im;
 }
@@ -1221,12 +1225,11 @@ EAPI                Imlib_Image
 imlib_load_image_immediately(const char *file)
 {
    Imlib_Image         im;
+   ImlibLoadArgs       ila = { ILA0(ctx, 1, 0) };
 
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
-   im = __imlib_LoadImage(file, NULL,
-                          (ImlibProgressFunction) ctx->progress_func,
-                          ctx->progress_granularity, 1, 0, NULL);
+   im = __imlib_LoadImage(file, &ila);
 
    return (Imlib_Image) im;
 }
@@ -1242,12 +1245,11 @@ EAPI                Imlib_Image
 imlib_load_image_without_cache(const char *file)
 {
    Imlib_Image         im;
+   ImlibLoadArgs       ila = { ILA0(ctx, 0, 1) };
 
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
-   im = __imlib_LoadImage(file, NULL,
-                          (ImlibProgressFunction) ctx->progress_func,
-                          ctx->progress_granularity, 0, 1, NULL);
+   im = __imlib_LoadImage(file, &ila);
 
    return (Imlib_Image) im;
 }
@@ -1264,12 +1266,11 @@ EAPI                Imlib_Image
 imlib_load_image_immediately_without_cache(const char *file)
 {
    Imlib_Image         im;
+   ImlibLoadArgs       ila = { ILA0(ctx, 1, 1) };
 
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
-   im = __imlib_LoadImage(file, NULL,
-                          (ImlibProgressFunction) ctx->progress_func,
-                          ctx->progress_granularity, 1, 1, NULL);
+   im = __imlib_LoadImage(file, &ila);
 
    return (Imlib_Image) im;
 }
@@ -1291,17 +1292,15 @@ EAPI                Imlib_Image
 imlib_load_image_fd(int fd, const char *file)
 {
    Imlib_Image         im;
-   FILE               *fp;
+   ImlibLoadArgs       ila = { ILA0(ctx, 1, 1) };
 
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
-   fp = fdopen(fd, "rb");
-   if (fp)
+   ila.fp = fdopen(fd, "rb");
+   if (ila.fp)
      {
-        im = __imlib_LoadImage(file, fp,
-                               (ImlibProgressFunction) ctx->progress_func,
-                               ctx->progress_granularity, 1, 1, NULL);
-        fclose(fp);
+        im = __imlib_LoadImage(file, &ila);
+        fclose(ila.fp);
      }
    else
      {
@@ -1326,23 +1325,13 @@ imlib_load_image_with_error_return(const char *file,
                                    Imlib_Load_Error * error_return)
 {
    Imlib_Image         im;
-   ImlibLoadError      er;
+   ImlibLoadArgs       ila = { ILA0(ctx, 1, 0) };
 
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
-   im = __imlib_LoadImage(file, NULL,
-                          (ImlibProgressFunction) ctx->progress_func,
-                          ctx->progress_granularity, 1, 0, &er);
-
-   if (im)
-      *error_return = IMLIB_LOAD_ERROR_NONE;
-   else
-     {
-        if (er == IMLIB_LOAD_ERROR_NONE)
-           *error_return = IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
-        else
-           *error_return = (Imlib_Load_Error) er;
-     }
+   im = __imlib_LoadImage(file, &ila);
+   if (error_return)
+      *error_return = (Imlib_Load_Error) ila.err;
 
    return im;
 }

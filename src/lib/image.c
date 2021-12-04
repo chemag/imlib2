@@ -425,9 +425,7 @@ __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
 }
 
 ImlibImage         *
-__imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
-                  char progress_granularity, char immediate_load,
-                  char dont_cache, ImlibLoadError * er)
+__imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 {
    ImlibImage         *im;
    ImlibLoader        *best_loader;
@@ -451,8 +449,8 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
           {
              time_t              current_modified_time;
 
-             current_modified_time = fp ?
-                __imlib_FileModDateFd(fileno(fp)) :
+             current_modified_time = ila->fp ?
+                __imlib_FileModDateFd(fileno(ila->fp)) :
                 __imlib_FileModDate(im->real_file);
              /* if the file on disk is newer than the cached one */
              if (current_modified_time != im->moddate)
@@ -476,9 +474,9 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
      }
 
    im_file = im_key = NULL;
-   if (fp)
+   if (ila->fp)
      {
-        err = fstat(fileno(fp), &st);
+        err = fstat(fileno(ila->fp), &st);
      }
    else
      {
@@ -498,11 +496,9 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
    else if (st.st_size == 0)
       err = IMLIB_LOAD_ERROR_UNKNOWN;
 
-   if (er)
-      *er = err;
-
    if (err)
      {
+        ila->err = err;
         free(im_file);
         free(im_key);
         return NULL;
@@ -516,15 +512,14 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
    im->real_file = im_file ? im_file : im->file;
    im->key = im_key;
 
-   if (fp)
-      im->fp = fp;
+   if (ila->fp)
+      im->fp = ila->fp;
    else
       im->fp = fopen(im->real_file, "rb");
 
    if (!im->fp)
      {
-        if (er)
-           *er = __imlib_ErrorFromErrno(errno, 0);
+        ila->err = __imlib_ErrorFromErrno(errno, 0);
         __imlib_ConsumeImage(im);
         return NULL;
      }
@@ -533,10 +528,10 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
 
    im->data_memory_func = imlib_context_get_image_data_memory_function();
 
-   if (progress)
+   if (ila->pfunc)
      {
-        __imlib_LoadCtxInit(im, &ilc, progress, progress_granularity);
-        immediate_load = 1;
+        __imlib_LoadCtxInit(im, &ilc, ila->pfunc, ila->pgran);
+        ila->immed = 1;
      }
 
    loader_ret = LOAD_FAIL;
@@ -545,7 +540,7 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
    best_loader = __imlib_FindBestLoaderForFile(im->real_file, 0);
    errno = 0;
    if (best_loader)
-      loader_ret = __imlib_LoadImageWrapper(best_loader, im, immediate_load);
+      loader_ret = __imlib_LoadImageWrapper(best_loader, im, ila->immed);
 
    if (loader_ret > LOAD_FAIL)
      {
@@ -565,7 +560,7 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
                 continue;
              fflush(im->fp);
              rewind(im->fp);
-             loader_ret = __imlib_LoadImageWrapper(l, im, immediate_load);
+             loader_ret = __imlib_LoadImageWrapper(l, im, ila->immed);
              if (loader_ret > LOAD_FAIL)
                 break;
           }
@@ -587,7 +582,7 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
 
    im->lc = NULL;
 
-   if (!fp)
+   if (!ila->fp)
       fclose(im->fp);
    im->fp = NULL;
 
@@ -595,19 +590,17 @@ __imlib_LoadImage(const char *file, FILE * fp, ImlibProgressFunction progress,
    /* image struct we had and return NULL */
    if (loader_ret <= LOAD_FAIL)
      {
-        /* if the caller wants an error return */
-        if (er)
-           *er = __imlib_ErrorFromErrno(errno, 0);
+        ila->err = IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
         __imlib_ConsumeImage(im);
         return NULL;
      }
 
    /* the load succeeded - make sure the image is referenced then add */
-   /* it to our cache if dont_cache isn't set */
+   /* it to our cache unless nocache is set */
    im->references = 1;
    if (loader_ret == LOAD_BREAK)
-      dont_cache = 1;
-   if (!dont_cache)
+      ila->nocache = 1;
+   if (!ila->nocache)
       __imlib_AddImageToCache(im);
    else
       SET_FLAG(im->flags, F_UNCACHEABLE);

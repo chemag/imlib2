@@ -64,6 +64,15 @@ struct _imlibimage {
    off_t               fsize;
 };
 
+typedef struct {
+   FILE               *fp;
+   ImlibProgressFunction pfunc;
+   int                 pgran;
+   char                immed;
+   char                nocache;
+   int                 err;
+} ImlibLoadArgs;
+
 void                __imlib_RemoveAllLoaders(void);
 ImlibLoader       **__imlib_GetLoaderList(void);
 ImlibLoader        *__imlib_FindBestLoaderForFile(const char *file,
@@ -78,11 +87,7 @@ void                __imlib_LoaderSetFormats(ImlibLoader * l,
                                              unsigned int num);
 
 ImlibImage         *__imlib_CreateImage(int w, int h, DATA32 * data);
-ImlibImage         *__imlib_LoadImage(const char *file, FILE * fp,
-                                      ImlibProgressFunction progress,
-                                      char progress_granularity,
-                                      char immediate_load, char dont_cache,
-                                      ImlibLoadError * er);
+ImlibImage         *__imlib_LoadImage(const char *file, ImlibLoadArgs * ila);
 int                 __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im,
                                          const char *file, int load_data);
 int                 __imlib_LoadImageData(ImlibImage * im);
