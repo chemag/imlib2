@@ -5,7 +5,7 @@
 
 #define NULC ((Imlib_Context*)0)
 
-#define HAVE_INITIAL_CTX 0
+#define HAVE_INITIAL_CTX 1
 
 int                 debug = 0;
 

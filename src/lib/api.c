@@ -61,10 +61,7 @@ typedef void        (*Imlib_Internal_Progress_Function)(void *, char, int, int,
                                                         int, int);
 typedef void        (*Imlib_Internal_Data_Destructor_Function)(void *, void *);
 
-struct _imlibcontext;
-typedef struct _imlibcontext ImlibContext;
-
-struct _imlibcontext {
+typedef struct {
 #ifdef BUILD_X11
    Display            *display;
    Visual             *visual;
@@ -96,20 +93,42 @@ struct _imlibcontext {
 
    int                 references;
    char                dirty;
-};
+} ImlibContext;
 
-struct _imlibcontextitem;
 typedef struct _imlibcontextitem ImlibContextItem;
 struct _imlibcontextitem {
    ImlibContext       *context;
    ImlibContextItem   *below;
 };
 
-/* a stack of contexts -- only used by context-handling functions. */
-static ImlibContextItem *contexts = NULL;       /* (ImlibContext*) imlib_context_new(); */
+#define DefaultContext { \
+   .anti_alias = 1,				\
+   .dither = 0,					\
+   .blend = 1,					\
+   .operation = (ImlibOp) IMLIB_OP_COPY,	\
+   .direction = IMLIB_TEXT_TO_RIGHT,		\
+   .angle = 0.0,				\
+   .color.alpha = 255,				\
+   .color.red = 255,				\
+   .color.green = 255,				\
+   .color.blue = 255,				\
+   .pixel = 0xffffffff,				\
+   .mask_alpha_threshold = 128,			\
+   .encoding = IMLIB_TTF_ENCODING_ISO_8859_1,	\
+}
 
-/* this is the context all functions use rely on */
-static ImlibContext *ctx = NULL;        /* contexts->context; */
+/* A default context, only used for initialization */
+static const ImlibContext ctx_default = DefaultContext;
+
+/* The initial context */
+static ImlibContext ctx0 = DefaultContext;
+
+/* Current context */
+static ImlibContext *ctx = &ctx0;
+
+/* a stack of contexts -- only used by context-handling functions. */
+static ImlibContextItem contexts0 = {.context = &ctx0 };
+static ImlibContextItem *contexts = &contexts0;
 
 /* frees the given context including all its members */
 static void
@@ -156,43 +175,7 @@ imlib_context_new(void)
 {
    ImlibContext       *context = malloc(sizeof(ImlibContext));
 
-#ifdef BUILD_X11
-   context->display = NULL;
-   context->visual = NULL;
-   context->colormap = 0;
-   context->depth = 0;
-   context->drawable = 0;
-   context->mask = 0;
-#endif
-   context->anti_alias = 1;
-   context->dither = 0;
-   context->blend = 1;
-   context->color_modifier = NULL;
-   context->operation = (ImlibOp) IMLIB_OP_COPY;
-   context->font = NULL;
-   context->direction = IMLIB_TEXT_TO_RIGHT;
-   context->angle = 0.0;
-   context->color.alpha = 255;
-   context->color.red = 255;
-   context->color.green = 255;
-   context->color.blue = 255;
-   context->pixel = 0xffffffff;
-   context->color_range = NULL;
-   context->image = NULL;
-   context->image_data_memory_func = NULL;
-   context->progress_func = NULL;
-   context->progress_granularity = 0;
-   context->dither_mask = 0;
-   context->mask_alpha_threshold = 128;
-   context->filter = NULL;
-   context->cliprect.x = 0;
-   context->cliprect.y = 0;
-   context->cliprect.w = 0;
-   context->cliprect.h = 0;
-   context->encoding = IMLIB_TTF_ENCODING_ISO_8859_1;
-
-   context->references = 0;
-   context->dirty = 0;
+   *context = ctx_default;
 
    return (Imlib_Context) context;
 }
