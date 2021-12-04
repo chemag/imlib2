@@ -7,6 +7,7 @@ CLEANFILES = file.c img_save-*.*
  GTEST_LIBS = -lgtest -lstdc++
 
  GTESTS  = test_file
+ GTESTS += test_context
  GTESTS += test_load
  GTESTS += test_load_2
  GTESTS += test_save
@@ -34,6 +35,9 @@ CLEANFILES = file.c img_save-*.*
 test_file_SOURCES = test_file.cpp
 nodist_test_file_SOURCES = file.c
 test_file_LDADD = $(LIBS)
+
+test_context_SOURCES = test_context.cpp
+test_context_LDADD = $(LIBS)
 
 test_load_SOURCES = test_load.cpp
 test_load_LDADD = $(LIBS)
