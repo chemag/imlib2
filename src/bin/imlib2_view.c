@@ -32,6 +32,12 @@ static char         opt_progress_granularity = 10;
 static char         opt_progress_print = 0;
 static int          opt_progress_delay = 0;
 
+static Imlib_Frame_Info finfo;
+static bool         multiframe = false; /* Image has multiple frames     */
+static bool         fixedframe = false; /* We have selected single frame */
+static bool         animated = false;   /* Image has animation sequence  */
+static bool         animate = false;    /* Animation is active           */
+
 #define Dprintf if (debug) printf
 #define Vprintf if (verbose) printf
 
@@ -158,11 +164,16 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
 {
    static double       scale_x = 0., scale_y = 0.;
-   int                 up_wx, up_wy, up_ww, up_wh;
+   int                 up_sx, up_sy, up_wx, up_wy, up_ww, up_wh;
 
    if (opt_progress_print)
       printf("%s: %3d%% %4d,%4d %4dx%4d\n",
              __func__, percent, update_x, update_y, update_w, update_h);
+
+   imlib_context_set_image(im);
+   imlib_image_get_frame_info(&finfo);
+   multiframe = finfo.frame_count > 1;
+   animated = finfo.frame_flags & IMLIB_IMAGE_ANIMATED;
 
    /* first time it's called */
    if (image_width == 0)
@@ -176,9 +187,8 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         window_height -= 32;
         Dprintf("Screen WxH=%dx%d\n", window_width, window_height);
 
-        imlib_context_set_image(im);
-        image_width = imlib_image_get_width();
-        image_height = imlib_image_get_height();
+        image_width = fixedframe ? finfo.frame_w : finfo.canvas_w;
+        image_height = fixedframe ? finfo.frame_h : finfo.canvas_h;
         Dprintf("Image  WxH=%dx%d\n", image_width, image_height);
 
         if (!opt_scale &&
@@ -215,14 +225,28 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         XMapWindow(disp, win);
         XSync(disp, False);
      }
+   else
+     {
+        if (finfo.frame_flags & IMLIB_FRAME_CLEAR)
+          {
+             bg_pm_init(0);
+          }
+     }
 
    if (update_w <= 0 || update_h <= 0)
      {
-        update_x = 0;
-        update_y = 0;
-        update_w = image_width;
-        update_h = image_height;
+        update_x = finfo.frame_x;
+        update_y = finfo.frame_y;
+        update_w = finfo.frame_w;
+        update_h = finfo.frame_h;
      }
+
+   up_sx = update_x;
+   up_sy = update_y;
+   if (multiframe)
+      up_sx = up_sy = 0;
+   if (fixedframe)
+      update_x = update_y = 0;
 
    imlib_context_set_anti_alias(0);
    imlib_context_set_dither(0);
@@ -230,7 +254,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
    imlib_context_set_drawable(bg_pm);
    imlib_context_set_image(bg_im);
    imlib_blend_image_onto_image(im, 0,
-                                update_x, update_y, update_w, update_h,
+                                up_sx, up_sy, update_w, update_h,
                                 update_x, update_y, update_w, update_h);
 
    up_wx = SCALE_X(update_x);
@@ -241,13 +265,53 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
    imlib_render_image_part_on_drawable_at_size(update_x, update_y,
                                                update_w, update_h,
                                                up_wx, up_wy, up_ww, up_wh);
-   XClearArea(disp, win, up_wx, up_wy, up_ww, up_wh, False);
+
+   if (finfo.frame_flags & IMLIB_FRAME_CLEAR)
+      XClearWindow(disp, win);
+   else
+      XClearArea(disp, win, up_wx, up_wy, up_ww, up_wh, False);
    XFlush(disp);
 
    if (opt_progress_delay > 0)
       usleep(opt_progress_delay);
 
    return 1;
+}
+
+static              Imlib_Image
+load_image_frame(const char *name, int frame, int inc)
+{
+   Imlib_Image         im;
+
+   if (inc && finfo.frame_count > 0)
+      frame = (finfo.frame_count + frame + inc - 1) % finfo.frame_count + 1;
+
+   im = imlib_load_image_frame(name, frame);
+   if (!im)
+      return im;
+
+   if (!opt_progr)
+     {
+        /* No progress callback - render explicitly */
+        progress(im, 100, 0, 0, 0, 0);
+     }
+
+   /* finfo should now be populated by imlib_image_get_frame_info()
+    * called from progress() callback */
+
+   if (multiframe)
+     {
+        Dprintf(" showing frame %d/%d (x,y=%d,%d, wxh=%dx%d T=%d)\n",
+                finfo.frame_num, finfo.frame_count,
+                finfo.frame_x, finfo.frame_y, finfo.frame_w, finfo.frame_h,
+                finfo.frame_delay);
+     }
+   else
+     {
+        Dprintf(" showing image wxh=%dx%d\n", finfo.frame_w, finfo.frame_h);
+     }
+
+   return im;
 }
 
 static              Imlib_Image
@@ -290,13 +354,29 @@ load_image(int no, const char *name)
      }
    else
      {
-        im = imlib_load_image(name);
-        if (!opt_progr)
+        char                nbuf[4096];
+        const char         *s;
+        int                 frame;
+
+        frame = -1;
+        sscanf(name, "%[^%]%%%n", nbuf, &frame);
+        if (frame > 0)
           {
-             /* No progress callback - render explicitly */
-             progress(im, 100, 0, 0, 0, 0);
+             s = name + frame;
+             frame = atoi(s);
+             animate = false;
+             fixedframe = true;
+          }
+        else
+          {
+             frame = 1;
+             animate = true;
+             fixedframe = false;
           }
 
+        im = load_image_frame(nbuf, frame, 0);
+
+        animate = animate && animated;
      }
 
    return im;
@@ -429,6 +509,14 @@ main(int argc, char **argv)
              im = NULL;
           }
 
+        if (animate)
+          {
+             usleep(1e3 * finfo.frame_delay);
+             im = load_image_frame(argv[no], finfo.frame_num, 1);
+             if (!XPending(disp))
+                continue;
+          }
+
         timeout = 0;
 
         XFlush(disp);
@@ -459,6 +547,13 @@ main(int argc, char **argv)
                   goto show_next;
                case XK_Left:
                   goto show_prev;
+               case XK_p:
+                  animate = animated && !animate;
+                  break;
+               case XK_Up:
+                  goto show_next_frame;
+               case XK_Down:
+                  goto show_prev_frame;
                }
              break;
           case ButtonPress:
@@ -539,9 +634,22 @@ main(int argc, char **argv)
                   break;
                }
              break;
+           show_next_frame:
+             inc = 1;
+             goto show_next_prev_frame;
+           show_prev_frame:
+             inc = -1;
+             goto show_next_prev_frame;
+           show_next_prev_frame:
+             if (!multiframe)
+                break;
+             if (!animated)
+                image_width = 0;        /* Reset window size */
+             im = load_image_frame(argv[no], finfo.frame_num, inc);
+             break;
           }
 
-        if (XPending(disp))
+        if (multiframe || XPending(disp))
            continue;
 
         xfd = ConnectionNumber(disp);
