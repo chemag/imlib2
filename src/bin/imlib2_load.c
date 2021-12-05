@@ -92,6 +92,8 @@ main(int argc, char **argv)
    Imlib_Image         im;
    Imlib_Load_Error    lerr;
    unsigned int        t0;
+   char                nbuf[4096];
+   int                 frame;
    int                 verbose;
    int                 check_progress;
    int                 break_on_error;
@@ -177,7 +179,15 @@ main(int argc, char **argv)
              else if (load_now)
                 im = imlib_load_image_immediately(argv[0]);
              else
-                im = imlib_load_image(argv[0]);
+               {
+                  frame = -1;
+                  sscanf(argv[0], "%[^%]%%%d", nbuf, &frame);
+
+                  if (frame >= 0)
+                     im = imlib_load_image_frame(nbuf, frame);
+                  else
+                     im = imlib_load_image(argv[0]);
+               }
 
              if (!im)
                {
