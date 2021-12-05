@@ -32,6 +32,10 @@ enum _iflags {
 
 typedef enum _iflags ImlibImageFlags;
 
+/* Must match the ones in Imlib2.h.in */
+#define FF_IMAGE_ANIMATED   (1 << 0)    /* Frames are an animated sequence */
+#define FF_FRAME_CLEAR      (1 << 1)    /* Clear before rendering frame    */
+
 struct _imlibborder {
    int                 left, right, top, bottom;
 };
@@ -62,6 +66,14 @@ struct _imlibimage {
    ImlibLdCtx         *lc;
    FILE               *fp;
    off_t               fsize;
+   int                 canvas_w;        /* Canvas size      */
+   int                 canvas_h;
+   int                 frame_count;     /* Number of frames */
+   int                 frame_num;       /* Current frame    */
+   int                 frame_x; /* Frame origin     */
+   int                 frame_y;
+   int                 frame_flags;     /* Frame flags      */
+   int                 frame_delay;     /* Frame delay (ms) */
 };
 
 typedef struct {
@@ -71,6 +83,7 @@ typedef struct {
    char                immed;
    char                nocache;
    int                 err;
+   int                 frame;
 } ImlibLoadArgs;
 
 void                __imlib_RemoveAllLoaders(void);

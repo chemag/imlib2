@@ -609,6 +609,23 @@ EAPI void           imlib_apply_filter(const char *script, ...);
 EAPI void           imlib_image_clear(void);
 EAPI void           imlib_image_clear_color(int r, int g, int b, int a);
 
+typedef struct {
+   int                 frame_count;     /* Number of frames in image      */
+   int                 frame_num;       /* Current frame (1..frame_count) */
+   int                 canvas_w, canvas_h;      /* Canvas size  */
+   int                 frame_x, frame_y;        /* Frame origin */
+   int                 frame_w, frame_h;        /* Frame size   */
+   int                 frame_flags;     /* Frame info flags */
+   int                 frame_delay;     /* Frame delay (ms) */
+} Imlib_Frame_Info;
+
+/* frame info flags */
+#define IMLIB_IMAGE_ANIMATED    (1 << 0)        /* Frames are an animated sequence */
+#define IMLIB_FRAME_CLEAR       (1 << 1)        /* Clear before rendering frame    */
+
+EAPI Imlib_Image    imlib_load_image_frame(const char *file, int frame);
+EAPI void           imlib_image_get_frame_info(Imlib_Frame_Info * info);
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
 }

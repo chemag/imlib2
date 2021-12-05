@@ -1337,6 +1337,49 @@ imlib_load_image_with_error_return(const char *file,
 }
 
 /**
+ * @param file Image file.
+ * @param frame Frame number.
+ * @return An image handle.
+ *
+ * Loads the specified frame within the image.
+ * On success an image handle is returned, otherwise NULL is returned
+ * (e.g. if the requested frame does not exist).
+ * The image is loaded immediately and will not be cached.
+ */
+EAPI                Imlib_Image
+imlib_load_image_frame(const char *file, int frame)
+{
+   ImlibImage         *im;
+   ImlibLoadArgs       ila = { ILA0(ctx, 1, 1),.frame = frame };
+
+   CHECK_PARAM_POINTER_RETURN("file", file, NULL);
+
+   im = __imlib_LoadImage(file, &ila);
+
+   return (Imlib_Image) im;
+}
+
+EAPI void
+imlib_image_get_frame_info(Imlib_Frame_Info * info)
+{
+   ImlibImage         *im;
+
+   CHECK_PARAM_POINTER("image", ctx->image);
+   CAST_IMAGE(im, ctx->image);
+
+   info->frame_count = im->frame_count;
+   info->frame_num = im->frame_num;
+   info->canvas_w = im->canvas_w ? im->canvas_w : im->w;
+   info->canvas_h = im->canvas_h ? im->canvas_h : im->h;
+   info->frame_x = im->frame_x;
+   info->frame_y = im->frame_y;
+   info->frame_w = im->w;
+   info->frame_h = im->h;
+   info->frame_flags = im->frame_flags;
+   info->frame_delay = im->frame_delay ? im->frame_delay : 100;
+}
+
+/**
  * Frees the image that is set as the current image in Imlib2's context.
  */
 EAPI void

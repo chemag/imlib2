@@ -519,6 +519,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    im->fsize = st.st_size;
    im->real_file = im_file ? im_file : im->file;
    im->key = im_key;
+   im->frame_num = ila->frame;
 
    if (ila->fp)
       im->fp = ila->fp;
