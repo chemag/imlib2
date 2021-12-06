@@ -254,14 +254,14 @@ __imlib_hash_add(Imlib_Hash * hash, const char *key, const void *data)
    _imlib_hash_alloc_error = 0;
    if (!hash)
      {
-        hash = calloc(1, sizeof(struct _Imlib_Hash));
+        hash = calloc(1, sizeof(Imlib_Hash));
         if (!hash)
           {
              _imlib_hash_alloc_error = 1;
              return NULL;
           }
      }
-   if (!(el = malloc(sizeof(struct _Imlib_Hash_El))))
+   if (!(el = malloc(sizeof(Imlib_Hash_El))))
      {
         if (hash->population <= 0)
           {

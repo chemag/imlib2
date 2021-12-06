@@ -5,9 +5,7 @@
 
 #include "image.h"
 
-typedef struct _imlibimagepixmap ImlibImagePixmap;
-
-struct _imlibimagepixmap {
+typedef struct _ImlibImagePixmap {
    int                 w, h;
    Pixmap              pixmap, mask;
    Display            *display;
@@ -22,8 +20,8 @@ struct _imlibimagepixmap {
    char                dirty;
    int                 references;
    DATABIG             modification_count;
-   ImlibImagePixmap   *next;
-};
+   struct _ImlibImagePixmap *next;
+} ImlibImagePixmap;
 
 ImlibImagePixmap   *__imlib_FindCachedImagePixmap(ImlibImage * im, int w, int h,
                                                   Display * d, Visual * v,

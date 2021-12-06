@@ -100,11 +100,10 @@ typedef struct {
    char                dirty;
 } ImlibContext;
 
-typedef struct _imlibcontextitem ImlibContextItem;
-struct _imlibcontextitem {
+typedef struct _ImlibContextItem {
    ImlibContext       *context;
-   ImlibContextItem   *below;
-};
+   struct _ImlibContextItem *below;
+} ImlibContextItem;
 
 #define DefaultContext { \
    .anti_alias = 1,				\
@@ -4368,6 +4367,7 @@ imlib_save_image_with_error_return(const char *filename,
                                    Imlib_Load_Error * error_return)
 {
    ImlibImage         *im;
+   int                 er;
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CHECK_PARAM_POINTER("filename", filename);
@@ -4378,7 +4378,8 @@ imlib_save_image_with_error_return(const char *filename,
       return;
 
    __imlib_SaveImage(im, filename, (ImlibProgressFunction) ctx->progress_func,
-                     ctx->progress_granularity, error_return);
+                     ctx->progress_granularity, &er);
+   *error_return = er;
 }
 
 /**
@@ -4856,7 +4857,7 @@ EAPI void
 imlib_polygon_add_point(ImlibPolygon poly, int x, int y)
 {
    CHECK_PARAM_POINTER("polygon", poly);
-   __imlib_polygon_add_point((ImlibPoly) poly, x, y);
+   __imlib_polygon_add_point((ImlibPoly *) poly, x, y);
 }
 
 /**
@@ -4868,7 +4869,7 @@ EAPI void
 imlib_polygon_free(ImlibPolygon poly)
 {
    CHECK_PARAM_POINTER("polygon", poly);
-   __imlib_polygon_free((ImlibPoly) poly);
+   __imlib_polygon_free((ImlibPoly *) poly);
 }
 
 /**
@@ -4890,7 +4891,7 @@ imlib_image_draw_polygon(ImlibPolygon poly, unsigned char closed)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   __imlib_Polygon_DrawToImage((ImlibPoly) poly, closed, ctx->pixel,
+   __imlib_Polygon_DrawToImage((ImlibPoly *) poly, closed, ctx->pixel,
                                im, ctx->cliprect.x, ctx->cliprect.y,
                                ctx->cliprect.w, ctx->cliprect.h,
                                ctx->operation, ctx->blend, ctx->anti_alias);
@@ -4912,7 +4913,7 @@ imlib_image_fill_polygon(ImlibPolygon poly)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   __imlib_Polygon_FillToImage((ImlibPoly) poly, ctx->pixel,
+   __imlib_Polygon_FillToImage((ImlibPoly *) poly, ctx->pixel,
                                im, ctx->cliprect.x, ctx->cliprect.y,
                                ctx->cliprect.w, ctx->cliprect.h,
                                ctx->operation, ctx->blend, ctx->anti_alias);
@@ -4934,7 +4935,7 @@ imlib_polygon_get_bounds(ImlibPolygon poly, int *px1, int *py1, int *px2,
                          int *py2)
 {
    CHECK_PARAM_POINTER("polygon", poly);
-   __imlib_polygon_get_bounds((ImlibPoly) poly, px1, py1, px2, py2);
+   __imlib_polygon_get_bounds((ImlibPoly *) poly, px1, py1, px2, py2);
 }
 
 /**
@@ -5006,7 +5007,7 @@ EAPI unsigned char
 imlib_polygon_contains_point(ImlibPolygon poly, int x, int y)
 {
    CHECK_PARAM_POINTER_RETURN("polygon", poly, 0);
-   return __imlib_polygon_contains_point((ImlibPoly) poly, x, y);
+   return __imlib_polygon_contains_point((ImlibPoly *) poly, x, y);
 }
 
 EAPI void

@@ -39,10 +39,10 @@ __imlib_font_cache_glyph_get(ImlibFont * fn, FT_UInt index)
    if (error)
       return NULL;
 
-   fg = malloc(sizeof(struct _Imlib_Font_Glyph));
+   fg = malloc(sizeof(Imlib_Font_Glyph));
    if (!fg)
       return NULL;
-   memset(fg, 0, (sizeof(struct _Imlib_Font_Glyph)));
+   memset(fg, 0, sizeof(Imlib_Font_Glyph));
 
    error = FT_Get_Glyph(fn->ft.face->glyph, &(fg->glyph));
    if (error)

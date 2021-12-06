@@ -719,7 +719,7 @@ __imlib_DirtyImage(ImlibImage * im)
 void
 __imlib_SaveImage(ImlibImage * im, const char *file,
                   ImlibProgressFunction progress, char progress_granularity,
-                  ImlibLoadError * er)
+                  int *er)
 {
    ImlibLoader        *l;
    char                e, *pfile;

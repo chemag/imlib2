@@ -3,13 +3,10 @@
 
 #include "common.h"
 
-typedef struct _imlibimage ImlibImage;
 typedef struct _imlibldctx ImlibLdCtx;
-
-typedef struct _imlibborder ImlibBorder;
 typedef struct _imlibloader ImlibLoader;
-typedef struct _imlibimagetag ImlibImageTag;
-typedef enum _imlib_load_error ImlibLoadError;
+
+typedef struct _ImlibImage ImlibImage;
 
 typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
                                              int update_x, int update_y,
@@ -36,19 +33,19 @@ typedef enum _iflags ImlibImageFlags;
 #define FF_IMAGE_ANIMATED   (1 << 0)    /* Frames are an animated sequence */
 #define FF_FRAME_CLEAR      (1 << 1)    /* Clear before rendering frame    */
 
-struct _imlibborder {
+typedef struct {
    int                 left, right, top, bottom;
-};
+} ImlibBorder;
 
-struct _imlibimagetag {
+typedef struct _ImlibImageTag {
    char               *key;
    int                 val;
    void               *data;
    void                (*destructor)(ImlibImage * im, void *data);
-   ImlibImageTag      *next;
-};
+   struct _ImlibImageTag *next;
+} ImlibImageTag;
 
-struct _imlibimage {
+struct _ImlibImage {
    char               *file;
    int                 w, h;
    DATA32             *data;
@@ -108,8 +105,7 @@ void                __imlib_DirtyImage(ImlibImage * im);
 void                __imlib_FreeImage(ImlibImage * im);
 void                __imlib_SaveImage(ImlibImage * im, const char *file,
                                       ImlibProgressFunction progress,
-                                      char progress_granularity,
-                                      ImlibLoadError * er);
+                                      char progress_granularity, int *er);
 
 DATA32             *__imlib_AllocateData(ImlibImage * im);
 void                __imlib_FreeData(ImlibImage * im);

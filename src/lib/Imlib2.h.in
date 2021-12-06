@@ -49,27 +49,25 @@ typedef void       *Imlib_Updates;
 typedef void       *Imlib_Font;
 typedef void       *Imlib_Color_Range;
 typedef void       *Imlib_Filter;
-typedef struct _imlib_border Imlib_Border;
-typedef struct _imlib_color Imlib_Color;
 typedef void       *ImlibPolygon;
 
 /* blending operations */
-enum _imlib_operation {
+typedef enum {
    IMLIB_OP_COPY,
    IMLIB_OP_ADD,
    IMLIB_OP_SUBTRACT,
    IMLIB_OP_RESHADE
-};
+} Imlib_Operation;
 
-enum _imlib_text_direction {
+typedef enum {
    IMLIB_TEXT_TO_RIGHT = 0,
    IMLIB_TEXT_TO_LEFT = 1,
    IMLIB_TEXT_TO_DOWN = 2,
    IMLIB_TEXT_TO_UP = 3,
    IMLIB_TEXT_TO_ANGLE = 4
-};
+} Imlib_Text_Direction;
 
-enum _imlib_load_error {
+typedef enum {
    IMLIB_LOAD_ERROR_NONE,
    IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST,
    IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY,
@@ -85,29 +83,24 @@ enum _imlib_load_error {
    IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE,
    IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE,
    IMLIB_LOAD_ERROR_UNKNOWN
-};
+} Imlib_Load_Error;
 
 /* Encodings known to Imlib2 (so far) */
-enum _imlib_TTF_encoding {
+typedef enum {
    IMLIB_TTF_ENCODING_ISO_8859_1,
    IMLIB_TTF_ENCODING_ISO_8859_2,
    IMLIB_TTF_ENCODING_ISO_8859_3,
    IMLIB_TTF_ENCODING_ISO_8859_4,
    IMLIB_TTF_ENCODING_ISO_8859_5
-};
+} Imlib_TTF_Encoding;
 
-typedef enum _imlib_operation Imlib_Operation;
-typedef enum _imlib_load_error Imlib_Load_Error;
-typedef enum _imlib_text_direction Imlib_Text_Direction;
-typedef enum _imlib_TTF_encoding Imlib_TTF_Encoding;
-
-struct _imlib_border {
+typedef struct {
    int                 left, right, top, bottom;
-};
+} Imlib_Border;
 
-struct _imlib_color {
+typedef struct {
    int                 alpha, red, green, blue;
-};
+} Imlib_Color;
 
 /* Progressive loading callbacks */
 typedef int         (*Imlib_Progress_Function)(Imlib_Image im, char percent,

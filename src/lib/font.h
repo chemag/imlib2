@@ -6,29 +6,22 @@
 
 /* TODO separate fonts and data stuff */
 
-typedef struct _Imlib_Font ImlibFont;
-typedef struct _Imlib_Font_Glyph Imlib_Font_Glyph;
+typedef struct _Imlib_Object_List {
+   struct _Imlib_Object_List *next, *prev;
+} Imlib_Object_List;
 
-typedef struct _Imlib_Object_List Imlib_Object_List;
-typedef struct _Imlib_Hash Imlib_Hash;
-typedef struct _Imlib_Hash_El Imlib_Hash_El;
-
-struct _Imlib_Object_List {
-   Imlib_Object_List  *next, *prev;
-};
-
-struct _Imlib_Hash {
+typedef struct {
    int                 population;
    Imlib_Object_List  *buckets[256];
-};
+} Imlib_Hash;
 
-struct _Imlib_Hash_El {
+typedef struct {
    Imlib_Object_List   _list_data;
    char               *key;
    void               *data;
-};
+} Imlib_Hash_El;
 
-struct _Imlib_Font {
+typedef struct _Imlib_Font {
    Imlib_Object_List   _list_data;
    char               *name;
    char               *file;
@@ -47,12 +40,12 @@ struct _Imlib_Font {
    /* using a double-linked list for the fallback chain */
    struct _Imlib_Font *fallback_prev;
    struct _Imlib_Font *fallback_next;
-};
+} ImlibFont;
 
-struct _Imlib_Font_Glyph {
+typedef struct {
    FT_Glyph            glyph;
    FT_BitmapGlyph      glyph_out;
-};
+} Imlib_Font_Glyph;
 
 /* functions */
 
