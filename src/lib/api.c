@@ -1389,10 +1389,13 @@ imlib_load_image_immediately_without_cache(const char *file)
  * @param file Image file.
  * @return An image handle.
  *
- * Loads the image without deferred image data decoding (i.e. it is
- * decoded straight away) and without looking in the cache. Returns an
- * image handle on success or NULL on failure.
- * fd will be closed after calling this function.
+ * Reaasd image from file descriptor.
+ * The file name @file is only used to guess the file format.
+ * The image is loaded without deferred image data decoding (i.e. it is
+ * decoded straight away) and without looking in the cache.
+ * @fd must be mmap'able (so it cannot be a pipe).
+ * @fd will be closed after calling this function.
+ * Returns an image handle on success or NULL on failure.
  */
 EAPI                Imlib_Image
 imlib_load_image_fd(int fd, const char *file)
