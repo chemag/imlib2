@@ -2,11 +2,13 @@ AUTOMAKE_OPTIONS = foreign
 
 ACLOCAL_AMFLAGS = -I m4
 
-if BUILD_TEST
-SUBDIRS_TEST = test
+SUBDIRS = src data
+if BUILD_DOC
+SUBDIRS += doc
 endif
-
-SUBDIRS = src data doc $(SUBDIRS_TEST)
+if BUILD_TEST
+SUBDIRS += test
+endif
 DIST_SUBDIRS = src data doc
 
 CLEANFILES = $(PACKAGE).spec
@@ -36,5 +38,9 @@ dist-hook: $(top_builddir)/$(PACKAGE).spec
 $(top_builddir)/$(PACKAGE).spec: FORCE
 	sed "s/\@PACKAGE\@/@PACKAGE@/;s/\@VERSION\@/@VERSION@/;s/\@RPM_RELEASE\@/$(RPM_RELEASE)/" \
 		$(top_srcdir)/$(PACKAGE).spec.in > $@
+
+.PHONY: doc test
+doc test:
+	$(MAKE) -C $@
 
 FORCE:

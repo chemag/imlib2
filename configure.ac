@@ -231,6 +231,11 @@ AC_ARG_ENABLE([debug],
 )
 AM_CONDITIONAL(BUILD_DEBUG, test "$enable_debug" = "yes")
 
+AC_ARG_ENABLE([doc-build],
+  [AS_HELP_STRING([--enable-doc-build], [Enable building documentation (not installed) @<:@default=no@:>@])]
+)
+AM_CONDITIONAL(BUILD_DOC, test "$enable_doc_build" = "yes")
+
 EC_C_WARNINGS()
 EC_C_VISIBILITY(yes)
 EC_C_ASAN()
@@ -257,6 +262,8 @@ data/Makefile
 data/fonts/Makefile
 data/images/Makefile
 doc/Makefile
+doc/Doxyfile
+doc/imlib2_intro.dox
 README
 ])
 AM_COND_IF([SRC_IS_GIT], [ AC_CONFIG_FILES([test/Makefile]) ])
