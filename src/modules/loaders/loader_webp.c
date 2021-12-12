@@ -34,26 +34,38 @@ load2(ImlibImage * im, int load_data)
    if (!demux)
       goto quit;
 
-   /* Key may select frame other than first */
    frame = 1;
-   if (im->key)
+   if (im->frame_num > 0)
      {
-        frame = atoi(im->key);
-        iter.num_frames = WebPDemuxGetI(demux, WEBP_FF_FRAME_COUNT);
-        if (frame > iter.num_frames)
-           frame = 0;           /* Select last */
+        frame = im->frame_num;
+        im->frame_count = WebPDemuxGetI(demux, WEBP_FF_FRAME_COUNT);
+        if (im->frame_count > 1)
+           im->frame_flags |= FF_IMAGE_ANIMATED;
+        im->canvas_w = WebPDemuxGetI(demux, WEBP_FF_CANVAS_WIDTH);
+        im->canvas_h = WebPDemuxGetI(demux, WEBP_FF_CANVAS_HEIGHT);
+
+        D("Canvas WxH=%dx%d frames=%d\n",
+          im->canvas_w, im->canvas_h, im->frame_count);
+
+        if (frame > 1 && frame > im->frame_count)
+           goto quit;
      }
 
    if (!WebPDemuxGetFrame(demux, frame, &iter))
       goto quit;
 
-   D("Frame=%d/%d X,Y=%d,%d WxH=%dx%d\n", iter.frame_num, iter.num_frames,
-     iter.x_offset, iter.y_offset, iter.width, iter.height);
-
    WebPDemuxReleaseIterator(&iter);
 
    im->w = iter.width;
    im->h = iter.height;
+   im->frame_x = iter.x_offset;
+   im->frame_y = iter.y_offset;
+   im->frame_delay = iter.duration;
+
+   D("Canvas WxH=%dx%d frame=%d/%d X,Y=%d,%d WxH=%dx%d alpha=%d T=%d dm=%d co=%d bl=%d\n",      //
+     im->canvas_w, im->canvas_h, iter.frame_num, im->frame_count,
+     im->frame_x, im->frame_y, im->w, im->h, iter.has_alpha,
+     im->frame_delay, iter.dispose_method, iter.complete, iter.blend_method);
 
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
@@ -77,7 +89,7 @@ load2(ImlibImage * im, int load_data)
       goto quit;
 
    if (im->lc)
-      __imlib_LoadProgressRows(im, 0, im->h);
+      __imlib_LoadProgress(im, im->frame_x, im->frame_y, im->w, im->h);
 
    rc = LOAD_SUCCESS;
 
