@@ -302,35 +302,41 @@ ico_data_get_nibble(DATA8 * data, int w, int x, int y)
 static int
 ico_load(ico_t * ico, ImlibImage * im, int load_data)
 {
-   int                 ic, x, y, w, h, d;
+   int                 ic, x, y, w, h, d, frame;
    DATA32             *cmap;
    DATA8              *pxls, *mask, *psrc;
    ie_t               *ie;
    DATA32             *pdst;
    DATA32              pixel;
 
-   /* Find icon with largest size and depth */
-   ic = y = d = 0;
-   for (x = 0; x < ico->idir.icons; x++)
+   frame = 0;                   /* Select default */
+   if (im->frame_num > 0)
      {
-        ie = &ico->ie[x];
-        w = ie->w;
-        h = ie->h;
-        if (w * h < y)
-           continue;
-        if (w * h == y && ie->bih.bpp < d)
-           continue;
-        ic = x;
-        y = w * h;
-        d = ie->bih.bpp;
+        frame = im->frame_num;
+        im->frame_count = ico->idir.icons;
+
+        if (frame > 1 && frame > im->frame_count)
+           return 0;
      }
 
-   /* Enable overriding selected index for debug purposes */
-   if (im->key)
+   ic = frame - 1;
+   if (ic < 0)
      {
-        ic = atoi(im->key);
-        if (ic >= ico->idir.icons)
-           return 0;
+        /* Select default: Find icon with largest size and depth */
+        ic = y = d = 0;
+        for (x = 0; x < ico->idir.icons; x++)
+          {
+             ie = &ico->ie[x];
+             w = ie->w;
+             h = ie->h;
+             if (w * h < y)
+                continue;
+             if (w * h == y && ie->bih.bpp < d)
+                continue;
+             ic = x;
+             y = w * h;
+             d = ie->bih.bpp;
+          }
      }
 
    ie = &ico->ie[ic];
