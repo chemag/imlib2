@@ -15,7 +15,7 @@ Display            *disp;
 static int          debug = 0;
 static int          verbose = 0;
 static Window       win;
-static Pixmap       pm = 0;
+static Pixmap       bg_pm = 0;
 static int          image_width = 0, image_height = 0;
 static int          window_width = 0, window_height = 0;
 static Imlib_Image  bg_im = NULL;
@@ -57,6 +57,52 @@ usage(void)
    printf(HELP);
 }
 
+static void
+bg_pm_init(int reset)
+{
+   int                 x, y, onoff;
+
+   if (reset)
+     {
+        if (bg_im)
+          {
+             imlib_context_set_image(bg_im);
+             imlib_free_image_and_decache();
+          }
+        bg_im = imlib_create_image(image_width, image_height);
+
+        if (bg_pm)
+           XFreePixmap(disp, bg_pm);
+        bg_pm = XCreatePixmap(disp, win, window_width, window_height,
+                              DefaultDepth(disp, DefaultScreen(disp)));
+     }
+
+   imlib_context_set_image(bg_im);
+   for (y = 0; y < image_height; y += 8)
+     {
+        onoff = (y / 8) & 0x1;
+        for (x = 0; x < image_width; x += 8)
+          {
+             if (onoff)
+                imlib_context_set_color(144, 144, 144, 255);
+             else
+                imlib_context_set_color(100, 100, 100, 255);
+             imlib_image_fill_rectangle(x, y, 8, 8);
+             onoff++;
+             if (onoff == 2)
+                onoff = 0;
+          }
+     }
+
+   imlib_context_set_anti_alias(0);
+   imlib_context_set_dither(0);
+   imlib_context_set_blend(0);
+   imlib_context_set_drawable(bg_pm);
+   imlib_render_image_part_on_drawable_at_size(0, 0, image_width,
+                                               image_height, 0, 0,
+                                               window_width, window_height);
+}
+
 static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
@@ -69,14 +115,8 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
              __func__, percent, update_x, update_y, update_w, update_h);
 
    /* first time it's called */
-   imlib_context_set_drawable(pm);
-   imlib_context_set_anti_alias(0);
-   imlib_context_set_dither(0);
-   imlib_context_set_blend(0);
    if (image_width == 0)
      {
-        int                 x, y, onoff;
-
         scale_x = opt_scale_x;
         scale_y = opt_scale_y;
 
@@ -118,38 +158,8 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
           }
         Dprintf("Window WxH=%dx%d\n", window_width, window_height);
 
-        if (pm)
-           XFreePixmap(disp, pm);
-        pm = XCreatePixmap(disp, win, window_width, window_height,
-                           DefaultDepth(disp, DefaultScreen(disp)));
-        imlib_context_set_drawable(pm);
-        if (bg_im)
-          {
-             imlib_context_set_image(bg_im);
-             imlib_free_image_and_decache();
-          }
-        bg_im = imlib_create_image(image_width, image_height);
-        imlib_context_set_image(bg_im);
-        for (y = 0; y < image_height; y += 8)
-          {
-             onoff = (y / 8) & 0x1;
-             for (x = 0; x < image_width; x += 8)
-               {
-                  if (onoff)
-                     imlib_context_set_color(144, 144, 144, 255);
-                  else
-                     imlib_context_set_color(100, 100, 100, 255);
-                  imlib_image_fill_rectangle(x, y, 8, 8);
-                  onoff++;
-                  if (onoff == 2)
-                     onoff = 0;
-               }
-          }
-        imlib_render_image_part_on_drawable_at_size(0, 0, image_width,
-                                                    image_height, 0, 0,
-                                                    window_width,
-                                                    window_height);
-        XSetWindowBackgroundPixmap(disp, win, pm);
+        bg_pm_init(1);
+        XSetWindowBackgroundPixmap(disp, win, bg_pm);
         XResizeWindow(disp, win, window_width, window_height);
         XClearWindow(disp, win);
         XMapWindow(disp, win);
@@ -159,6 +169,8 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
    imlib_context_set_anti_alias(0);
    imlib_context_set_dither(0);
    imlib_context_set_blend(1);
+   imlib_context_set_drawable(bg_pm);
+   imlib_context_set_image(bg_im);
    imlib_blend_image_onto_image(im, 0,
                                 update_x, update_y, update_w, update_h,
                                 update_x, update_y, update_w, update_h);
@@ -372,7 +384,7 @@ main(int argc, char **argv)
                   zoom_mode = 1;
                   zx = x;
                   zy = y;
-                  imlib_context_set_drawable(pm);
+                  imlib_context_set_drawable(bg_pm);
                   imlib_context_set_image(bg_im);
                   imlib_context_set_anti_alias(0);
                   imlib_context_set_dither(0);
