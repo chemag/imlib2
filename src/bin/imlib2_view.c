@@ -355,6 +355,8 @@ main(int argc, char **argv)
                case XK_q:
                case XK_Escape:
                   goto quit;
+               case XK_r:
+                  goto show_cur;
                case XK_Right:
                   goto show_next;
                case XK_Left:
@@ -441,6 +443,9 @@ main(int argc, char **argv)
                }
              break;
 
+           show_cur:
+             inc = 0;
+             goto show_next_prev;
            show_next:
              inc = 1;
              goto show_next_prev;
@@ -461,7 +466,7 @@ main(int argc, char **argv)
                        inc = 1;
                        continue;
                     }
-                  if (no2 == no)
+                  if (no2 == no && inc != 0)
                      break;
                   im2 = load_image(no2, argv[no2]);
                   if (!im2)
