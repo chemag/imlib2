@@ -363,7 +363,6 @@ main(int argc, char **argv)
    imlib_context_set_colormap(DefaultColormap(disp, DefaultScreen(disp)));
    imlib_context_set_progress_function(progress);
    imlib_context_set_progress_granularity(opt_progress_granularity);
-   imlib_context_set_drawable(win);
 
    no = -1;
    for (im = NULL; !im;)
@@ -376,8 +375,6 @@ main(int argc, char **argv)
           }
         im = load_image(no, argv[no]);
      }
-
-   imlib_context_set_image(im);
 
    for (;;)
      {
