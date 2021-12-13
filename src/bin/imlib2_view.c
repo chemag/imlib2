@@ -103,6 +103,53 @@ bg_pm_init(int reset)
                                                window_width, window_height);
 }
 
+static void
+bg_pm_redraw(int zx, int zy, double zoom, int aa)
+{
+   int                 sx, sy, sw, sh, dx, dy, dw, dh;
+
+   if (zoom == 0.)
+     {
+        sx = sy = dx = dy = 0;
+        sw = image_width;
+        sh = image_height;
+        dw = window_width;
+        dh = window_height;
+     }
+   else if (zoom > 1.0)
+     {
+        dx = 0;
+        dy = 0;
+        dw = window_width;
+        dh = window_height;
+
+        sx = zx - (zx / zoom);
+        sy = zy - (zy / zoom);
+        sw = image_width / zoom;
+        sh = image_height / zoom;
+     }
+   else
+     {
+        dx = zx - (zx * zoom);
+        dy = zy - (zy * zoom);
+        dw = window_width * zoom;
+        dh = window_height * zoom;
+
+        sx = 0;
+        sy = 0;
+        sw = image_width;
+        sh = image_height;
+     }
+
+   imlib_context_set_anti_alias(aa);
+   imlib_context_set_dither(aa);
+   imlib_context_set_blend(0);
+   imlib_context_set_drawable(bg_pm);
+   imlib_context_set_image(bg_im);
+   imlib_render_image_part_on_drawable_at_size(sx, sy, sw, sh, dx, dy, dw, dh);
+   XClearWindow(disp, win);
+}
+
 static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
@@ -384,15 +431,7 @@ main(int argc, char **argv)
                   zoom_mode = 1;
                   zx = x;
                   zy = y;
-                  imlib_context_set_drawable(bg_pm);
-                  imlib_context_set_image(bg_im);
-                  imlib_context_set_anti_alias(0);
-                  imlib_context_set_dither(0);
-                  imlib_context_set_blend(0);
-                  imlib_render_image_part_on_drawable_at_size
-                     (0, 0, image_width, image_height,
-                      0, 0, window_width, window_height);
-                  XClearWindow(disp, win);
+                  bg_pm_redraw(zx, zy, 0., 0);
                }
              break;
           case ButtonRelease:
@@ -410,8 +449,6 @@ main(int argc, char **argv)
              x = ev.xmotion.x;
              if (zoom_mode)
                {
-                  int                 sx, sy, sw, sh, dx, dy, dw, dh;
-
                   zoom = ((double)x - (double)zx) / 32.0;
                   if (zoom < 0)
                      zoom = 1.0 + ((zoom * 32.0) / ((double)(zx + 1)));
@@ -419,38 +456,8 @@ main(int argc, char **argv)
                      zoom += 1.0;
                   if (zoom <= 0.0001)
                      zoom = 0.0001;
-                  if (zoom > 1.0)
-                    {
-                       dx = 0;
-                       dy = 0;
-                       dw = window_width;
-                       dh = window_height;
 
-                       sx = zx - (zx / zoom);
-                       sy = zy - (zy / zoom);
-                       sw = image_width / zoom;
-                       sh = image_height / zoom;
-                    }
-                  else
-                    {
-                       dx = zx - (zx * zoom);
-                       dy = zy - (zy * zoom);
-                       dw = window_width * zoom;
-                       dh = window_height * zoom;
-
-                       sx = 0;
-                       sy = 0;
-                       sw = image_width;
-                       sh = image_height;
-                    }
-                  imlib_context_set_anti_alias(0);
-                  imlib_context_set_dither(0);
-                  imlib_context_set_blend(0);
-                  imlib_context_set_image(bg_im);
-                  imlib_render_image_part_on_drawable_at_size
-                     (sx, sy, sw, sh, dx, dy, dw, dh);
-                  XClearWindow(disp, win);
-                  XFlush(disp);
+                  bg_pm_redraw(zx, zy, zoom, 0);
                   timeout = 1;
                }
              break;
@@ -522,40 +529,8 @@ main(int argc, char **argv)
           }
         else if (count == 0)
           {
-             int                 sx, sy, sw, sh, dx, dy, dw, dh;
-
-             if (zoom > 1.0)
-               {
-                  dx = 0;
-                  dy = 0;
-                  dw = window_width;
-                  dh = window_height;
-
-                  sx = zx - (zx / zoom);
-                  sy = zy - (zy / zoom);
-                  sw = image_width / zoom;
-                  sh = image_height / zoom;
-               }
-             else
-               {
-                  dx = zx - (zx * zoom);
-                  dy = zy - (zy * zoom);
-                  dw = window_width * zoom;
-                  dh = window_height * zoom;
-
-                  sx = 0;
-                  sy = 0;
-                  sw = image_width;
-                  sh = image_height;
-               }
-             imlib_context_set_anti_alias(1);
-             imlib_context_set_dither(1);
-             imlib_context_set_blend(0);
-             imlib_context_set_image(bg_im);
-             imlib_render_image_part_on_drawable_at_size
-                (sx, sy, sw, sh, dx, dy, dw, dh);
-             XClearWindow(disp, win);
-             XFlush(disp);
+             /* "Final" (delayed) re-rendering with AA */
+             bg_pm_redraw(zx, zy, zoom, 1);
           }
      }
 
