@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "Imlib2.h"
+#include <Imlib2.h>
 #include "props.h"
 
 Display            *disp;
