@@ -348,12 +348,18 @@ main(int argc, char **argv)
              while (XCheckTypedWindowEvent(disp, win, KeyPress, &ev))
                 ;
              key = XLookupKeysym(&ev.xkey, 0);
-             if (key == XK_q || key == XK_Escape)
-                goto quit;
-             if (key == XK_Right)
-                goto show_next;
-             if (key == XK_Left)
-                goto show_prev;
+             switch (key)
+               {
+               default:
+                  break;
+               case XK_q:
+               case XK_Escape:
+                  goto quit;
+               case XK_Right:
+                  goto show_next;
+               case XK_Left:
+                  goto show_prev;
+               }
              break;
           case ButtonPress:
              b = ev.xbutton.button;
