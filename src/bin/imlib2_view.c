@@ -378,16 +378,17 @@ main(int argc, char **argv)
 
    for (;;)
      {
-        int                 x, y, b, count, fdsize, xfd, timeout = 0;
+        int                 x, y, b, count, fdsize, xfd, timeout;
         XEvent              ev;
         static int          zoom_mode = 0, zx, zy;
         static double       zoom = 1.0;
         struct timeval      tval;
         fd_set              fdset;
-        double              t1;
         KeySym              key;
         Imlib_Image        *im2;
         int                 no2;
+
+        timeout = 0;
 
         XFlush(disp);
         XNextEvent(disp, &ev);
@@ -455,7 +456,7 @@ main(int argc, char **argv)
                      zoom = 0.0001;
 
                   bg_pm_redraw(zx, zy, zoom, 0);
-                  timeout = 1;
+                  timeout = 200000;     /* .2 s */
                }
              break;
 
@@ -506,18 +507,21 @@ main(int argc, char **argv)
         if (XPending(disp))
            continue;
 
-        t1 = 0.2;
-        tval.tv_sec = (long)t1;
-        tval.tv_usec = (long)((t1 - ((double)tval.tv_sec)) * 1000000);
         xfd = ConnectionNumber(disp);
         fdsize = xfd + 1;
         FD_ZERO(&fdset);
         FD_SET(xfd, &fdset);
 
-        if (timeout)
-           count = select(fdsize, &fdset, NULL, NULL, &tval);
+        if (timeout > 0)
+          {
+             tval.tv_sec = timeout / 1000000;
+             tval.tv_usec = timeout - tval.tv_sec * 1000000;
+             count = select(fdsize, &fdset, NULL, NULL, &tval);
+          }
         else
-           count = select(fdsize, &fdset, NULL, NULL, NULL);
+          {
+             count = select(fdsize, &fdset, NULL, NULL, NULL);
+          }
 
         if (count < 0)
           {
