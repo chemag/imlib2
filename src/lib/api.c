@@ -1344,13 +1344,13 @@ imlib_load_image_with_error_return(const char *file,
  * Loads the specified frame within the image.
  * On success an image handle is returned, otherwise NULL is returned
  * (e.g. if the requested frame does not exist).
- * The image is loaded immediately and will not be cached.
+ * The image is loaded immediately.
  */
 EAPI                Imlib_Image
 imlib_load_image_frame(const char *file, int frame)
 {
    ImlibImage         *im;
-   ImlibLoadArgs       ila = { ILA0(ctx, 1, 1),.frame = frame };
+   ImlibLoadArgs       ila = { ILA0(ctx, 1, 0),.frame = frame };
 
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 

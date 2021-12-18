@@ -113,25 +113,26 @@ __imlib_ConsumeImage(ImlibImage * im)
 }
 
 static ImlibImage  *
-__imlib_FindCachedImage(const char *file)
+__imlib_FindCachedImage(const char *file, int frame)
 {
    ImlibImage         *im, *im_prev;
 
-   DP("%s: '%s'\n", __func__, file);
+   DP("%s: '%s' frame %d\n", __func__, file, frame);
 
    for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
         /* if the filenames match and it's valid */
-        if ((!strcmp(file, im->file)) && (IMAGE_IS_VALID(im)))
+        if (!strcmp(file, im->file) && IMAGE_IS_VALID(im) &&
+            frame == im->frame_num)
           {
-             /* move the image to the head of the pixmap list */
+             /* move the image to the head of the image list */
              if (im_prev)
                {
                   im_prev->next = im->next;
                   im->next = images;
                   images = im;
                }
-             DP(" got %p: '%s'\n", im, im->real_file);
+             DP(" got %p: '%s' frame %d\n", im, im->real_file, im->frame_num);
              return im;
           }
      }
@@ -143,7 +144,7 @@ __imlib_FindCachedImage(const char *file)
 static void
 __imlib_AddImageToCache(ImlibImage * im)
 {
-   DP("%s: %p: '%s'\n", __func__, im, im->real_file);
+   DP("%s: %p: '%s' frame %d\n", __func__, im, im->real_file, im->frame_num);
    im->next = images;
    images = im;
 }
@@ -155,7 +156,7 @@ __imlib_RemoveImageFromCache(ImlibImage * im_del)
    ImlibImage         *im, *im_prev;
 
    im = im_del;
-   DP("%s: %p: '%s'\n", __func__, im, im->real_file);
+   DP("%s: %p: '%s' frame %d\n", __func__, im, im->real_file, im->frame_num);
 
    for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
@@ -446,7 +447,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
       return NULL;
 
    /* see if we already have the image cached */
-   im = __imlib_FindCachedImage(file);
+   im = __imlib_FindCachedImage(file, ila->frame);
 
    /* if we found a cached image and we should always check that it is */
    /* accurate to the disk conents if they changed since we last loaded */
