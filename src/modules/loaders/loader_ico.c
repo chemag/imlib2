@@ -133,7 +133,7 @@ ico_read_idir(ico_t * ico, int ino)
    SWAP_LE_32_INPLACE(ie->ide.size);
    SWAP_LE_32_INPLACE(ie->ide.offs);
 
-   D("Entry %2d: Idir: WxHxD = %dx%dx%d, colors = %d\n",
+   DL("Entry %2d: Idir: WxHxD = %dx%dx%d, colors = %d\n",
      ino, ie->w, ie->h, ie->ide.bpp, ie->ide.colors);
 }
 
@@ -169,7 +169,7 @@ ico_read_icon(ico_t * ico, int ino)
         goto bail;
      }
 
-   D("Entry %2d: Icon: WxHxD = %dx%dx%d, colors = %d\n",
+   DL("Entry %2d: Icon: WxHxD = %dx%dx%d, colors = %d\n",
      ino, ie->w, ie->h, ie->bih.bpp, ie->bih.colors);
 
    if (ie->bih.width != ie->w || ie->bih.height != 2 * ie->h)
@@ -187,7 +187,7 @@ ico_read_icon(ico_t * ico, int ino)
      case 1:
      case 4:
      case 8:
-        D("Allocating a %d slot colormap\n", ie->bih.colors);
+        DL("Allocating a %d slot colormap\n", ie->bih.colors);
         if (UINT_MAX / sizeof(DATA32) < ie->bih.colors)
            goto bail;
         size = ie->bih.colors * sizeof(DATA32);
@@ -215,7 +215,7 @@ ico_read_icon(ico_t * ico, int ino)
       goto bail;
    if (mm_read(ie->pxls, size))
       goto bail;
-   D("Pixel data size: %u\n", size);
+   DL("Pixel data size: %u\n", size);
 
    size = ((ie->w + 31) / 32 * 4) * ie->h;
    ie->mask = malloc(size);
@@ -223,7 +223,7 @@ ico_read_icon(ico_t * ico, int ino)
       goto bail;
    if (mm_read(ie->mask, size))
       goto bail;
-   D("Mask  data size: %u\n", size);
+   DL("Mask  data size: %u\n", size);
 
    return;
 
