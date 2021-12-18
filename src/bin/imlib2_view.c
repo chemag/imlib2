@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 #include <Imlib2.h>
@@ -20,8 +21,9 @@ static int          image_width = 0, image_height = 0;
 static int          window_width = 0, window_height = 0;
 static Imlib_Image  bg_im = NULL;
 
-static char         opt_cache = 0;
-static char         opt_scale = 0;
+static bool         opt_cache = false;
+static bool         opt_progr = true;   /* Render through progress callback */
+static bool         opt_scale = false;
 static double       opt_scale_x = 1.;
 static double       opt_scale_y = 1.;
 static double       opt_sgrab_x = 1.;
@@ -42,8 +44,9 @@ static int          opt_progress_delay = 0;
    "Usage:\n" \
    "  imlib2_view [OPTIONS] {FILE | XID}...\n" \
    "OPTIONS:\n" \
-   "  -c         : Enable image caching\n" \
+   "  -c         : Enable image caching (implies -e)\n" \
    "  -d         : Enable debug\n" \
+   "  -e         : Do rendering explicitly (not via progress callback)\n" \
    "  -g N       : Set progress granularity to N%% (default 10(%%))\n" \
    "  -l N       : Introduce N ms delay in progress callback (default 0)\n" \
    "  -p         : Print info in progress callback (default no)\n" \
@@ -213,6 +216,14 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         XSync(disp, False);
      }
 
+   if (update_w <= 0 || update_h <= 0)
+     {
+        update_x = 0;
+        update_y = 0;
+        update_w = image_width;
+        update_h = image_height;
+     }
+
    imlib_context_set_anti_alias(0);
    imlib_context_set_dither(0);
    imlib_context_set_blend(1);
@@ -280,6 +291,12 @@ load_image(int no, const char *name)
    else
      {
         im = imlib_load_image(name);
+        if (!opt_progr)
+          {
+             /* No progress callback - render explicitly */
+             progress(im, 100, 0, 0, 0, 0);
+          }
+
      }
 
    return im;
@@ -294,15 +311,19 @@ main(int argc, char **argv)
 
    verbose = 0;
 
-   while ((opt = getopt(argc, argv, "cdg:l:ps:S:v")) != -1)
+   while ((opt = getopt(argc, argv, "cdeg:l:ps:S:v")) != -1)
      {
         switch (opt)
           {
           case 'c':
-             opt_cache = 1;
+             opt_cache = true;
+             opt_progr = false; /* Cached images won't give progress callbacks */
              break;
           case 'd':
              debug += 1;
+             break;
+          case 'e':
+             opt_progr = false;
              break;
           case 'g':
              opt_progress_granularity = atoi(optarg);
@@ -314,7 +335,7 @@ main(int argc, char **argv)
              opt_progress_print = 1;
              break;
           case 's':            /* Scale (window size wrt. image size) */
-             opt_scale = 1;
+             opt_scale = true;
              opt_scale_y = 0.f;
              sscanf(optarg, "%lf,%lf", &opt_scale_x, &opt_scale_y);
              if (opt_scale_y == 0.f)
@@ -361,8 +382,16 @@ main(int argc, char **argv)
    imlib_context_set_display(disp);
    imlib_context_set_visual(DefaultVisual(disp, DefaultScreen(disp)));
    imlib_context_set_colormap(DefaultColormap(disp, DefaultScreen(disp)));
-   imlib_context_set_progress_function(progress);
-   imlib_context_set_progress_granularity(opt_progress_granularity);
+
+   if (opt_progr)
+     {
+        imlib_context_set_progress_function(progress);
+        imlib_context_set_progress_granularity(opt_progress_granularity);
+     }
+
+   /* Raise cache size if we do caching (default 4M) */
+   if (opt_cache)
+      imlib_set_cache_size(32 * 1024 * 1024);
 
    no = -1;
    for (im = NULL; !im;)
@@ -387,6 +416,18 @@ main(int argc, char **argv)
         KeySym              key;
         Imlib_Image        *im2;
         int                 no2;
+
+        if (im)
+          {
+             Dprintf("Cache usage: %d/%d\n", imlib_get_cache_used(),
+                     imlib_get_cache_size());
+             imlib_context_set_image(im);
+             if (opt_cache)
+                imlib_free_image();
+             else
+                imlib_free_image_and_decache();
+             im = NULL;
+          }
 
         timeout = 0;
 
@@ -493,12 +534,8 @@ main(int argc, char **argv)
                     }
                   zoom = 1.0;
                   zoom_mode = 0;
-                  imlib_context_set_image(im);
-                  if (!opt_cache)
-                     imlib_free_image_and_decache();
                   no = no2;
                   im = im2;
-                  imlib_context_set_image(im);
                   break;
                }
              break;
