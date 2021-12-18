@@ -117,6 +117,8 @@ __imlib_FindCachedImage(const char *file)
 {
    ImlibImage         *im, *im_prev;
 
+   DP("%s: '%s'\n", __func__, file);
+
    for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
         /* if the filenames match and it's valid */
@@ -129,9 +131,11 @@ __imlib_FindCachedImage(const char *file)
                   im->next = images;
                   images = im;
                }
+             DP(" got %p: '%s'\n", im, im->real_file);
              return im;
           }
      }
+   DP(" got none\n");
    return NULL;
 }
 
@@ -139,6 +143,7 @@ __imlib_FindCachedImage(const char *file)
 static void
 __imlib_AddImageToCache(ImlibImage * im)
 {
+   DP("%s: %p: '%s'\n", __func__, im, im->real_file);
    im->next = images;
    images = im;
 }
@@ -148,6 +153,9 @@ static void
 __imlib_RemoveImageFromCache(ImlibImage * im_del)
 {
    ImlibImage         *im, *im_prev;
+
+   im = im_del;
+   DP("%s: %p: '%s'\n", __func__, im, im->real_file);
 
    for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
