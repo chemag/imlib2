@@ -134,7 +134,7 @@ ico_read_idir(ico_t * ico, int ino)
    SWAP_LE_32_INPLACE(ie->ide.offs);
 
    DL("Entry %2d: Idir: WxHxD = %dx%dx%d, colors = %d\n",
-     ino, ie->w, ie->h, ie->ide.bpp, ie->ide.colors);
+      ino, ie->w, ie->h, ie->ide.bpp, ie->ide.colors);
 }
 
 static void
@@ -170,7 +170,7 @@ ico_read_icon(ico_t * ico, int ino)
      }
 
    DL("Entry %2d: Icon: WxHxD = %dx%dx%d, colors = %d\n",
-     ino, ie->w, ie->h, ie->bih.bpp, ie->bih.colors);
+      ino, ie->w, ie->h, ie->bih.bpp, ie->bih.colors);
 
    if (ie->bih.width != ie->w || ie->bih.height != 2 * ie->h)
      {
