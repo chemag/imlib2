@@ -125,6 +125,7 @@ __imlib_ProduceLoader(const char *file)
         return NULL;
      }
    l->load2 = dlsym(l->handle, "load2");
+   l->load = NULL;
    if (!l->load2)
       l->load = dlsym(l->handle, "load");
    l->save = dlsym(l->handle, "save");
@@ -281,7 +282,7 @@ __imlib_LookupLoadedLoader(const char *format, int for_save)
                {
                   /* does it provide the function we need? */
                   if ((for_save && l->save) ||
-                      (!for_save && (l->load || l->load2)))
+                      (!for_save && (l->load2 || l->load)))
                      goto done;
                }
           }
