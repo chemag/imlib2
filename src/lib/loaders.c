@@ -50,6 +50,9 @@ static const char  *const ext_xpm[] = { "xpm", NULL };
 #ifdef BUILD_BZ2_LOADER
 static const char  *const ext_bz2[] = { "bz2", NULL };
 #endif
+#ifdef BUILD_LZMA_LOADER
+static const char  *const ext_lzma[] = { "xz", "lzma", NULL };
+#endif
 #ifdef BUILD_ZLIB_LOADER
 static const char  *const ext_zlib[] = { "gz", NULL };
 #endif
@@ -85,6 +88,9 @@ static const KnownLoader loaders_known[] = {
    {"xpm", ext_xpm},
 #ifdef BUILD_BZ2_LOADER
    {"bz2", ext_bz2},
+#endif
+#ifdef BUILD_LZMA_LOADER
+   {"lzma", ext_lzma},
 #endif
 #ifdef BUILD_ZLIB_LOADER
    {"zlib", ext_zlib},

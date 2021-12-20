@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <zlib.h>
 
+#include "config.h"
+
 int                 debug = 0;
 
 #define D(...) if (debug) printf(__VA_ARGS__)
@@ -24,7 +26,15 @@ static tii_t        tii[] = {
    { "icon-64.argb",		1153555547 },
    { "icon-64.bmp",		1153555547 },
    { "icon-64.ff",		1153555547 },
+#ifdef BUILD_BZ2_LOADER
    { "icon-64.ff.bz2",		1153555547 },
+#endif
+#ifdef BUILD_ZLIB_LOADER
+   { "icon-64.ff.gz",		1153555547 },
+#endif
+#ifdef BUILD_LZMA_LOADER
+   { "icon-64.ff.xz",		1153555547 },
+#endif
    { "icon-64.gif",		1768448874 },
    { "icon-64.ico",		1153555547 },
    { "icon-64.ilbm",		1153555547 },

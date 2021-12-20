@@ -33,6 +33,9 @@ endif
 if BUILD_BZ2_LOADER
 pkg_LTLIBRARIES += bz2.la
 endif
+if BUILD_LZMA_LOADER
+pkg_LTLIBRARIES += lzma.la
+endif
 if BUILD_ZLIB_LOADER
 pkg_LTLIBRARIES += zlib.la
 endif
@@ -122,6 +125,12 @@ bz2_la_CPPFLAGS      = $(BZ2_CFLAGS) $(AM_CPPFLAGS)
 bz2_la_LDFLAGS       = -module -avoid-version
 bz2_la_LIBADD        = $(BZ2_LIBS) $(top_builddir)/src/lib/libImlib2.la
 bz2_la_LIBTOOLFLAGS  = --tag=disable-static
+
+lzma_la_SOURCES      = loader_lzma.c decompress_load.c
+lzma_la_CPPFLAGS     = $(LZMA_CFLAGS) $(AM_CPPFLAGS)
+lzma_la_LDFLAGS      = -module -avoid-version
+lzma_la_LIBADD       = $(LZMA_LIBS) $(top_builddir)/src/lib/libImlib2.la
+lzma_la_LIBTOOLFLAGS = --tag=disable-static
 
 zlib_la_SOURCES      = loader_zlib.c decompress_load.c
 zlib_la_CPPFLAGS     = $(ZLIB_CFLAGS) $(AM_CPPFLAGS)

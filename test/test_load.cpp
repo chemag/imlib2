@@ -3,6 +3,8 @@
 #include <Imlib2.h>
 #include <fcntl.h>
 
+#include "config.h"
+
 int                 debug = 0;
 
 #define D(...)  if (debug) printf(__VA_ARGS__)
@@ -18,7 +20,6 @@ int                 debug = 0;
 static const char  *const pfxs[] = {
    "argb",
    "bmp",
-   "ff.bz2",                    // bz2
    "ff",
    "gif",
    "ico",
@@ -33,7 +34,15 @@ static const char  *const pfxs[] = {
    "webp",
    "xbm",
    "xpm",
+#ifdef BUILD_BZ2_LOADER
+   "ff.bz2",                    // bz2
+#endif
+#ifdef BUILD_ZLIB_LOADER
    "ff.gz",                     // zlib
+#endif
+#ifdef BUILD_LZMA_LOADER
+   "ff.xz",                     // lzma
+#endif
 };
 #define N_PFX (sizeof(pfxs) / sizeof(char*))
 

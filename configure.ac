@@ -210,6 +210,7 @@ loader_check_bz2() {
 }
 
 EC_LOADER_CHECK(BZ2,  auto, bzip2, loader_check_bz2)
+EC_LOADER_CHECK(LZMA, auto, liblzma)
 EC_LOADER_CHECK(ZLIB, auto, zlib)
 
 EC_LOADER_CHECK(ID3,  auto, id3tag)
@@ -277,6 +278,7 @@ echo "  TIFF....................: $tiff_ok"
 echo "  WEBP....................: $webp_ok"
 echo " Decompressors"
 echo "  BZIP2...................: $bz2_ok"
+echo "  LZMA(XZ)................: $lzma_ok"
 echo "  ZLIB....................: $zlib_ok"
 echo " Containers"
 echo "  ID3.....................: $id3_ok"
