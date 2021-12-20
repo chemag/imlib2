@@ -147,6 +147,43 @@ if test "x$have_clock_gettime" != xno; then
 fi
 
 
+AC_MSG_CHECKING(whether to enable gif support)
+AC_ARG_WITH([gif],
+  [AS_HELP_STRING([--without-gif], [Disable GIF image loader])],
+  [
+   if test "$withval" = no ; then
+     gif_loader=no
+   else
+     gif_loader=yes
+   fi
+  ],
+  [ gif_loader=auto ]
+)
+AC_MSG_RESULT($gif_loader)
+
+if test "$gif_loader" != no ; then
+  AC_CHECK_LIB(gif, DGifOpenFileName, gif_libs="-lgif" gif_ok=yes, gif_ok=no)
+  if test "$gif_ok" = yes; then
+    AC_CHECK_HEADER([gif_lib.h], , gif_ok=no)
+    if test "$gif_ok" = yes; then
+      GIF_LIBS=$gif_libs
+      AC_SUBST(GIF_LIBS)
+    fi
+  fi
+
+  if test "$gif_ok" = no ; then
+    if test "$gif_loader" = yes ; then
+      AC_MSG_ERROR(GIF support was requested but system does not support it)
+    else
+      AC_MSG_WARN(*** Native GIF support will not be built (GIF not found) ***)
+    fi
+  fi
+else
+  gif_ok=no
+fi
+EC_LOADER(BUILD_GIF_LOADER, $gif_ok, GIF)
+
+
 AC_MSG_CHECKING(whether to enable jpeg support)
 AC_ARG_WITH([jpeg],
   [AS_HELP_STRING([--without-jpeg], [Disable JPEG image loader])],
@@ -202,28 +239,6 @@ fi
 EC_LOADER(BUILD_PNG_LOADER, $png_ok, PNG)
 
 
-AC_MSG_CHECKING(whether to enable webp support)
-AC_ARG_WITH([webp],
-  [AS_HELP_STRING([--without-webp], [Disable WEBP image loader])],
-  [
-   if test "$withval" = no ; then
-     webp_loader=no
-   else
-     webp_loader=yes
-   fi
-  ],
-  [ webp_loader=auto ]
-)
-AC_MSG_RESULT($webp_loader)
-
-if test "$webp_loader" != no ; then
-  PKG_CHECK_MODULES(WEBP, libwebpdemux, [ webp_ok="yes" ], [ webp_ok="no" ])
-else
-  webp_ok="no"
-fi
-EC_LOADER(BUILD_WEBP_LOADER, $webp_ok, WEBP)
-
-
 AC_MSG_CHECKING(whether to enable tiff support)
 AC_ARG_WITH([tiff],
   [AS_HELP_STRING([--without-tiff], [Disable TIFF image loader])],
@@ -253,70 +268,26 @@ fi
 EC_LOADER(BUILD_TIFF_LOADER, $tiff_ok, TIFF)
 
 
-AC_MSG_CHECKING(whether to enable gif support)
-AC_ARG_WITH([gif],
-  [AS_HELP_STRING([--without-gif], [Disable GIF image loader])],
+AC_MSG_CHECKING(whether to enable webp support)
+AC_ARG_WITH([webp],
+  [AS_HELP_STRING([--without-webp], [Disable WEBP image loader])],
   [
    if test "$withval" = no ; then
-     gif_loader=no
+     webp_loader=no
    else
-     gif_loader=yes
+     webp_loader=yes
    fi
   ],
-  [ gif_loader=auto ]
+  [ webp_loader=auto ]
 )
-AC_MSG_RESULT($gif_loader)
+AC_MSG_RESULT($webp_loader)
 
-if test "$gif_loader" != no ; then
-  AC_CHECK_LIB(gif, DGifOpenFileName, gif_libs="-lgif" gif_ok=yes, gif_ok=no)
-  if test "$gif_ok" = yes; then
-    AC_CHECK_HEADER([gif_lib.h], , gif_ok=no)
-    if test "$gif_ok" = yes; then
-      GIF_LIBS=$gif_libs
-      AC_SUBST(GIF_LIBS)
-    fi
-  fi
-
-  if test "$gif_ok" = no ; then
-    if test "$gif_loader" = yes ; then
-      AC_MSG_ERROR(GIF support was requested but system does not support it)
-    else
-      AC_MSG_WARN(*** Native GIF support will not be built (GIF not found) ***)
-    fi
-  fi
+if test "$webp_loader" != no ; then
+  PKG_CHECK_MODULES(WEBP, libwebpdemux, [ webp_ok="yes" ], [ webp_ok="no" ])
 else
-  gif_ok=no
+  webp_ok="no"
 fi
-EC_LOADER(BUILD_GIF_LOADER, $gif_ok, GIF)
-
-
-AC_MSG_CHECKING(whether to enable zlib support)
-AC_ARG_WITH([zlib],
-  [AS_HELP_STRING([--without-zlib], [Disable ZLIB loader])],
-  [
-   if test "$withval" = no ; then
-     zlib_loader=no
-   else
-     zlib_loader=yes
-   fi
-  ],
-  [ zlib_loader=auto ]
-)
-AC_MSG_RESULT($zlib_loader)
-
-if test "$zlib_loader" != no ; then
-  PKG_CHECK_MODULES(ZLIB, zlib, [ zlib_ok="yes" ], [ zlib_ok="no" ])
-  if test "$zlib_ok" = no ; then
-    if test "$zlib_loader" = yes ; then
-      AC_MSG_ERROR(ZLIB support was requested but system does not support it)
-    else
-      AC_MSG_WARN(*** Native zlib support will not be built (zlib not found) ***)
-    fi
-  fi
-else
-  zlib_ok=no
-fi
-EC_LOADER(BUILD_ZLIB_LOADER, $zlib_ok, ZLIB)
+EC_LOADER(BUILD_WEBP_LOADER, $webp_ok, WEBP)
 
 
 AC_MSG_CHECKING(whether to enable bzip2 support)
@@ -355,6 +326,35 @@ else
   bz2_ok=no
 fi
 EC_LOADER(BUILD_BZ2_LOADER, $bz2_ok, BZ2)
+
+
+AC_MSG_CHECKING(whether to enable zlib support)
+AC_ARG_WITH([zlib],
+  [AS_HELP_STRING([--without-zlib], [Disable ZLIB loader])],
+  [
+   if test "$withval" = no ; then
+     zlib_loader=no
+   else
+     zlib_loader=yes
+   fi
+  ],
+  [ zlib_loader=auto ]
+)
+AC_MSG_RESULT($zlib_loader)
+
+if test "$zlib_loader" != no ; then
+  PKG_CHECK_MODULES(ZLIB, zlib, [ zlib_ok="yes" ], [ zlib_ok="no" ])
+  if test "$zlib_ok" = no ; then
+    if test "$zlib_loader" = yes ; then
+      AC_MSG_ERROR(ZLIB support was requested but system does not support it)
+    else
+      AC_MSG_WARN(*** Native zlib support will not be built (zlib not found) ***)
+    fi
+  fi
+else
+  zlib_ok=no
+fi
+EC_LOADER(BUILD_ZLIB_LOADER, $zlib_ok, ZLIB)
 
 
 AC_MSG_CHECKING(whether to enable id3 support)
@@ -440,13 +440,16 @@ echo
 echo "Configuration Options Summary:"
 echo
 echo "Image loaders:"
+echo " Regular image loaders"
+echo "  GIF.....................: $gif_ok"
 echo "  JPEG....................: $jpeg_ok"
 echo "  PNG.....................: $png_ok"
 echo "  TIFF....................: $tiff_ok"
-echo "  GIF.....................: $gif_ok"
 echo "  WEBP....................: $webp_ok"
-echo "  ZLIB....................: $zlib_ok"
+echo " Decompressors"
 echo "  BZIP2...................: $bz2_ok"
+echo "  ZLIB....................: $zlib_ok"
+echo " Containers"
 echo "  ID3.....................: $id3_ok"
 echo
 echo "Build for X11.............: $have_x"

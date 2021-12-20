@@ -23,17 +23,11 @@ typedef struct {
 
 static const char  *const ext_argb[] = { "argb", NULL };
 static const char  *const ext_bmp[] = { "bmp", NULL };
-#ifdef BUILD_BZ2_LOADER
-static const char  *const ext_bz2[] = { "bz2", NULL };
-#endif
 static const char  *const ext_ff[] = { "ff", NULL };
 #ifdef BUILD_GIF_LOADER
 static const char  *const ext_gif[] = { "gif", NULL };
 #endif
 static const char  *const ext_ico[] = { "ico", NULL };
-#ifdef BUILD_ID3_LOADER
-static const char  *const ext_id3[] = { "mp3", NULL };
-#endif
 #ifdef BUILD_JPEG_LOADER
 static const char  *const ext_jpeg[] = { "jpg", "jpeg", "jfif", "jfi", NULL };
 #endif
@@ -52,23 +46,26 @@ static const char  *const ext_webp[] = { "webp", NULL };
 #endif
 static const char  *const ext_xbm[] = { "xbm", NULL };
 static const char  *const ext_xpm[] = { "xpm", NULL };
+
+#ifdef BUILD_BZ2_LOADER
+static const char  *const ext_bz2[] = { "bz2", NULL };
+#endif
 #ifdef BUILD_ZLIB_LOADER
 static const char  *const ext_zlib[] = { "gz", NULL };
 #endif
+
+#ifdef BUILD_ID3_LOADER
+static const char  *const ext_id3[] = { "mp3", NULL };
+#endif
+
 static const KnownLoader loaders_known[] = {
    {"argb", ext_argb},
    {"bmp", ext_bmp},
-#ifdef BUILD_BZ2_LOADER
-   {"bz2", ext_bz2},
-#endif
    {"ff", ext_ff},
 #ifdef BUILD_GIF_LOADER
    {"gif", ext_gif},
 #endif
    {"ico", ext_ico},
-#ifdef BUILD_ID3_LOADER
-   {"id3", ext_id3},
-#endif
 #ifdef BUILD_JPEG_LOADER
    {"jpeg", ext_jpeg},
 #endif
@@ -86,8 +83,14 @@ static const KnownLoader loaders_known[] = {
 #endif
    {"xbm", ext_xbm},
    {"xpm", ext_xpm},
+#ifdef BUILD_BZ2_LOADER
+   {"bz2", ext_bz2},
+#endif
 #ifdef BUILD_ZLIB_LOADER
    {"zlib", ext_zlib},
+#endif
+#ifdef BUILD_ID3_LOADER
+   {"id3", ext_id3},
 #endif
 };
 
