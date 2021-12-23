@@ -363,62 +363,57 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
    pxls = ie->pxls;
    mask = ie->mask;
 
+   pdst = im->data + (h - 1) * w;       /* Start in lower left corner */
+
    switch (ie->bih.bpp)
      {
      case 1:
-        for (y = 0; y < h; y++)
+        for (y = 0; y < h; y++, pdst -= 2 * w)
           {
              for (x = 0; x < w; x++)
                {
-                  pdst = &(im->data[(h - 1 - y) * w + x]);
-
                   pixel = cmap[ico_data_get_bit(pxls, w, x, y)];
                   if (ico_data_get_bit(mask, w, x, y) == 0)
                      pixel |= 0xff000000;
 
-                  *pdst = pixel;
+                  *pdst++ = pixel;
                }
           }
         break;
 
      case 4:
-        for (y = 0; y < h; y++)
+        for (y = 0; y < h; y++, pdst -= 2 * w)
           {
              for (x = 0; x < w; x++)
                {
-                  pdst = &(im->data[(h - 1 - y) * w + x]);
-
                   pixel = cmap[ico_data_get_nibble(pxls, w, x, y)];
                   if (ico_data_get_bit(mask, w, x, y) == 0)
                      pixel |= 0xff000000;
 
-                  *pdst = pixel;
+                  *pdst++ = pixel;
                }
           }
         break;
 
      case 8:
-        for (y = 0; y < h; y++)
+        for (y = 0; y < h; y++, pdst -= 2 * w)
           {
              for (x = 0; x < w; x++)
                {
-                  pdst = &(im->data[(h - 1 - y) * w + x]);
-
                   pixel = cmap[pxls[y * w + x]];
                   if (ico_data_get_bit(mask, w, x, y) == 0)
                      pixel |= 0xff000000;
 
-                  *pdst = pixel;
+                  *pdst++ = pixel;
                }
           }
         break;
 
      default:
-        for (y = 0; y < h; y++)
+        for (y = 0; y < h; y++, pdst -= 2 * w)
           {
              for (x = 0; x < w; x++)
                {
-                  pdst = &(im->data[(h - 1 - y) * w + x]);
                   psrc = &pxls[(y * w + x) * ie->bih.bpp / 8];
 
                   pixel = PIXEL_ARGB(0, psrc[2], psrc[1], psrc[0]);
@@ -427,7 +422,7 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
                   else if (ico_data_get_bit(mask, w, x, y) == 0)
                      pixel |= 0xff000000;
 
-                  *pdst = pixel;
+                  *pdst++ = pixel;
                }
           }
         break;
