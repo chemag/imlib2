@@ -39,6 +39,11 @@ static tii_t        tii[] = {
    { "icon-64.webp",		1698406918 },
    { "icon-64.xbm",		 907392323 },
    { "icon-64.xpm",		1768448874 },
+
+   { "icon-128.ico",		 218415319 },
+   { "icon-128-d1.ico",		3776822558 },
+   { "icon-128-d4.ico",		1822311162 },
+   { "icon-128-d8.ico",		2584400446 },
 /**INDENT-ON**/
 };
 #define NT3_IMGS (sizeof(tii) / sizeof(tii_t))
