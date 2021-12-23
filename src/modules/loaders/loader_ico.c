@@ -89,7 +89,6 @@ typedef struct {
 } ie_t;
 
 typedef struct {
-   FILE               *fp;
    idir_t              idir;    /* ICONDIR */
    ie_t               *ie;      /* Icon entries */
 } ico_t;
@@ -109,8 +108,6 @@ ico_delete(ico_t * ico)
           }
         free(ico->ie);
      }
-
-   free(ico);
 }
 
 static void
@@ -229,48 +226,6 @@ ico_read_icon(ico_t * ico, int ino)
 
  bail:
    ie->w = ie->h = 0;           /* Mark invalid */
-}
-
-static ico_t       *
-ico_read(ImlibImage * im, void *data, unsigned int size)
-{
-   ico_t              *ico;
-   unsigned int        i;
-
-   ico = calloc(1, sizeof(ico_t));
-   if (!ico)
-      return NULL;
-
-   ico->fp = im->fp;
-
-   if (mm_read(&ico->idir, sizeof(ico->idir)))
-      goto bail;
-
-   SWAP_LE_16_INPLACE(ico->idir.rsvd);
-   SWAP_LE_16_INPLACE(ico->idir.type);
-   SWAP_LE_16_INPLACE(ico->idir.icons);
-
-   if (ico->idir.rsvd != 0 ||
-       (ico->idir.type != 1 && ico->idir.type != 2) || ico->idir.icons <= 0)
-      goto bail;
-
-   ico->ie = calloc(ico->idir.icons, sizeof(ie_t));
-   if (!ico->ie)
-      goto bail;
-
-   D("Loading '%s' Nicons = %d\n", im->real_file, ico->idir.icons);
-
-   for (i = 0; i < ico->idir.icons; i++)
-     {
-        ico_read_idir(ico, i);
-        ico_read_icon(ico, i);
-     }
-
-   return ico;
-
- bail:
-   ico_delete(ico);
-   return NULL;
 }
 
 static int
@@ -436,7 +391,8 @@ load2(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
-   ico_t              *ico;
+   ico_t               ico;
+   unsigned int        i;
 
    rc = LOAD_FAIL;
 
@@ -446,20 +402,39 @@ load2(ImlibImage * im, int load_data)
 
    mm_init(fdata, im->fsize);
 
-   ico = ico_read(im, fdata, im->fsize);
-   if (!ico)
+   ico.ie = NULL;
+   if (mm_read(&ico.idir, sizeof(ico.idir)))
       goto quit;
 
-   if (ico_load(ico, im, load_data))
+   SWAP_LE_16_INPLACE(ico.idir.rsvd);
+   SWAP_LE_16_INPLACE(ico.idir.type);
+   SWAP_LE_16_INPLACE(ico.idir.icons);
+
+   if (ico.idir.rsvd != 0 ||
+       (ico.idir.type != 1 && ico.idir.type != 2) || ico.idir.icons <= 0)
+      goto quit;
+
+   ico.ie = calloc(ico.idir.icons, sizeof(ie_t));
+   if (!ico.ie)
+      goto quit;
+
+   D("Loading '%s' Nicons = %d\n", im->real_file, ico.idir.icons);
+
+   for (i = 0; i < ico.idir.icons; i++)
+     {
+        ico_read_idir(&ico, i);
+        ico_read_icon(&ico, i);
+     }
+
+   if (ico_load(&ico, im, load_data))
      {
         if (im->lc)
            __imlib_LoadProgressRows(im, 0, im->h);
         rc = LOAD_SUCCESS;
      }
 
-   ico_delete(ico);
-
  quit:
+   ico_delete(&ico);
    if (rc <= 0)
       __imlib_FreeData(im);
    if (fdata != MAP_FAILED)
