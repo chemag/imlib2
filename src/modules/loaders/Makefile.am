@@ -117,13 +117,13 @@ xpm_la_LDFLAGS       = -module -avoid-version
 xpm_la_LIBADD        = $(top_builddir)/src/lib/libImlib2.la
 xpm_la_LIBTOOLFLAGS  = --tag=disable-static
 
-bz2_la_SOURCES       = loader_bz2.c
+bz2_la_SOURCES       = loader_bz2.c decompress_load.c
 bz2_la_CPPFLAGS      = $(BZ2_CFLAGS) $(AM_CPPFLAGS)
 bz2_la_LDFLAGS       = -module -avoid-version
 bz2_la_LIBADD        = $(BZ2_LIBS) $(top_builddir)/src/lib/libImlib2.la
 bz2_la_LIBTOOLFLAGS  = --tag=disable-static
 
-zlib_la_SOURCES      = loader_zlib.c
+zlib_la_SOURCES      = loader_zlib.c decompress_load.c
 zlib_la_CPPFLAGS     = $(ZLIB_CFLAGS) $(AM_CPPFLAGS)
 zlib_la_LDFLAGS      = -module -avoid-version
 zlib_la_LIBADD       = $(ZLIB_LIBS) $(top_builddir)/src/lib/libImlib2.la

@@ -6,94 +6,60 @@
 #define INBUF_SIZE 1024
 
 static int
-uncompress_file(FILE * fp, int dest)
+uncompress_file(const void *fdata, unsigned int fsize, int dest)
 {
-   BZFILE             *bf;
-   DATA8               outbuf[OUTBUF_SIZE];
-   int                 bytes, error, ret = 1;
+   int                 ok;
+   bz_stream           strm = { 0 };
+   int                 ret, bytes;
+   char                outbuf[OUTBUF_SIZE];
 
-   bf = BZ2_bzReadOpen(&error, fp, 0, 0, NULL, 0);
+   ok = 0;
 
-   if (error != BZ_OK)
+   ret = BZ2_bzDecompressInit(&strm, 0, 0);
+   if (ret != BZ_OK)
+      return ok;
+
+   strm.next_in = (void *)fdata;
+   strm.avail_in = fsize;
+
+   for (;;)
      {
-        BZ2_bzReadClose(NULL, bf);
-        return 0;
-     }
+        strm.next_out = outbuf;
+        strm.avail_out = sizeof(outbuf);
 
-   while (1)
-     {
-        bytes = BZ2_bzRead(&error, bf, &outbuf, OUTBUF_SIZE);
+        ret = BZ2_bzDecompress(&strm);
 
-        if (error == BZ_OK || error == BZ_STREAM_END)
-           if (write(dest, outbuf, bytes) != bytes)
-              break;
+        if (ret != BZ_OK && ret != BZ_STREAM_END)
+           goto quit;
 
-        if (error == BZ_STREAM_END)
+        bytes = sizeof(outbuf) - strm.avail_out;
+        if (write(dest, outbuf, bytes) != bytes)
+           goto quit;
+
+        if (ret == BZ_STREAM_END)
            break;
-        else if (error != BZ_OK)
-          {
-             ret = 0;
-             break;
-          }
      }
 
-   BZ2_bzReadClose(&error, bf);
+   ok = 1;
 
-   return ret;
+ quit:
+   BZ2_bzDecompressEnd(&strm);
+
+   return ok;
 }
+
+static const char  *const list_formats[] = { "bz2" };
 
 int
 load2(ImlibImage * im, int load_data)
 {
-   int                 rc;
-   ImlibLoader        *loader;
-   int                 dest, res;
-   const char         *s, *p, *q;
-   char                tmp[] = "/tmp/imlib2_loader_bz2-XXXXXX";
-   char               *real_ext;
 
-   rc = LOAD_FAIL;
-
-   /* make sure this file ends in ".bz2" and that there's another ext
-    * (e.g. "foo.png.bz2") */
-   for (p = s = im->real_file, q = NULL; *s; s++)
-     {
-        if (*s != '.' && *s != '/')
-           continue;
-        q = p;
-        p = s + 1;
-     }
-   if (!q || strcasecmp(p, "bz2"))
-      return rc;
-
-   if (!(real_ext = strndup(q, p - q - 1)))
-      return rc;
-
-   loader = __imlib_FindBestLoaderForFormat(real_ext, 0);
-   free(real_ext);
-   if (!loader)
-      return rc;
-
-   if ((dest = mkstemp(tmp)) < 0)
-      return rc;
-
-   res = uncompress_file(im->fp, dest);
-   close(dest);
-
-   if (!res)
-      goto quit;
-
-   res = __imlib_LoadEmbedded(loader, im, tmp, load_data);
-
- quit:
-   unlink(tmp);
-
-   return res;
+   return decompress_load(im, load_data, list_formats, ARRAY_SIZE(list_formats),
+                          uncompress_file);
 }
 
 void
 formats(ImlibLoader * l)
 {
-   static const char  *const list_formats[] = { "bz2" };
    __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
 }
