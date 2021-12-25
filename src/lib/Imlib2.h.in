@@ -613,8 +613,9 @@ typedef struct {
 } Imlib_Frame_Info;
 
 /* frame info flags */
-#define IMLIB_IMAGE_ANIMATED    (1 << 0)        /* Frames are an animated sequence */
-#define IMLIB_FRAME_CLEAR       (1 << 1)        /* Clear before rendering frame    */
+#define IMLIB_IMAGE_ANIMATED      (1 << 0)      /* Frames are an animated sequence   */
+#define IMLIB_FRAME_DISPOSE_CLEAR (1 << 1)      /* Clear before rendering next frame */
+#define IMLIB_FRAME_BLEND         (1 << 2)      /* Blend current onto previous frame */
 
 EAPI Imlib_Image    imlib_load_image_frame(const char *file, int frame);
 EAPI void           imlib_image_get_frame_info(Imlib_Frame_Info * info);

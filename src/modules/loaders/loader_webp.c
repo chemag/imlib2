@@ -61,6 +61,10 @@ load2(ImlibImage * im, int load_data)
    im->frame_x = iter.x_offset;
    im->frame_y = iter.y_offset;
    im->frame_delay = iter.duration;
+   if (iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND)
+      im->frame_flags |= FF_FRAME_DISPOSE_CLEAR;
+   if (iter.blend_method == WEBP_MUX_BLEND)
+      im->frame_flags |= FF_FRAME_BLEND;
 
    D("Canvas WxH=%dx%d frame=%d/%d X,Y=%d,%d WxH=%dx%d alpha=%d T=%d dm=%d co=%d bl=%d\n",      //
      im->canvas_w, im->canvas_h, iter.frame_num, im->frame_count,

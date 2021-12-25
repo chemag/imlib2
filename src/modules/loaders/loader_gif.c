@@ -197,8 +197,8 @@ load2(ImlibImage * im, int load_data)
                        if (bits & 1)
                           transp = ext[4];
                        disp = (bits >> 2) & 0x7;
-                       if (disp == 2)
-                          im->frame_flags |= FF_FRAME_CLEAR;
+                       if (disp == 2 || disp == 3)
+                          im->frame_flags |= FF_FRAME_DISPOSE_CLEAR;
                        D(" Frame %d: disp=%d ui=%d tr=%d, delay=%d transp = #%02x\n",   //
                          gif->ImageCount + 1, disp, (bits >> 1) & 1, bits & 1,
                          im->frame_delay, transp);

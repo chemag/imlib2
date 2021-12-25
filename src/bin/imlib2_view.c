@@ -227,7 +227,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
      }
    else
      {
-        if (finfo.frame_flags & IMLIB_FRAME_CLEAR)
+        if (finfo.frame_flags & IMLIB_FRAME_DISPOSE_CLEAR)
           {
              bg_pm_init(0);
           }
@@ -266,7 +266,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
                                                update_w, update_h,
                                                up_wx, up_wy, up_ww, up_wh);
 
-   if (finfo.frame_flags & IMLIB_FRAME_CLEAR)
+   if (finfo.frame_flags & IMLIB_FRAME_DISPOSE_CLEAR)
       XClearWindow(disp, win);
    else
       XClearArea(disp, win, up_wx, up_wy, up_ww, up_wh, False);

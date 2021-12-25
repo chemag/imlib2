@@ -30,8 +30,9 @@ enum _iflags {
 typedef enum _iflags ImlibImageFlags;
 
 /* Must match the ones in Imlib2.h.in */
-#define FF_IMAGE_ANIMATED   (1 << 0)    /* Frames are an animated sequence */
-#define FF_FRAME_CLEAR      (1 << 1)    /* Clear before rendering frame    */
+#define FF_IMAGE_ANIMATED       (1 << 0)        /* Frames are an animated sequence   */
+#define FF_FRAME_DISPOSE_CLEAR  (1 << 1)        /* Clear before rendering next frame */
+#define FF_FRAME_BLEND          (1 << 2)        /* Blend current onto previous frame */
 
 typedef struct {
    int                 left, right, top, bottom;
