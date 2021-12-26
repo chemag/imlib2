@@ -16,6 +16,11 @@
 
 Display            *disp;
 
+typedef struct {
+   int                 x, y;    /* Origin */
+   int                 w, h;    /* Size   */
+} rect_t;
+
 static int          debug = 0;
 static int          verbose = 0;
 static Window       win;
@@ -24,6 +29,7 @@ static int          image_width = 0, image_height = 0;
 static int          window_width = 0, window_height = 0;
 static Imlib_Image  bg_im = NULL;
 static Imlib_Image  bg_im_clean = NULL;
+static Imlib_Image  fg_im = NULL;       /* The animated image */
 
 static bool         opt_cache = false;
 static bool         opt_progr = true;   /* Render through progress callback */
@@ -71,33 +77,25 @@ usage(void)
 }
 
 static void
-bg_pm_init(void)
+bg_im_init(int w, int h)
 {
    int                 x, y, onoff;
+
+   Dprintf("Image  WxH=%dx%d\n", w, h);
 
    if (bg_im)
      {
         imlib_context_set_image(bg_im);
         imlib_free_image_and_decache();
      }
-   if (bg_im_clean)
-     {
-        imlib_context_set_image(bg_im_clean);
-        imlib_free_image_and_decache();
-        bg_im_clean = NULL;
-     }
-   bg_im = imlib_create_image(image_width, image_height);
 
-   if (bg_pm)
-      XFreePixmap(disp, bg_pm);
-   bg_pm = XCreatePixmap(disp, win, window_width, window_height,
-                         DefaultDepth(disp, DefaultScreen(disp)));
+   bg_im = imlib_create_image(w, h);
 
    imlib_context_set_image(bg_im);
-   for (y = 0; y < image_height; y += 8)
+   for (y = 0; y < h; y += 8)
      {
         onoff = (y / 8) & 0x1;
-        for (x = 0; x < image_width; x += 8)
+        for (x = 0; x < w; x += 8)
           {
              if (onoff)
                 imlib_context_set_color(144, 144, 144, 255);
@@ -109,16 +107,16 @@ bg_pm_init(void)
                 onoff = 0;
           }
      }
-   if (animated)
-      bg_im_clean = imlib_clone_image();
+}
 
-   imlib_context_set_anti_alias(0);
-   imlib_context_set_dither(0);
-   imlib_context_set_blend(0);
-   imlib_context_set_drawable(bg_pm);
-   imlib_render_image_part_on_drawable_at_size(0, 0, image_width, image_height,
-                                               0, 0,
-                                               window_width, window_height);
+static void
+bg_pm_init(Window xwin, int w, int h)
+{
+   if (bg_pm)
+      XFreePixmap(disp, bg_pm);
+
+   bg_pm = XCreatePixmap(disp, xwin, w, h,
+                         DefaultDepth(disp, DefaultScreen(disp)));
 }
 
 static void
@@ -168,26 +166,90 @@ bg_pm_redraw(int zx, int zy, double zoom, int aa)
    XClearWindow(disp, win);
 }
 
+static void
+anim_init(int w, int h)
+{
+   if (fg_im)
+     {
+        imlib_context_set_image(fg_im);
+        imlib_free_image_and_decache();
+        fg_im = NULL;
+     }
+
+   if (bg_im_clean)
+     {
+        imlib_context_set_image(bg_im_clean);
+        imlib_free_image_and_decache();
+        bg_im_clean = NULL;
+     }
+
+   if (animated)
+     {
+        /* Create canvas for rendering of animated image */
+        fg_im = imlib_create_image(w, h);
+        imlib_context_set_image(fg_im);
+        imlib_image_set_has_alpha(1);
+        imlib_context_set_color(0, 0, 0, 0);
+        imlib_image_fill_rectangle(0, 0, w, h);
+
+        /* Keep a clean copy of background image around for clearing parts */
+        imlib_context_set_image(bg_im);
+        bg_im_clean = imlib_clone_image();
+     }
+}
+
+static void
+anim_update(Imlib_Image im, const rect_t * up_in, rect_t * up_out, int flags)
+{
+   static const rect_t r_zero = { };
+   static rect_t       r_prev = r_zero;
+
+   imlib_context_set_image(fg_im);
+
+   if (r_prev.w > 0)
+     {
+        /* "dispose" of (clear) previous area before rendering new */
+        Dprintf("Clear %d,%d %dx%d\n", r_prev.x, r_prev.y, r_prev.w, r_prev.h);
+        imlib_context_set_color(0, 0, 0, 0);
+        imlib_image_fill_rectangle(r_prev.x, r_prev.y, r_prev.w, r_prev.h);
+
+        /* Damaged area is (cleared + new frame) */
+        up_out->x = MIN(r_prev.x, up_in->x);
+        up_out->y = MIN(r_prev.y, up_in->y);
+        up_out->w = MAX(r_prev.x + r_prev.w, up_in->x + up_in->w) - up_out->x;
+        up_out->h = MAX(r_prev.y + r_prev.h, up_in->y + up_in->h) - up_out->y;
+     }
+   else
+     {
+        *up_out = *up_in;
+     }
+
+   if (flags & IMLIB_FRAME_DISPOSE_CLEAR)
+      r_prev = *up_in;          /* Clear next time around */
+   else
+      r_prev = r_zero;          /* No clearing before next frame */
+
+   /* Render new frame on canvas */
+   Dprintf("Render %d,%d %dx%d\n", up_in->x, up_in->y, up_in->w, up_in->h);
+   if (flags & IMLIB_FRAME_BLEND)
+      imlib_context_set_blend(1);
+   else
+      imlib_context_set_blend(0);
+   imlib_blend_image_onto_image(im, 1, 0, 0, up_in->w, up_in->h,
+                                up_in->x, up_in->y, up_in->w, up_in->h);
+}
+
 static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
 {
    static double       scale_x = 0., scale_y = 0.;
-   static int          up_im_prev_x, up_im_prev_y, up_im_prev_w, up_im_prev_h;
-   int                 up_sx, up_sy, up_wx, up_wy, up_ww, up_wh;
-   int                 up_im_x, up_im_y, up_im_w, up_im_h;
+   int                 up_wx, up_wy, up_ww, up_wh;
+   rect_t              r_up;
 
    if (opt_progress_print)
       printf("%s: %3d%% %4d,%4d %4dx%4d\n",
              __func__, percent, update_x, update_y, update_w, update_h);
-
-   if (update_w <= 0 || update_h <= 0)
-     {
-        update_x = finfo.frame_x;
-        update_y = finfo.frame_y;
-        update_w = finfo.frame_w;
-        update_h = finfo.frame_h;
-     }
 
    imlib_context_set_image(im);
    imlib_image_get_frame_info(&finfo);
@@ -208,7 +270,6 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
 
         image_width = fixedframe ? finfo.frame_w : finfo.canvas_w;
         image_height = fixedframe ? finfo.frame_h : finfo.canvas_h;
-        Dprintf("Image  WxH=%dx%d\n", image_width, image_height);
 
         if (!opt_scale &&
             (image_width > window_width || image_height > window_height))
@@ -237,77 +298,87 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
           }
         Dprintf("Window WxH=%dx%d\n", window_width, window_height);
 
-        bg_pm_init();
+        /* Initialize checkered background image */
+        bg_im_init(image_width, image_height);
+        /* Initialize window background pixmap */
+        bg_pm_init(win, window_width, window_height);
+
+        /* Paint entire background pixmap with initial pattern */
+        imlib_context_set_drawable(bg_pm);
+        imlib_context_set_image(bg_im);
+        imlib_render_image_part_on_drawable_at_size(0, 0,
+                                                    image_width, image_height,
+                                                    0, 0,
+                                                    window_width,
+                                                    window_height);
+
+        /* Set window background, resize, and show */
         XSetWindowBackgroundPixmap(disp, win, bg_pm);
         XResizeWindow(disp, win, window_width, window_height);
         XClearWindow(disp, win);
         XMapWindow(disp, win);
         XSync(disp, False);
+
+        /* Initialize images used for animation */
+        anim_init(image_width, image_height);
      }
 
-   up_sx = update_x;
-   up_sy = update_y;
-   if (multiframe)
-      up_sx = up_sy = 0;
+   r_up.x = update_x;
+   r_up.y = update_y;
+   r_up.w = update_w;
+   r_up.h = update_h;
+   if (update_w <= 0 || update_h <= 0)
+     {
+        /* Explicit rendering (not doing callbacks) */
+        r_up.x = finfo.frame_x;
+        r_up.y = finfo.frame_y;
+        r_up.w = finfo.frame_w;
+        r_up.h = finfo.frame_h;
+     }
+
    if (fixedframe)
-      update_x = update_y = 0;
+      r_up.x = r_up.y = 0;
 
    imlib_context_set_anti_alias(0);
    imlib_context_set_dither(0);
-   imlib_context_set_image(bg_im);
 
-   if (up_im_prev_w > 0)
+   if (animated)
      {
-        /* "dispose" of (clear to background) previous area before rendering new */
+        rect_t              r_dam;
+
+        /* Update animated "target" canvas image (fg_im) */
+        anim_update(im, &r_up, &r_dam, finfo.frame_flags);
+        r_up = r_dam;           /* r_up is now the "damaged" (to be re-rendered) area */
+        im = fg_im;
+
+        /* Re-render checkered background where animated image has changes */
+        imlib_context_set_image(bg_im);
         imlib_context_set_blend(0);
         imlib_blend_image_onto_image(bg_im_clean, 0,
-                                     up_im_prev_x, up_im_prev_y,
-                                     up_im_prev_w, up_im_prev_h,
-                                     up_im_prev_x, up_im_prev_y,
-                                     up_im_prev_w, up_im_prev_h);
-        up_im_x = MIN(up_im_prev_x, update_x);
-        up_im_y = MIN(up_im_prev_y, update_y);
-        up_im_w =
-           MAX(up_im_prev_x + up_im_prev_w, update_x + update_w) - up_im_x;
-        up_im_h =
-           MAX(up_im_prev_y + up_im_prev_h, update_y + update_h) - up_im_y;
-     }
-   else
-     {
-        up_im_x = update_x;
-        up_im_y = update_y;
-        up_im_w = update_w;
-        up_im_h = update_h;
+                                     r_up.x, r_up.y, r_up.w, r_up.h,
+                                     r_up.x, r_up.y, r_up.w, r_up.h);
      }
 
+   /* Render image on background image */
+   Dprintf("Update %d,%d %dx%d\n", r_up.x, r_up.y, r_up.w, r_up.h);
+   imlib_context_set_image(bg_im);
    imlib_context_set_blend(1);
-   imlib_blend_image_onto_image(im, 0,
-                                up_sx, up_sy, update_w, update_h,
-                                update_x, update_y, update_w, update_h);
+   imlib_blend_image_onto_image(im, 1,
+                                r_up.x, r_up.y, r_up.w, r_up.h,
+                                r_up.x, r_up.y, r_up.w, r_up.h);
 
-   if (finfo.frame_flags & IMLIB_FRAME_DISPOSE_CLEAR)
-     {
-        /* Remember currect area so we can "dispose" of it properly next time around */
-        up_im_prev_x = update_x;
-        up_im_prev_y = update_y;
-        up_im_prev_w = update_w;
-        up_im_prev_h = update_h;
-     }
-   else
-     {
-        up_im_prev_x = up_im_prev_y = up_im_prev_w = up_im_prev_h = 0;
-     }
-
-   up_wx = SCALE_X(up_im_x);
-   up_wy = SCALE_Y(up_im_y);
-   up_ww = SCALE_X(up_im_w);
-   up_wh = SCALE_Y(up_im_h);
+   /* Render image (part) (or updated canvas) on window background pixmap */
+   up_wx = SCALE_X(r_up.x);
+   up_wy = SCALE_Y(r_up.y);
+   up_ww = SCALE_X(r_up.w);
+   up_wh = SCALE_Y(r_up.h);
+   Dprintf("Paint  %d,%d %dx%d\n", up_wx, up_wy, up_ww, up_wh);
    imlib_context_set_blend(0);
    imlib_context_set_drawable(bg_pm);
-   imlib_render_image_part_on_drawable_at_size(up_im_x, up_im_y,
-                                               up_im_w, up_im_h,
+   imlib_render_image_part_on_drawable_at_size(r_up.x, r_up.y, r_up.w, r_up.h,
                                                up_wx, up_wy, up_ww, up_wh);
 
+   /* Update window */
    XClearArea(disp, win, up_wx, up_wy, up_ww, up_wh, False);
    XFlush(disp);
 
