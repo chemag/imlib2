@@ -48,8 +48,9 @@ static bool         fixedframe = false; /* We have selected single frame */
 static bool         animated = false;   /* Image has animation sequence  */
 static bool         animate = false;    /* Animation is active           */
 
-#define Dprintf(fmt...) if (debug)   printf(fmt)
-#define Vprintf(fmt...) if (verbose) printf(fmt)
+#define Dprintf(fmt...)  if (debug)        printf(fmt)
+#define Vprintf(fmt...)  if (verbose)      printf(fmt)
+#define V2printf(fmt...) if (verbose >= 2) printf(fmt)
 
 #define MAX_DIM	32767
 
@@ -81,7 +82,7 @@ bg_im_init(int w, int h)
 {
    int                 x, y, onoff;
 
-   Dprintf("Image  WxH=%dx%d\n", w, h);
+   V2printf("Image  WxH=%dx%d\n", w, h);
 
    if (bg_im)
      {
