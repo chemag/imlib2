@@ -20,7 +20,8 @@
 static char         progress_called;
 static FILE        *fout;
 
-#define Vprintf(fmt...) if (verbose) fprintf(fout, fmt)
+#define Vprintf(fmt...)  if (verbose)      fprintf(fout, fmt)
+#define V2printf(fmt...) if (verbose >= 2) fprintf(fout, fmt)
 
 #define HELP \
    "Usage:\n" \
@@ -134,7 +135,7 @@ main(int argc, char **argv)
              verbose = 1;
              break;
           case 'v':
-             verbose = 1;
+             verbose += 1;
              break;
           case 'x':
              fout = stderr;
@@ -199,6 +200,8 @@ main(int argc, char **argv)
                }
 
              imlib_context_set_image(im);
+             V2printf("Image  WxH=%dx%d\n",
+                      imlib_image_get_width(), imlib_image_get_height());
 
              if (!check_progress && !load_now)
                 imlib_image_get_data();
