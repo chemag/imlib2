@@ -139,6 +139,9 @@ ico_read_icon(ico_t * ico, int ino)
 {
    ie_t               *ie;
    unsigned int        size;
+#ifdef WORDS_BIGENDIAN
+   unsigned int        nr;
+#endif
 
    ie = &ico->ie[ino];
 
