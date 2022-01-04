@@ -11,7 +11,7 @@ uncompress_file(const void *fdata, unsigned int fsize, int dest)
    lzma_stream         strm = LZMA_STREAM_INIT;
    lzma_ret            ret;
    uint8_t             outbuf[OUTBUF_SIZE];
-   unsigned int        bytes;
+   ssize_t             bytes;
 
    ok = 0;
 
