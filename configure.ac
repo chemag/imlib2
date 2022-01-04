@@ -34,9 +34,8 @@ AC_DEFUN([EC_LOADER_CHECK], [
   m4_pushdef([NMUP], m4_toupper([$1]))
   AC_MSG_CHECKING([whether to enable NMUP support])
   AC_ARG_WITH([NMDN],
-    [AS_HELP_STRING([--without-NMDN], [Disable NMUP loader])],
-    [ ifelse([$withval], [no], [ NMDN[]_loader="no" ], [ NMDN[]_loader="yes" ]) ],
-    [ NMDN[]_loader=$2 ]
+    AS_HELP_STRING([--without-NMDN], [Disable NMUP loader]),
+    [ NMDN[]_loader="$withval" ], [ NMDN[]_loader="$2" ]
   )
   AC_MSG_RESULT($NMDN[]_loader)
 
