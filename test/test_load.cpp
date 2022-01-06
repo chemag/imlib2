@@ -30,6 +30,9 @@ static const char  *const pfxs[] = {
    "pbm",                       // pnm
    "ppm",                       // pnm
    "tga",
+#ifdef BUILD_SVG_LOADER
+   "svg",
+#endif
    "tiff",
    "webp",
    "xbm",

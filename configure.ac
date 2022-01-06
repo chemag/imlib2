@@ -196,6 +196,7 @@ loader_check_gif() {
 EC_LOADER_CHECK(GIF,  auto, , loader_check_gif)
 EC_LOADER_CHECK(JPEG, auto, libjpeg)
 EC_LOADER_CHECK(PNG,  auto, libpng)
+EC_LOADER_CHECK(SVG,  auto, librsvg-2.0)
 EC_LOADER_CHECK(TIFF, auto, libtiff-4)
 EC_LOADER_CHECK(WEBP, auto, libwebpdemux)
 
@@ -274,6 +275,7 @@ echo " Regular image loaders"
 echo "  GIF.....................: $gif_ok"
 echo "  JPEG....................: $jpeg_ok"
 echo "  PNG.....................: $png_ok"
+echo "  SVG.....................: $svg_ok"
 echo "  TIFF....................: $tiff_ok"
 echo "  WEBP....................: $webp_ok"
 echo " Decompressors"

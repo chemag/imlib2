@@ -23,6 +23,9 @@ endif
 if BUILD_PNG_LOADER
 pkg_LTLIBRARIES += png.la
 endif
+if BUILD_SVG_LOADER
+pkg_LTLIBRARIES += svg.la
+endif
 if BUILD_TIFF_LOADER
 pkg_LTLIBRARIES += tiff.la
 endif
@@ -92,6 +95,12 @@ pnm_la_SOURCES       = loader_pnm.c
 pnm_la_LDFLAGS       = -module -avoid-version
 pnm_la_LIBADD        = $(top_builddir)/src/lib/libImlib2.la
 pnm_la_LIBTOOLFLAGS  = --tag=disable-static
+
+svg_la_SOURCES       = loader_svg.c
+svg_la_CPPFLAGS      = $(SVG_CFLAGS) $(AM_CPPFLAGS)
+svg_la_LDFLAGS       = -module -avoid-version
+svg_la_LIBADD        = $(SVG_LIBS) $(top_builddir)/src/lib/libImlib2.la
+svg_la_LIBTOOLFLAGS  = --tag=disable-static
 
 tga_la_SOURCES       = loader_tga.c
 tga_la_LDFLAGS       = -module -avoid-version
