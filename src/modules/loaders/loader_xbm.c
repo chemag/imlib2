@@ -87,7 +87,7 @@ load2(ImlibImage * im, int load_data)
    void               *fdata;
    char                buf[4096], tok1[1024], tok2[1024];
    DATA32             *ptr, pixel;
-   int                 i, x, y, bit;
+   int                 i, x, y, bit, nl;
    const char         *s;
    int                 header, val, nlen;
 
@@ -113,7 +113,7 @@ load2(ImlibImage * im, int load_data)
    x = y = 0;
 
    header = 1;
-   for (;;)
+   for (nl = 0;; nl++)
      {
         s = mm_gets(buf, sizeof(buf));
         if (!s)
@@ -165,6 +165,9 @@ load2(ImlibImage * im, int load_data)
                }
              else
                {
+                  /* Quit if we don't have the header in N lines */
+                  if (nl >= 30)
+                     break;
                   continue;
                }
           }
@@ -205,7 +208,8 @@ load2(ImlibImage * im, int load_data)
      }
 
  done:
-   rc = LOAD_SUCCESS;
+   if (!header)
+      rc = LOAD_SUCCESS;
 
  quit:
    if (rc <= 0)
