@@ -30,12 +30,13 @@ AC_SUBST(lt_version)
 PKG_PROG_PKG_CONFIG
 
 AC_DEFUN([EC_LOADER_CHECK], [
-  m4_pushdef([NMDN], m4_tolower([$1]))
-  m4_pushdef([NMUP], m4_toupper([$1]))
+  m4_pushdef([NMDN], m4_tolower($1))
+  m4_pushdef([NMUP], m4_toupper($1))
+  m4_pushdef([DFLT], m4_strip($2))
   AC_MSG_CHECKING([whether to enable NMUP support])
   AC_ARG_WITH([NMDN],
     AS_HELP_STRING([--without-NMDN], [Disable NMUP loader]),
-    [ NMDN[]_loader="$withval" ], [ NMDN[]_loader="$2" ]
+    [ NMDN[]_loader="$withval" ], [ NMDN[]_loader="DFLT" ]
   )
   AC_MSG_RESULT($NMDN[]_loader)
 
