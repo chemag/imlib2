@@ -8,15 +8,19 @@
 /* PNG stuff */
 #define PNG_BYTES_TO_CHECK 4
 
+#define USE_IMLIB2_COMMENT_TAG 0
+
 typedef struct {
    unsigned char     **lines;
 } ImLib_PNG_data;
 
+#if USE_IMLIB2_COMMENT_TAG
 static void
 comment_free(ImlibImage * im, void *data)
 {
    free(data);
 }
+#endif
 
 int
 load2(ImlibImage * im, int load_data)
@@ -159,6 +163,7 @@ load2(ImlibImage * im, int load_data)
 
    rc = LOAD_SUCCESS;
 
+#if USE_IMLIB2_COMMENT_TAG
 #ifdef PNG_TEXT_SUPPORTED
    {
       png_textp           text;
@@ -173,6 +178,7 @@ load2(ImlibImage * im, int load_data)
                                 comment_free);
         }
    }
+#endif
 #endif
 
  quit1:
@@ -255,6 +261,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    sig_bit.blue = 8;
    sig_bit.alpha = 8;
    png_set_sBIT(png_ptr, info_ptr, &sig_bit);
+
    /* quality */
    tag = __imlib_GetTag(im, "quality");
    if (tag)
@@ -276,6 +283,9 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
       compression = 0;
    if (compression > 9)
       compression = 9;
+   png_set_compression_level(png_ptr, compression);
+
+#if USE_IMLIB2_COMMENT_TAG
    tag = __imlib_GetTag(im, "comment");
    if (tag)
      {
@@ -288,7 +298,8 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
         png_set_text(png_ptr, info_ptr, &(text), 1);
 #endif
      }
-   png_set_compression_level(png_ptr, compression);
+#endif
+
    png_write_info(png_ptr, info_ptr);
    png_set_shift(png_ptr, &sig_bit);
    png_set_packing(png_ptr);
