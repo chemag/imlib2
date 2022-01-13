@@ -204,15 +204,54 @@ anim_update(Imlib_Image im, const rect_t * up_in, rect_t * up_out, int flags)
 {
    static const rect_t r_zero = { };
    static rect_t       r_prev = r_zero;
+   static Imlib_Image  im_prev = NULL;
+   Imlib_Image         im_save = NULL;
+
+   if (!im)
+     {
+        /* Cleanup */
+        if (im_prev)
+          {
+             imlib_context_set_image(im_prev);
+             imlib_free_image_and_decache();
+             im_prev = NULL;
+          }
+        return;
+     }
 
    imlib_context_set_image(fg_im);
+
+   if (flags & IMLIB_FRAME_DISPOSE_PREV)
+     {
+        Dprintf("Save  %d,%d %dx%d\n", up_in->x, up_in->y, up_in->w, up_in->h);
+        im_save =
+           imlib_create_cropped_image(up_in->x, up_in->y, up_in->w, up_in->h);
+     }
 
    if (r_prev.w > 0)
      {
         /* "dispose" of (clear) previous area before rendering new */
-        Dprintf("Clear %d,%d %dx%d\n", r_prev.x, r_prev.y, r_prev.w, r_prev.h);
-        imlib_context_set_color(0, 0, 0, 0);
-        imlib_image_fill_rectangle(r_prev.x, r_prev.y, r_prev.w, r_prev.h);
+        if (im_prev)
+          {
+             Dprintf("Prev  %d,%d %dx%d\n",
+                     r_prev.x, r_prev.y, r_prev.w, r_prev.h);
+             imlib_context_set_blend(0);
+             imlib_blend_image_onto_image(im_prev, 1,
+                                          0, 0, r_prev.w, r_prev.h,
+                                          r_prev.x, r_prev.y,
+                                          r_prev.w, r_prev.h);
+             imlib_context_set_image(im_prev);
+             imlib_free_image_and_decache();
+             imlib_context_set_image(fg_im);
+             im_prev = NULL;
+          }
+        else
+          {
+             Dprintf("Clear %d,%d %dx%d\n",
+                     r_prev.x, r_prev.y, r_prev.w, r_prev.h);
+             imlib_context_set_color(0, 0, 0, 0);
+             imlib_image_fill_rectangle(r_prev.x, r_prev.y, r_prev.w, r_prev.h);
+          }
 
         /* Damaged area is (cleared + new frame) */
         up_out->x = MIN(r_prev.x, up_in->x);
@@ -224,9 +263,10 @@ anim_update(Imlib_Image im, const rect_t * up_in, rect_t * up_out, int flags)
      {
         *up_out = *up_in;
      }
+   im_prev = im_save;
 
-   if (flags & IMLIB_FRAME_DISPOSE_CLEAR)
-      r_prev = *up_in;          /* Clear next time around */
+   if (flags & (IMLIB_FRAME_DISPOSE_CLEAR | IMLIB_FRAME_DISPOSE_PREV))
+      r_prev = *up_in;          /* Clear/revert next time around */
    else
       r_prev = r_zero;          /* No clearing before next frame */
 
@@ -345,7 +385,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
 
    if (animated)
      {
-        rect_t              r_dam;
+        rect_t              r_dam = { };
 
         /* Update animated "target" canvas image (fg_im) */
         anim_update(im, &r_up, &r_dam, finfo.frame_flags);
@@ -433,6 +473,8 @@ load_image(int no, const char *name)
    Drawable            draw;
 
    Vprintf("Show  %d: '%s'\n", no, name);
+
+   anim_update(NULL, NULL, NULL, 0);    /* Clean up previous animation */
 
    image_width = 0;             /* Force redraw in progress() */
 
