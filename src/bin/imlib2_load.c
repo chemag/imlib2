@@ -1,5 +1,6 @@
 #include "config.h"
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -96,23 +97,25 @@ main(int argc, char **argv)
    char                nbuf[4096];
    int                 frame;
    int                 verbose;
-   int                 check_progress;
+   bool                check_progress;
    int                 break_on_error;
-   int                 show_time;
+   bool                show_time;
    int                 load_cnt, cnt;
-   int                 load_fd;
-   int                 load_now;
+   bool                load_fd;
+   bool                load_now;
+   bool                load_nodata;
 
    fout = stdout;
    verbose = 0;
-   check_progress = 0;
+   check_progress = false;
    break_on_error = 0;
-   show_time = 0;
+   show_time = false;
    load_cnt = 1;
-   load_fd = 0;
-   load_now = 0;
+   load_fd = false;
+   load_now = false;
+   load_nodata = false;
 
-   while ((opt = getopt(argc, argv, "efin:pvx")) != -1)
+   while ((opt = getopt(argc, argv, "efijn:pvx")) != -1)
      {
         switch (opt)
           {
@@ -120,18 +123,21 @@ main(int argc, char **argv)
              break_on_error += 1;
              break;
           case 'f':
-             load_fd = 1;
+             load_fd = true;
              break;
           case 'i':
-             load_now = 1;
+             load_now = true;
+             break;
+          case 'j':
+             load_nodata = true;
              break;
           case 'n':
              load_cnt = atoi(optarg);
-             show_time = 1;
+             show_time = true;
              verbose = 1;
              break;
           case 'p':
-             check_progress = 1;
+             check_progress = true;
              verbose = 1;
              break;
           case 'v':
@@ -203,7 +209,7 @@ main(int argc, char **argv)
              V2printf("Image  WxH=%dx%d\n",
                       imlib_image_get_width(), imlib_image_get_height());
 
-             if (!check_progress && !load_now)
+             if (!check_progress && !load_now && !load_nodata)
                 imlib_image_get_data();
 
              imlib_free_image_and_decache();
