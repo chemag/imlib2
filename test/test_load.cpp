@@ -23,11 +23,12 @@ static const char  *const pfxs[] = {
    "gif",
    "ico",
    "jpg.mp3",                   // id3
-   "jpeg",
+   "jpg",
    "ilbm",                      // lbm
    "png",
-   "pbm",                       // pnm
    "ppm",                       // pnm
+   "pgm",                       // pnm
+   "pbm",                       // pnm
    "tga",
 #ifdef BUILD_SVG_LOADER
    "svg",
