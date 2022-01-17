@@ -16,7 +16,6 @@ extern "C" {
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
 
 #if 0
-char               *__imlib_FileKey(const char *file);
 char               *__imlib_FileRealFile(const char *file);
 char               *__imlib_FileExtension(const char *file);
 
@@ -183,6 +182,71 @@ TEST(FILE, file_is_real_file)
 
    rc = unlink("gylle");
    EXPECT_EQ(rc, 0);
+}
+
+TEST(FILE, file_key)
+{
+   char               *key;
+
+   key = __imlib_FileKey("file.ext:key");
+   EXPECT_STREQ(key, "key");
+   free(key);
+
+   key = __imlib_FileKey("file.ext:key=abc");
+   EXPECT_STREQ(key, "key=abc");
+   free(key);
+
+   key = __imlib_FileKey("file.ext:key:abc");
+   EXPECT_STREQ(key, "key:abc");
+   free(key);
+
+   key = __imlib_FileKey("file.ext:key:");
+   EXPECT_STREQ(key, "key:");
+   free(key);
+
+   key = __imlib_FileKey("file.ext:");
+   EXPECT_FALSE(key);
+   free(key);
+
+   key = __imlib_FileKey("file.ext");
+   EXPECT_FALSE(key);
+   free(key);
+
+   key = __imlib_FileKey("file");
+   EXPECT_FALSE(key);
+   free(key);
+
+   key = __imlib_FileKey("file.ext::key");
+   EXPECT_FALSE(key);
+   free(key);
+
+   key = __imlib_FileKey("C::file.ext:key");
+   EXPECT_STREQ(key, "key");
+   free(key);
+
+   key = __imlib_FileKey("Drive::file.ext:key:zz");
+   EXPECT_STREQ(key, "key:zz");
+   free(key);
+
+   key = __imlib_FileKey("C::file.ext:");
+   EXPECT_FALSE(key);
+   free(key);
+
+   key = __imlib_FileKey("C::file.ext");
+   EXPECT_FALSE(key);
+   free(key);
+
+   key = __imlib_FileKey("C::");
+   EXPECT_FALSE(key);
+   free(key);
+
+   key = __imlib_FileKey("C:::");
+   EXPECT_FALSE(key);
+   free(key);
+
+   key = __imlib_FileKey("::C:");
+   EXPECT_FALSE(key);
+   free(key);
 }
 
 int
