@@ -41,6 +41,31 @@ mm_getc(void)
 }
 
 static int
+mm_get01(void)
+{
+   int                 ch;
+
+   for (;;)
+     {
+        ch = mm_getc();
+        switch (ch)
+          {
+          case '0':
+             return 0;
+          case '1':
+             return 1;
+          case ' ':
+          case '\t':
+          case '\r':
+          case '\n':
+             continue;
+          default:
+             return -1;
+          }
+     }
+}
+
+static int
 mm_getu(unsigned int *pui)
 {
    int                 ch;
@@ -187,15 +212,11 @@ load2(ImlibImage * im, int load_data)
           {
              for (x = 0; x < w; x++)
                {
-                  if (mm_getu(&gval))
+                  i = mm_get01();
+                  if (i < 0)
                      goto quit;
 
-                  if (gval == 1)
-                     *ptr2++ = 0xff000000;
-                  else if (gval == 0)
-                     *ptr2++ = 0xffffffff;
-                  else
-                     goto quit;
+                  *ptr2++ = i ? 0xff000000 : 0xffffffff;
                }
 
              if (im->lc && __imlib_LoadProgressRows(im, y, 1))
