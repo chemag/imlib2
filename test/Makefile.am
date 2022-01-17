@@ -22,7 +22,7 @@ CLEANFILES = file.c img_save-*.*
 
  AM_CPPFLAGS  = -I $(top_builddir) -I $(top_srcdir)/src/lib
  AM_CPPFLAGS += -I $(top_builddir)/src/lib
- AM_CPPFLAGS += -D SRC_DIR='"$(top_srcdir)"'
+ AM_CPPFLAGS += -D SRC_DIR='"$(srcdir)"' -D BLD_DIR='"$(builddir)"'
  AM_CPPFLAGS += -D BUILD_TEST=1
 
 # Must have proper -lImlib2 on all progs

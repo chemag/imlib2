@@ -3,6 +3,9 @@
 #include <X11/Xutil.h>
 #include <Imlib2.h>
 
+#include "config.h"
+#include "test_common.h"
+
 typedef struct {
    Display            *dpy;
    Window              root;
@@ -157,7 +160,7 @@ _test_grab_1(int w, int h, int x0, int y0)
       im = imlib_create_scaled_image_from_drawable(None, x0, y0, w, h,
                                                    ws, hs, 0, 0);
    imlib_context_set_image(im);
-   snprintf(buf, sizeof(buf), "%s-%%d.png", xd.test);
+   snprintf(buf, sizeof(buf), "%s/%s-%%d.png", IMG_GEN, xd.test);
    _img_dump(im, buf);
 
    dptr = imlib_image_get_data_for_reading_only();
@@ -341,6 +344,8 @@ main(int argc, char **argv)
              break;
           }
      }
+
+   mkdir(IMG_GEN, 0755);
 
    return RUN_ALL_TESTS();
 }

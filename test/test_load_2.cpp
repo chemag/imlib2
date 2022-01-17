@@ -5,6 +5,7 @@
 #include <zlib.h>
 
 #include "config.h"
+#include "test_common.h"
 
 int                 debug = 0;
 
@@ -12,9 +13,6 @@ int                 debug = 0;
 
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
-
-#define TOPDIR  	SRC_DIR
-#define IMGDIR		TOPDIR "/test/images"
 
 typedef struct {
    const char         *name;
@@ -71,7 +69,7 @@ TEST(LOAD2, load_1)
         fn = tii[i].name;
         if (*fn != '/')
           {
-             snprintf(buf, sizeof(buf), "%s/%s", IMGDIR, fn);
+             snprintf(buf, sizeof(buf), "%s/%s", IMG_SRC, fn);
              fn = buf;
           }
         D("Load '%s'\n", fn);

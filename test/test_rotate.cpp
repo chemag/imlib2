@@ -4,13 +4,12 @@
 #include <zlib.h>
 
 #include "config.h"
+#include "test_common.h"
 
 int                 debug = 0;
 
 #define D(...)  if (debug) printf(__VA_ARGS__)
 
-#define TOPDIR  	SRC_DIR
-#define FILE_DIR	"test/images"
 #define FILE_REF1	"icon-64"       // RGB
 #define FILE_REF2	"xeyes" // ARGB (shaped)
 
@@ -70,7 +69,7 @@ test_rotate(int no, int aa)
       ic += 2;
 #endif
 
-   snprintf(filei, sizeof(filei), "%s/%s/%s.png", TOPDIR, FILE_DIR, ptd->file);
+   snprintf(filei, sizeof(filei), "%s/%s.png", IMG_SRC, ptd->file);
    D("Load '%s'\n", filei);
    imi = imlib_load_image(filei);
    ASSERT_TRUE(imi);
@@ -93,7 +92,7 @@ test_rotate(int no, int aa)
         ho = imlib_image_get_height();
 
         snprintf(fileo, sizeof(fileo), "%s/rotate-%s-%dx%d-%d.%s",
-                 ".", ptd->file, wo, ho, i, "png");
+                 IMG_GEN, ptd->file, wo, ho, i, "png");
         imlib_image_set_format("png");
         D("Save '%s'\n", fileo);
         imlib_save_image_with_error_return(fileo, &lerr);
@@ -152,6 +151,8 @@ main(int argc, char **argv)
              break;
           }
      }
+
+   mkdir(IMG_GEN, 0755);
 
    return RUN_ALL_TESTS();
 }
