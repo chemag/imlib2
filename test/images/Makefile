@@ -28,6 +28,7 @@ all: imgs_64
 
  TYPES_64 = $(filter-out png, $(TYPES)) ff.bz2 ff.gz ff.xz # png.mp3
  ALL_64  = $(addprefix icon-64., $(TYPES_64))
+ ALL_64 += icon-64-P1.pbm icon-64-P2.pgm icon-64-P3.ppm icon-64-P7_332.ppm
 $(warning imgs_64=$(ALL_64))
 imgs_64:  $(ALL_64)
 
@@ -61,6 +62,18 @@ imgs_64:  $(ALL_64)
 %.pbm: %.png
 	convert -dither Floyd-Steinberg $< $@
 
+%-P1.pbm: %.pbm
+	pnmtopnm -plain <$< >$@
+
+%-P2.pgm: %.pgm
+	pnmtopnm -plain <$< >$@
+
+%-P3.ppm: %.ppm
+	pnmtopnm -plain <$< >$@
+
+%-P7_332.ppm: %.ppm
+	pamtoxvmini <$< >$@
+
 %.tga: %.png
 #	convert $< $@
 	convert -flip $< $@	# Bug in convert?
@@ -82,7 +95,7 @@ imgs_64:  $(ALL_64)
 %.xz: %
 	xz -c $< > $@
 %.gz: %
-	gzip -c $< > $@
+	gzip -n -c $< > $@
 
 .PHONY: clean
 clean:
