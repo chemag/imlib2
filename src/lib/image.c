@@ -492,9 +492,12 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
         err = __imlib_FileStat(file, &st);
         if (err)
           {
-             im_file = __imlib_FileRealFile(file);
              im_key = __imlib_FileKey(file);
-             err = __imlib_FileStat(im_file, &st);
+             if (im_key)
+               {
+                  im_file = __imlib_FileRealFile(file);
+                  err = __imlib_FileStat(im_file, &st);
+               }
           }
      }
 
