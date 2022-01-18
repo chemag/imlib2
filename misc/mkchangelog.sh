@@ -18,13 +18,13 @@ do
             VH="$V2"
         fi
         D=$(git show -s --format=%cs $VD^{commit})
-        printf "%s - %s\n-------------------\n" "$V2" "$D"
+        printf "%s - %s\n--------------------\n" "$V2" "$D"
         $GLO $V1..$VH
         VH=""
     fi
     V2="$V1"
 done
 
-D=$(git show -s --format=%cs $VD^{commit})
-printf "\n%s - %s (from dawn of time)\n---------------------------------------\n" "$V2" "$D"
-$GLO $V2
+# D=$(git show -s --format=%cs $VD^{commit})
+# printf "\n%s - %s (from dawn of time)\n---------------------------------------\n" "$V2" "$D"
+# $GLO $V2
