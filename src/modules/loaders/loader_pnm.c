@@ -1,7 +1,10 @@
 #include "loader_common.h"
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <sys/mman.h>
+
+#define DBG_PFX "LDR-pnm"
 
 static struct {
    const unsigned char *data, *dptr;
@@ -70,19 +73,31 @@ mm_getu(unsigned int *pui)
 {
    int                 ch;
    int                 uval;
+   bool                comment;
 
-   for (;;)
+   /* Strip whitespace and comments */
+   for (comment = false;;)
      {
         ch = mm_getc();
         if (ch < 0)
            return ch;
-        if (!isspace(ch))
+        if (comment)
+          {
+             if (ch == '\n')
+                comment = false;
+             continue;
+          }
+        if (isspace(ch))
+           continue;
+        if (ch != '#')
            break;
+        comment = true;
      }
 
    if (!isdigit(ch))
       return -1;
 
+   /* Parse number */
    for (uval = 0;;)
      {
         uval = 10 * uval + ch - '0';
@@ -102,9 +117,8 @@ load2(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
-   char                p = ' ', numbers = 3, count = 0;
-   int                 w = 0, h = 0, v = 255, c = 0;
-   char                buf[256];
+   int                 c, p;
+   int                 w, h, v, numbers, count;
    DATA8              *data = NULL;     /* for the binary versions */
    DATA8              *ptr = NULL;
    int                *idata = NULL;    /* for the ASCII versions */
@@ -125,6 +139,7 @@ load2(ImlibImage * im, int load_data)
    if (c != 'P')
       goto quit;
 
+   numbers = 3;
    p = mm_getc();
    if (p == '1' || p == '4')
       numbers = 2;              /* bitimages don't have max value */
@@ -132,59 +147,40 @@ load2(ImlibImage * im, int load_data)
    if ((p < '1') || (p > '8'))
       goto quit;
 
-   count = 0;
-   while (count < numbers)
+   /* read numbers */
+   w = h = 0;
+   v = 255;
+   for (count = i = 0; count < numbers; i++)
      {
-        c = mm_getc();
-
-        if (c == EOF)
+        if (mm_getu(&gval))
            goto quit;
 
-        /* eat whitespace */
-        while (isspace(c))
-           c = mm_getc();
-        /* if comment, eat that */
-        if (c == '#')
+        if (p == '7' && i == 0)
           {
-             do
-                c = mm_getc();
-             while (c != '\n' && c != EOF);
+             if (gval != 332)
+                goto quit;
+             else
+                continue;
           }
-        /* no comment -> proceed */
-        else
-          {
-             i = 0;
 
-             /* read numbers */
-             while (c != EOF && !isspace(c) && (i < 255))
-               {
-                  buf[i++] = c;
-                  c = mm_getc();
-               }
-             if (i)
-               {
-                  buf[i] = 0;
-                  count++;
-                  switch (count)
-                    {
-                       /* width */
-                    case 1:
-                       w = atoi(buf);
-                       break;
-                       /* height */
-                    case 2:
-                       h = atoi(buf);
-                       break;
-                       /* max value, only for color and greyscale */
-                    case 3:
-                       v = atoi(buf);
-                       break;
-                    }
-               }
+        count++;
+        switch (count)
+          {
+          case 1:              /* width */
+             w = gval;
+             break;
+          case 2:              /* height */
+             h = gval;
+             break;
+          case 3:              /* max value, only for color and greyscale */
+             v = gval;
+             break;
           }
      }
    if ((v < 0) || (v > 255))
       goto quit;
+
+   D("P%c: WxH=%dx%d V=%d\n", p, w, h, v);
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
