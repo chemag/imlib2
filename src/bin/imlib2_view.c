@@ -203,7 +203,7 @@ static void
 anim_update(Imlib_Image im, const rect_t * up_in, rect_t * up_out, int flags)
 {
    static const rect_t r_zero = { };
-   static rect_t       r_prev = r_zero;
+   static rect_t       r_prev = { };
    static Imlib_Image  im_prev = NULL;
    Imlib_Image         im_save = NULL;
 
