@@ -557,6 +557,8 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 
    switch (loader_ret)
      {
+        ImlibLoader       **loaders, *l, *previous_l;
+
      case LOAD_BREAK:          /* Break signaled by progress callback */
      case LOAD_SUCCESS:        /* Image loaded successfully           */
         /* Loader accepted image */
@@ -564,9 +566,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
         break;
 
      case LOAD_FAIL:           /* Image was not recognized by loader  */
-        ImlibLoader ** loaders = __imlib_GetLoaderList();
-        ImlibLoader        *l, *previous_l;
-
+        loaders = __imlib_GetLoaderList();
         errno = 0;
         /* run through all loaders and try load until one succeeds */
         for (l = *loaders, previous_l = NULL; l; previous_l = l, l = l->next)
@@ -704,7 +704,6 @@ __imlib_LoadProgressRows(ImlibImage * im, int row, int nrows)
      {
         /* Row index counting down */
         nrtot = im->h - row;
-        row = row;
         nrows = nrtot - lc->row;
      }
 
