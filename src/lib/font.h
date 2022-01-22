@@ -3,23 +3,7 @@
 #include FT_GLYPH_H
 
 #include "common.h"
-
-/* TODO separate fonts and data stuff */
-
-typedef struct _Imlib_Object_List {
-   struct _Imlib_Object_List *next, *prev;
-} Imlib_Object_List;
-
-typedef struct {
-   int                 population;
-   Imlib_Object_List  *buckets[256];
-} Imlib_Hash;
-
-typedef struct {
-   Imlib_Object_List   _list_data;
-   char               *key;
-   void               *data;
-} Imlib_Hash_El;
+#include "object.h"
 
 typedef struct _Imlib_Font {
    Imlib_Object_List   _list_data;
@@ -104,17 +88,3 @@ void                __imlib_font_draw(ImlibImage * dst, DATA32 col,
                                       ImlibFont * fn, int x, int y,
                                       const char *text, int *nextx, int *nexty,
                                       int clx, int cly, int clw, int clh);
-
-/* data manipulation */
-
-void               *__imlib_object_list_prepend(void *in_list, void *in_item);
-void               *__imlib_object_list_remove(void *in_list, void *in_item);
-Imlib_Hash         *__imlib_hash_add(Imlib_Hash * hash, const char *key,
-                                     const void *data);
-void               *__imlib_hash_find(Imlib_Hash * hash, const char *key);
-void                __imlib_hash_free(Imlib_Hash * hash);
-void                __imlib_hash_foreach(Imlib_Hash * hash,
-                                         int (*func)(Imlib_Hash * hash,
-                                                     const char *key,
-                                                     void *data, void *fdata),
-                                         const void *fdata);

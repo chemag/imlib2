@@ -34,6 +34,7 @@ image_tags.c \
 line.c \
 loaders.c	loaders.h	\
 modules.c \
+object.c	object.h	\
 polygon.c \
 rectangle.c \
 rgbadraw.c	rgbadraw.h	\
