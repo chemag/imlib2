@@ -525,9 +525,6 @@ EAPI void           imlib_save_image_with_error_return(const char *filename,
                                                        Imlib_Load_Error *
                                                        error_return);
 
-/* FIXME: */
-/* need to add arbitrary rotation routines */
-
 /* rotation/skewing */
 EAPI Imlib_Image    imlib_create_rotated_image(double angle);
 
