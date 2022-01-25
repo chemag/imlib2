@@ -199,6 +199,7 @@ EC_LOADER_CHECK(PNG,  auto, libpng)
 EC_LOADER_CHECK(SVG,  auto, librsvg-2.0)
 EC_LOADER_CHECK(TIFF, auto, libtiff-4)
 EC_LOADER_CHECK(WEBP, auto, libwebpdemux)
+EC_LOADER_CHECK(HEIF, auto, libheif)
 
 loader_check_bz2() {
   AC_CHECK_LIB(bz2, BZ2_bzRead, bz2_ok=yes, bz2_ok=no)
@@ -278,6 +279,7 @@ echo "  PNG.....................: $png_ok"
 echo "  SVG.....................: $svg_ok"
 echo "  TIFF....................: $tiff_ok"
 echo "  WEBP....................: $webp_ok"
+echo "  HEIF....................: $heif_ok"
 echo " Decompressors"
 echo "  BZIP2...................: $bz2_ok"
 echo "  LZMA(XZ)................: $lzma_ok"

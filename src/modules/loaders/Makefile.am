@@ -32,6 +32,9 @@ endif
 if BUILD_WEBP_LOADER
 pkg_LTLIBRARIES += webp.la
 endif
+if BUILD_HEIF_LOADER
+pkg_LTLIBRARIES += heif.la
+endif
 
 if BUILD_BZ2_LOADER
 pkg_LTLIBRARIES += bz2.la
@@ -118,6 +121,12 @@ webp_la_CPPFLAGS     = $(WEBP_CFLAGS) $(AM_CPPFLAGS)
 webp_la_LDFLAGS      = -module -avoid-version
 webp_la_LIBADD       = $(WEBP_LIBS) $(top_builddir)/src/lib/libImlib2.la
 webp_la_LIBTOOLFLAGS = --tag=disable-static
+
+heif_la_SOURCES      = loader_heif.c
+heif_la_CPPFLAGS     = $(HEIF_CFLAGS) $(AM_CPPFLAGS)
+heif_la_LDFLAGS      = -module -avoid-version
+heif_la_LIBADD       = $(HEIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
+heif_la_LIBTOOLFLAGS = --tag=disable-static
 
 xbm_la_SOURCES       = loader_xbm.c
 xbm_la_LDFLAGS       = -module -avoid-version
