@@ -19,10 +19,8 @@ int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   int                 encoded_fd;
-   struct stat         stats;
-   void               *address = MAP_FAILED;
-   uint8_t            *encoded_data = NULL;
+   void               *address;
+   uint8_t            *encoded_data;
    int                 img_has_alpha;
    int                 stride = 0;
    int                 bytes_per_px;
@@ -37,26 +35,19 @@ load2(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   encoded_fd = fileno(im->fp);
-   if (encoded_fd == -1)
-      goto quit;
-
-   if (fstat(encoded_fd, &stats) == -1)
-      goto quit;
-
    /* input data needs to be atleast 12 bytes */
-   if (stats.st_size < HEIF_BYTES_TO_CHECK)
-      goto quit;
+   if (im->fsize < HEIF_BYTES_TO_CHECK)
+      return rc;
 
-   address = mmap(0, stats.st_size, PROT_READ, MAP_PRIVATE, encoded_fd, 0);
+   address = mmap(0, im->fsize, PROT_READ, MAP_PRIVATE, fileno(im->fp), 0);
    if (address == MAP_FAILED)
-      goto quit;
+      return LOAD_BADFILE;
 
    /* Convert address to array of uint8_t. */
    encoded_data = (uint8_t *) address;
 
    /* check signature */
-   switch (heif_check_filetype(encoded_data, stats.st_size))
+   switch (heif_check_filetype(encoded_data, im->fsize))
      {
      case heif_filetype_no:
      case heif_filetype_yes_unsupported:
@@ -75,13 +66,15 @@ load2(ImlibImage * im, int load_data)
 
    error =
       heif_context_read_from_memory_without_copy(ctx, encoded_data,
-                                                 stats.st_size, NULL);
+                                                 im->fsize, NULL);
    if (error.code != heif_error_Ok)
       goto quit;
 
    error = heif_context_get_primary_image_handle(ctx, &img_handle);
    if (error.code != heif_error_Ok)
       goto quit;
+
+   rc = LOAD_BADIMAGE;          /* Format accepted */
 
    /* Freeing heif_context, since we got primary image handle */
    heif_context_free(ctx);
@@ -160,9 +153,8 @@ load2(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   /* Remove mapping if address is not MAP_FAILED. */
-   if (address != MAP_FAILED)
-      munmap(address, stats.st_size);
+   if (rc <= 0)
+      __imlib_FreeData(im);
 
    /* Free memory if it is still allocated.
     * Working this way means explicitly setting pointers to NULL if they were
@@ -172,6 +164,8 @@ load2(ImlibImage * im, int load_data)
    heif_image_handle_release(img_handle);
    heif_context_free(ctx);
    heif_decoding_options_free(decode_opts);
+
+   munmap(address, im->fsize);
 
    return rc;
 }
