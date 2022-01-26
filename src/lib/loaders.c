@@ -27,6 +27,10 @@ static const char  *const ext_ff[] = { "ff", NULL };
 #ifdef BUILD_GIF_LOADER
 static const char  *const ext_gif[] = { "gif", NULL };
 #endif
+#ifdef BUILD_HEIF_LOADER
+static const char  *const ext_heif[] =
+   { "heif", "heifs", "heic", "heics", "avci", "avcs", "avif", "avifs", NULL };
+#endif
 static const char  *const ext_ico[] = { "ico", NULL };
 #ifdef BUILD_JPEG_LOADER
 static const char  *const ext_jpeg[] = { "jpg", "jpeg", "jfif", "jfi", NULL };
@@ -70,6 +74,9 @@ static const KnownLoader loaders_known[] = {
    {"ff", ext_ff},
 #ifdef BUILD_GIF_LOADER
    {"gif", ext_gif},
+#endif
+#ifdef BUILD_HEIF_LOADER
+   {"heif", ext_heif},
 #endif
    {"ico", ext_ico},
 #ifdef BUILD_JPEG_LOADER
