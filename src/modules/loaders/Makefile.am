@@ -17,6 +17,9 @@ xpm.la
 if BUILD_GIF_LOADER
 pkg_LTLIBRARIES += gif.la
 endif
+if BUILD_HEIF_LOADER
+pkg_LTLIBRARIES += heif.la
+endif
 if BUILD_JPEG_LOADER
 pkg_LTLIBRARIES += jpeg.la
 endif
@@ -31,9 +34,6 @@ pkg_LTLIBRARIES += tiff.la
 endif
 if BUILD_WEBP_LOADER
 pkg_LTLIBRARIES += webp.la
-endif
-if BUILD_HEIF_LOADER
-pkg_LTLIBRARIES += heif.la
 endif
 
 if BUILD_BZ2_LOADER
@@ -71,6 +71,12 @@ gif_la_SOURCES       = loader_gif.c
 gif_la_LDFLAGS       = -module -avoid-version
 gif_la_LIBADD        = $(GIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
 gif_la_LIBTOOLFLAGS  = --tag=disable-static
+
+heif_la_SOURCES      = loader_heif.c
+heif_la_CPPFLAGS     = $(HEIF_CFLAGS) $(AM_CPPFLAGS)
+heif_la_LDFLAGS      = -module -avoid-version
+heif_la_LIBADD       = $(HEIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
+heif_la_LIBTOOLFLAGS = --tag=disable-static
 
 ico_la_SOURCES       = loader_ico.c
 ico_la_LDFLAGS       = -module -avoid-version
@@ -121,12 +127,6 @@ webp_la_CPPFLAGS     = $(WEBP_CFLAGS) $(AM_CPPFLAGS)
 webp_la_LDFLAGS      = -module -avoid-version
 webp_la_LIBADD       = $(WEBP_LIBS) $(top_builddir)/src/lib/libImlib2.la
 webp_la_LIBTOOLFLAGS = --tag=disable-static
-
-heif_la_SOURCES      = loader_heif.c
-heif_la_CPPFLAGS     = $(HEIF_CFLAGS) $(AM_CPPFLAGS)
-heif_la_LDFLAGS      = -module -avoid-version
-heif_la_LIBADD       = $(HEIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
-heif_la_LIBTOOLFLAGS = --tag=disable-static
 
 xbm_la_SOURCES       = loader_xbm.c
 xbm_la_LDFLAGS       = -module -avoid-version
