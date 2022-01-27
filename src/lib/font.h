@@ -1,3 +1,6 @@
+#ifndef FONT_H
+#define FONT_H
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
@@ -31,6 +34,8 @@ typedef struct {
    FT_BitmapGlyph      glyph_out;
 } Imlib_Font_Glyph;
 
+#define IMLIB_GLYPH_NONE ((Imlib_Font_Glyph*) 1)        /* Glyph not found */
+
 /* functions */
 
 void                __imlib_font_init(void);
@@ -39,7 +44,6 @@ int                 __imlib_font_descent_get(ImlibFont * fn);
 int                 __imlib_font_max_ascent_get(ImlibFont * fn);
 int                 __imlib_font_max_descent_get(ImlibFont * fn);
 int                 __imlib_font_get_line_advance(ImlibFont * fn);
-int                 __imlib_font_utf8_get_next(unsigned char *buf, int *iindex);
 void                __imlib_font_add_font_path(const char *path);
 void                __imlib_font_del_font_path(const char *path);
 int                 __imlib_font_path_exists(const char *path);
@@ -59,8 +63,6 @@ void                __imlib_font_modify_cache_by(ImlibFont * fn, int dir);
 void                __imlib_font_modify_cache_by(ImlibFont * fn, int dir);
 void                __imlib_font_flush_last(void);
 ImlibFont          *__imlib_font_find(const char *name, int size);
-ImlibFont          *__imlib_font_find_glyph(ImlibFont * fn, int gl,
-                                            unsigned int *ret_index);
 
 void                __imlib_font_query_size(ImlibFont * fn, const char *text,
                                             int *w, int *h);
@@ -77,6 +79,10 @@ int                 __imlib_font_query_text_at_pos(ImlibFont * fn,
                                                    int *cx, int *cy,
                                                    int *cw, int *ch);
 
+Imlib_Font_Glyph   *__imlib_font_get_next_glyph(ImlibFont * fn,
+                                                const char *utf8,
+                                                int *cindx,
+                                                FT_UInt * pindex, int *pkern);
 Imlib_Font_Glyph   *__imlib_font_cache_glyph_get(ImlibFont * fn, FT_UInt index);
 void                __imlib_render_str(ImlibImage * im, ImlibFont * f,
                                        int drx, int dry, const char *text,
@@ -88,3 +94,5 @@ void                __imlib_font_draw(ImlibImage * dst, DATA32 col,
                                       ImlibFont * fn, int x, int y,
                                       const char *text, int *nextx, int *nexty,
                                       int clx, int cly, int clw, int clh);
+
+#endif /* FONT_H */

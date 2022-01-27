@@ -106,15 +106,17 @@ __imlib_font_get_line_advance(ImlibFont * fn)
    return ret;
 }
 
-int
-__imlib_font_utf8_get_next(unsigned char *buf, int *iindex)
+/*
+ * Reads UTF8 bytes from @text, starting at *@index and returns the code
+ * point of the next valid code point. @index is updated ready for the
+ * next call.
+ *
+ * Returns 0 to indicate an error (e.g. invalid UTF8)
+ */
+static int
+_utf8_get_next(const char *text, int *iindex)
 {
-   /* Reads UTF8 bytes from @buf, starting at *@index and returns the code
-    * point of the next valid code point. @index is updated ready for the
-    * next call.
-    * 
-    * * Returns 0 to indicate an error (e.g. invalid UTF8) */
-
+   const unsigned char *buf = (const unsigned char *)text;
    int                 index = *iindex, r;
    unsigned char       d = buf[index++], d2, d3, d4;
 
@@ -167,4 +169,66 @@ __imlib_font_utf8_get_next(unsigned char *buf, int *iindex)
      }
    *iindex = index;
    return r;
+}
+
+/*
+ * This function returns the first font in the fallback chain to contain
+ * the requested glyph.
+ * The glyph index is returned in ret_index
+ * If the glyph is not found, then the given font pointer is returned and
+ * ret_index will be set to 0
+ */
+static ImlibFont   *
+__imlib_font_find_glyph(ImlibFont * first_fn, int gl, unsigned int *ret_index)
+{
+   int                 index;
+   ImlibFont          *fn = first_fn;
+
+   for (; fn; fn = fn->fallback_next)
+     {
+        index = FT_Get_Char_Index(fn->ft.face, gl);
+        if (index <= 0)
+           continue;
+        *ret_index = index;
+        return fn;
+     }
+
+   *ret_index = 0;
+   return first_fn;
+}
+
+Imlib_Font_Glyph   *
+__imlib_font_get_next_glyph(ImlibFont * fn, const char *utf8, int *cindx,
+                            FT_UInt * pindex, int *pkern)
+{
+   FT_UInt             index;
+   Imlib_Font_Glyph   *fg;
+   ImlibFont          *fn_in_chain;
+   int                 gl, kern;
+
+   gl = _utf8_get_next(utf8, cindx);
+   if (gl == 0)
+      return NULL;
+
+   fn_in_chain = __imlib_font_find_glyph(fn, gl, &index);
+
+   kern = 0;
+   if (FT_HAS_KERNING(fn->ft.face) && *pindex && index)
+     {
+        FT_Vector           delta;
+
+        FT_Get_Kerning(fn_in_chain->ft.face, *pindex, index,
+                       ft_kerning_default, &delta);
+        kern = delta.x << 2;
+     }
+   if (pkern)
+      *pkern = kern;
+
+   fg = __imlib_font_cache_glyph_get(fn_in_chain, index);
+   if (!fg)
+      return IMLIB_GLYPH_NONE;
+
+   *pindex = index;
+
+   return fg;
 }
