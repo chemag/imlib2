@@ -94,7 +94,6 @@ typedef struct {
    int                 mask_alpha_threshold;
    Imlib_Filter        filter;
    Imlib_Rectangle     cliprect;
-   Imlib_TTF_Encoding  encoding;
 
    int                 references;
    char                dirty;
@@ -118,7 +117,6 @@ typedef struct _ImlibContextItem {
    .color.blue = 255,				\
    .pixel = 0xffffffff,				\
    .mask_alpha_threshold = 128,			\
-   .encoding = IMLIB_TTF_ENCODING_ISO_8859_1,	\
 }
 
 /* A default context, only used for initialization */
@@ -1051,18 +1049,6 @@ EAPI                Imlib_Image
 imlib_context_get_image(void)
 {
    return ctx->image;
-}
-
-EAPI void
-imlib_context_set_TTF_encoding(Imlib_TTF_Encoding encoding)
-{
-   ctx->encoding = encoding;
-}
-
-EAPI                Imlib_TTF_Encoding
-imlib_context_get_TTF_encoding(void)
-{
-   return ctx->encoding;
 }
 
 /* imlib api */

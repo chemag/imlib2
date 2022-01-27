@@ -29,6 +29,12 @@
 #endif
 #endif
 
+#ifdef __GNUC__
+#define IMLIB2_DEPRECATED __attribute__((deprecated))
+#else
+#define IMLIB2_DEPRECATED
+#endif
+
 #ifndef X_DISPLAY_MISSING
 #include <X11/Xlib.h>
 #endif
@@ -86,15 +92,6 @@ typedef enum {
    IMLIB_LOAD_ERROR_IMAGE_READ,
    IMLIB_LOAD_ERROR_IMAGE_FRAME
 } Imlib_Load_Error;
-
-/* Encodings known to Imlib2 (so far) */
-typedef enum {
-   IMLIB_TTF_ENCODING_ISO_8859_1,
-   IMLIB_TTF_ENCODING_ISO_8859_2,
-   IMLIB_TTF_ENCODING_ISO_8859_3,
-   IMLIB_TTF_ENCODING_ISO_8859_4,
-   IMLIB_TTF_ENCODING_ISO_8859_5
-} Imlib_TTF_Encoding;
 
 typedef struct {
    int                 left, right, top, bottom;
@@ -165,7 +162,6 @@ EAPI void           imlib_context_set_progress_granularity(char
                                                            progress_granularity);
 EAPI void           imlib_context_set_image(Imlib_Image image);
 EAPI void           imlib_context_set_cliprect(int x, int y, int w, int h);
-EAPI void           imlib_context_set_TTF_encoding(Imlib_TTF_Encoding encoding);
 
 /* context getting */
 #ifndef X_DISPLAY_MISSING
@@ -201,7 +197,6 @@ EAPI Imlib_Progress_Function imlib_context_get_progress_function(void);
 EAPI char           imlib_context_get_progress_granularity(void);
 EAPI Imlib_Image    imlib_context_get_image(void);
 EAPI void           imlib_context_get_cliprect(int *x, int *y, int *w, int *h);
-EAPI Imlib_TTF_Encoding imlib_context_get_TTF_encoding(void);
 
 EAPI int            imlib_get_cache_used(void);
 EAPI int            imlib_get_cache_size(void);
@@ -619,6 +614,31 @@ typedef struct {
 
 EAPI Imlib_Image    imlib_load_image_frame(const char *file, int frame);
 EAPI void           imlib_image_get_frame_info(Imlib_Frame_Info * info);
+
+/*
+ * Deprecated functionality
+ */
+
+/* Encodings known to Imlib2 (so far) */
+typedef enum {
+   IMLIB_TTF_ENCODING_ISO_8859_1,
+   IMLIB_TTF_ENCODING_ISO_8859_2,
+   IMLIB_TTF_ENCODING_ISO_8859_3,
+   IMLIB_TTF_ENCODING_ISO_8859_4,
+   IMLIB_TTF_ENCODING_ISO_8859_5
+} Imlib_TTF_Encoding;
+
+/**
+ * Deprecated function. Hasn't done anything useful in ~20 years.
+ */
+IMLIB2_DEPRECATED
+EAPI void           imlib_context_set_TTF_encoding(Imlib_TTF_Encoding encoding);
+
+/**
+ * Deprecated function. Hasn't done anything useful in ~20 years.
+ */
+IMLIB2_DEPRECATED
+EAPI Imlib_TTF_Encoding imlib_context_get_TTF_encoding(void);
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
