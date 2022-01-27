@@ -32,6 +32,13 @@ u2pix(double x, int unit)
      }
 }
 
+static void
+_handle_error(GError * error)
+{
+   D("librsvg2: %s\n", error->message);
+   g_error_free(error);
+}
+
 int
 load2(ImlibImage * im, int load_data)
 {
@@ -179,6 +186,8 @@ load2(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
+   if (error)
+      _handle_error(error);
    if (surface)
       cairo_surface_destroy(surface);
    if (cr)
