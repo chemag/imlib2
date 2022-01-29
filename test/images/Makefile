@@ -4,6 +4,7 @@
  TYPES += argb
  TYPES += bmp
  TYPES += ff
+ TYPES += heif
  TYPES += gif
  TYPES += ico
  TYPES += jpg
@@ -43,6 +44,9 @@ imgs_64:  $(ALL_64)
 
 %.gif: %.png
 	convert $< $@
+
+%.heif: %.png
+	heif-enc -o $@ $<
 
 %.ico: %.png
 	convert $< $@

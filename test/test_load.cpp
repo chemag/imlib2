@@ -21,6 +21,9 @@ static const char  *const pfxs[] = {
    "bmp",
    "ff",
    "gif",
+#ifdef BUILD_HEIF_LOADER
+   "heif",
+#endif
    "ico",
    "jpg.mp3",                   // id3
    "jpg",

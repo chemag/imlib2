@@ -34,6 +34,9 @@ static tii_t        tii[] = {
    { "icon-64.ff.xz",		1153555547 },
 #endif
    { "icon-64.gif",		4016720483 },
+#ifdef BUILD_HEIF_LOADER
+   { "icon-64.heif",		 174609659 },
+#endif
    { "icon-64.ico",		1153555547 },
    { "icon-64.ilbm",		1153555547 },
    { "icon-64.jpg",		4132154843 },
