@@ -95,6 +95,10 @@ __imlib_ProduceImage(void)
 static void
 __imlib_ConsumeImage(ImlibImage * im)
 {
+#ifdef BUILD_X11
+   __imlib_PixmapUnrefImage(im);
+#endif
+
    __imlib_FreeAllTags(im);
 
    if (im->real_file && im->real_file != im->file)
@@ -106,10 +110,6 @@ __imlib_ConsumeImage(ImlibImage * im)
    free(im->format);
 
    free(im);
-
-#ifdef BUILD_X11
-   __imlib_PixmapUnrefImage(im);
-#endif
 }
 
 static ImlibImage  *
