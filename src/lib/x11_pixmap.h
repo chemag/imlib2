@@ -41,7 +41,7 @@ void                __imlib_CleanupImagePixmapCache(void);
 int                 __imlib_PixmapCacheSize(void);
 
 void                __imlib_FreePixmap(Display * d, Pixmap p);
-void                __imlib_DirtyPixmapsForImage(ImlibImage * im);
-void                __imlib_PixmapUnrefImage(ImlibImage * im);
+void                __imlib_DirtyPixmapsForImage(const ImlibImage * im);
+void                __imlib_PixmapUnrefImage(const ImlibImage * im);
 
 #endif /* X11_PIXMAP_H */
