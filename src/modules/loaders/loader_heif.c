@@ -7,9 +7,7 @@
 #include "loader_common.h"
 
 #include <libheif/heif.h>
-#include <stdio.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
 
 #define HEIF_BYTES_TO_CHECK 12L
 #define HEIF_8BIT_TO_PIXEL_ARGB(plane, has_alpha) \
