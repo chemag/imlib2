@@ -1,3 +1,99 @@
+v1.8.0 - 2022-02-06
+--------------------
+Kim Woelders (86):
+      test: Add context test
+      Drop context image save/restore around __imlib_Load/SaveImage() calls
+      Make initial context static
+      Drop context check/init in API functions
+      Use __func__ instead of open coded function names
+      Pass parameters to __imlib_LoadImage() by struct
+      Trivial cleanups
+      imlib2_view: Cosmetics (if -> switch)
+      imlib2_view: Add 'r' command to refresh
+      imlib2_view: Move window background image init to separate function
+      imlib2_view: Refactor pixmap rendering
+      imlib2_view: Remove some pointless function calls
+      imlib2_view: Tweaks around timeout
+      debug: Add some image caching debug
+      imlib2_view: Fix caching option
+      Add support for multiframe (animated) images
+      Enable caching for multiframe images
+      imlib2_load: Add support for multiframe images
+      imlib2_view: Add support for multiframe images
+      debug: Add DL macro for additional loader debug
+      WEBP loader: Multiframe support
+      ICO loader: Multiframe support
+      GIF loader: Some refactoring, add debug
+      GIF loader: Multiframe support
+      ICO loader: Debug tweaks
+      Indent
+      debug: Avoid use of uninitialized data
+      Loader loading: Avoid access to uninitialized load() item
+      updates: Reduce memory usage
+      Drop some intermediate type definitions
+      autofoo/loader cosmetics
+      configure.ac: Simplify loader setup
+      Updates for animated image handling
+      imlib2_view: Fix(?) animated image frame dispose handling
+      test: Add a couple of ico depth test images
+      ICO loader: Minor optimization
+      ICO loader: Mostly cosmetic changes (inline ico_read())
+      GIF loader: Always set BLEND flag
+      imlib2_view: Rework display of animated images
+      Introduce more loader return codes
+      BZ2, ZLIB loaders: Move duplicated code to separate file
+      Add lzma loader
+      imlib2_grab: Print error message if saving fails
+      imlib2_view: Verbosity twaeks
+      imlib2_load: Verbosity twaeks
+      LZMA loader: Fix potential warning
+      configure.ac: Correct simplification changes
+      configure.ac: Correct simplification changes some more
+      XBM loader: Correct load2() result when no header is found
+      Add svg loader
+      SVG loader: Avoid problems when loading the module more than once
+      imlib2_load: Add no-data option
+      Add dispose-to-previous frame handling
+      PNG loader: Disable Imlib2-Comment stuff
+      PNG loader: Rewrite to use callback API
+      PNG loader: Add multiframe support
+      test: Check __imlib_FileKey()
+      Simplify __imlib_FileKey()
+      Avoid redundant operations when non-existing file has no "key"
+      Drop change log from before first version tag
+      test: Move generated image files out of source dir
+      test: Add makefile to generate test images
+      PNM loader: Fix P1 when spaces are omitted
+      PNM loader: Fix "XV thumbnail" (P7 332) loading
+      test: Add some more PNM type loading tests
+      image.c: Avoid potential compile error
+      imlib2_view: Avoid clang error
+      Drop/adjust a few comments
+      Move some code as suggested in source
+      HEIF loader: A couple of cleanups and fixes
+      loaders.c: Add heif to known loaders
+      autofoo: Sort loaders
+      SVG loader: Fix memory leak on error
+      HEIF loader: Avoid memory leak when module is loaded more than once
+      Mark obsolete TTF encoding functions as deprecated
+      test: Add basic heif loader check
+      Refactoring around font glyph lookup
+      imlib2.spec.in: Introduce acflags for configuration of rpmbuilds
+      Add some missing const qualifiers
+      Fix gcc12 warning in __imlib_ConsumeImage()
+      Fix gcc12 warning in __imlib_stripwhitespace()
+      TGA loader: Make function order same as in other loaders
+      HEIF loader: Header cleanups
+      Add imlib_version()
+      test: Merge common stuff
+      v1.8.0
+
+Rishvic Pushpakaran (1):
+      imlib2: added loader for HEIF files (uses libheif), implemented just `load2` for now
+
+Sören Tempel (1):
+      ICO loader: Fix compilation on big endian architectures
+
 v1.7.5 - 2021-12-06
 --------------------
 Kim Woelders (83):
