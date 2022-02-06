@@ -115,6 +115,9 @@ extern "C" {
 #endif
 /* *INDENT-ON* */
 
+/* Imlib2 version */
+EAPI int            imlib_version(void);
+
 /* context handling */
 EAPI Imlib_Context  imlib_context_new(void);
 EAPI void           imlib_context_free(Imlib_Context context);

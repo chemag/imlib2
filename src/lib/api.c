@@ -132,6 +132,13 @@ static ImlibContext *ctx = &ctx0;
 static ImlibContextItem contexts0 = {.context = &ctx0 };
 static ImlibContextItem *contexts = &contexts0;
 
+/* Return Imlib2 version */
+int
+imlib_version(void)
+{
+   return IMLIB2_VERSION;
+}
+
 /* frees the given context including all its members */
 static void
 __imlib_free_context(ImlibContext * context)
