@@ -3,22 +3,11 @@
 #include <stddef.h>
 #include <Imlib2.h>
 
+#include "test.h"
+
 #define NULC ((Imlib_Context*)0)
 
 #define HAVE_INITIAL_CTX 1
-
-int                 debug = 0;
-
-#define D(...)  if (debug) printf(__VA_ARGS__)
-#define D2(...) if (debug > 1) printf(__VA_ARGS__)
-#if 0
-EAPI Imlib_Context  imlib_context_new(void);
-EAPI void           imlib_context_free(Imlib_Context context);
-
-EAPI void           imlib_context_push(Imlib_Context context);
-EAPI void           imlib_context_pop(void);
-EAPI Imlib_Context  imlib_context_get(void);
-#endif
 
 TEST(CTX, ctx)
 {
@@ -118,27 +107,4 @@ TEST(CTX, ctx)
    ctx = imlib_context_get();
    D("%d: ctx  = %p\n", __LINE__, ctx);
    EXPECT_EQ(ctx, ctx0);        // Ctx still default
-}
-
-int
-main(int argc, char **argv)
-{
-   const char         *s;
-
-   ::testing::InitGoogleTest(&argc, argv);
-
-   for (argc--, argv++; argc > 0; argc--, argv++)
-     {
-        s = argv[0];
-        if (*s++ != '-')
-           break;
-        switch (*s)
-          {
-          case 'd':
-             debug++;
-             break;
-          }
-     }
-
-   return RUN_ALL_TESTS();
 }

@@ -5,11 +5,7 @@
 #include <zlib.h>
 
 #include "config.h"
-#include "test_common.h"
-
-int                 debug = 0;
-
-#define D(...) if (debug) printf(__VA_ARGS__)
+#include "test.h"
 
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
@@ -88,27 +84,4 @@ TEST(LOAD2, load_1)
         crc = crc32(0, data, w * h * sizeof(DATA32));
         EXPECT_EQ(crc, tii[i].crc);
      }
-}
-
-int
-main(int argc, char **argv)
-{
-   const char         *s;
-
-   ::testing::InitGoogleTest(&argc, argv);
-
-   for (argc--, argv++; argc > 0; argc--, argv++)
-     {
-        s = argv[0];
-        if (*s++ != '-')
-           break;
-        switch (*s)
-          {
-          case 'd':
-             debug++;
-             break;
-          }
-     }
-
-   return RUN_ALL_TESTS();
 }

@@ -3,11 +3,7 @@
 #include <Imlib2.h>
 
 #include "config.h"
-#include "test_common.h"
-
-int                 debug = 0;
-
-#define D(...)  if (debug) printf(__VA_ARGS__)
+#include "test.h"
 
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
@@ -163,29 +159,4 @@ TEST(SAVE, save_1_argb)
 TEST(SAVE, save_2_argb)
 {
    test_save(FILE_REF2, 1);
-}
-
-int
-main(int argc, char **argv)
-{
-   const char         *s;
-
-   ::testing::InitGoogleTest(&argc, argv);
-
-   for (argc--, argv++; argc > 0; argc--, argv++)
-     {
-        s = argv[0];
-        if (*s++ != '-')
-           break;
-        switch (*s)
-          {
-          case 'd':
-             debug++;
-             break;
-          }
-     }
-
-   mkdir(IMG_GEN, 0755);
-
-   return RUN_ALL_TESTS();
 }

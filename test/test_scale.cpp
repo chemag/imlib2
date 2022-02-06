@@ -4,11 +4,7 @@
 #include <zlib.h>
 
 #include "config.h"
-#include "test_common.h"
-
-int                 debug = 0;
-
-#define D(...)  if (debug) printf(__VA_ARGS__)
+#include "test.h"
 
 #define FILE_REF1	"icon-64"       // RGB
 #define FILE_REF2	"xeyes" // ARGB (shaped)
@@ -101,29 +97,4 @@ TEST(SCALE, scale_1_rgb)
 TEST(SCALE, scale_1_argb)
 {
    test_scale(1);
-}
-
-int
-main(int argc, char **argv)
-{
-   const char         *s;
-
-   ::testing::InitGoogleTest(&argc, argv);
-
-   for (argc--, argv++; argc > 0; argc--, argv++)
-     {
-        s = argv[0];
-        if (*s++ != '-')
-           break;
-        switch (*s)
-          {
-          case 'd':
-             debug++;
-             break;
-          }
-     }
-
-   mkdir(IMG_GEN, 0755);
-
-   return RUN_ALL_TESTS();
 }

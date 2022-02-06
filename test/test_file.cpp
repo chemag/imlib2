@@ -6,31 +6,18 @@ extern "C" {
 }
 /**INDENT-ON**/
 
-#if 0
-#define D(...) printf(__VA_ARGS__)
-#else
-#define D(...)
-#endif
-
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
 
 #if 0
 char               *__imlib_FileRealFile(const char *file);
-char               *__imlib_FileExtension(const char *file);
 
-//int                 __imlib_FileExists(const char *s);
-//int                 __imlib_FileIsFile(const char *s);
-//int                 __imlib_FileIsDir(const char *s);
 char              **__imlib_FileDir(const char *dir, int *num);
 void                __imlib_FileFreeDirList(char **l, int num);
 void                __imlib_FileDel(const char *s);
 time_t              __imlib_FileModDate(const char *s);
 char               *__imlib_FileHomeDir(int uid);
 int                 __imlib_FilePermissions(const char *s);
-
-//int                 __imlib_FileCanRead(const char *s);
-int                 __imlib_IsRealFile(const char *s);
 #endif
 
 #define USE_REAL_FILE 0
@@ -247,11 +234,4 @@ TEST(FILE, file_key)
    key = __imlib_FileKey("::C:");
    EXPECT_FALSE(key);
    free(key);
-}
-
-int
-main(int argc, char **argv)
-{
-   ::testing::InitGoogleTest(&argc, argv);
-   return RUN_ALL_TESTS();
 }

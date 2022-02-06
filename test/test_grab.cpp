@@ -4,7 +4,7 @@
 #include <Imlib2.h>
 
 #include "config.h"
-#include "test_common.h"
+#include "test.h"
 
 typedef struct {
    Display            *dpy;
@@ -19,10 +19,6 @@ typedef struct {
 } xd_t;
 
 static xd_t         xd;
-int                 debug = 0;
-
-#define D(...)  if (debug) printf(__VA_ARGS__)
-#define D2(...) if (debug > 1) printf(__VA_ARGS__)
 
 static Visual      *
 _x11_vis_argb(void)
@@ -322,30 +318,4 @@ TEST(GRAB, grab_offs_32_su2)
 TEST(GRAB, grab_offs_32_sd2)
 {
    _test_grab("grab_offs_32_sd2", 32, -2, 1);
-}
-
-int
-main(int argc, char **argv)
-{
-   const char         *s;
-
-   ::testing::InitGoogleTest(&argc, argv);
-
-   for (argc--, argv++; argc > 0; argc--, argv++)
-     {
-        s = argv[0];
-        if (*s++ != '-')
-           break;
-        switch (*s)
-          {
-          case 'd':
-             while (*s++ == 'd')
-                debug++;
-             break;
-          }
-     }
-
-   mkdir(IMG_GEN, 0755);
-
-   return RUN_ALL_TESTS();
 }

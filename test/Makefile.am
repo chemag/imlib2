@@ -32,29 +32,29 @@ CLEANFILES = file.c img_save-*.*
 %.c: $(top_srcdir)/src/lib/%.c
 	ln -s $< $@
 
-test_file_SOURCES = test_file.cpp
+test_file_SOURCES = test.cpp test_file.cpp
 nodist_test_file_SOURCES = file.c
 test_file_LDADD = $(LIBS)
 
-test_context_SOURCES = test_context.cpp
+test_context_SOURCES = test.cpp test_context.cpp
 test_context_LDADD = $(LIBS)
 
-test_load_SOURCES = test_load.cpp
+test_load_SOURCES = test.cpp test_load.cpp
 test_load_LDADD = $(LIBS)
 
-test_load_2_SOURCES = test_load_2.cpp
+test_load_2_SOURCES = test.cpp test_load_2.cpp
 test_load_2_LDADD = $(LIBS) -lz
 
-test_save_SOURCES = test_save.cpp
+test_save_SOURCES = test.cpp test_save.cpp
 test_save_LDADD = $(LIBS)
 
-test_grab_SOURCES = test_grab.cpp
+test_grab_SOURCES = test.cpp test_grab.cpp
 test_grab_LDADD = $(LIBS)
 
-test_scale_SOURCES = test_scale.cpp
+test_scale_SOURCES = test.cpp test_scale.cpp
 test_scale_LDADD = $(LIBS) -lz
 
-test_rotate_SOURCES = test_rotate.cpp
+test_rotate_SOURCES = test.cpp test_rotate.cpp
 test_rotate_LDADD = $(LIBS) -lz
 
  TESTS_RUN = $(addprefix run-, $(GTESTS))
