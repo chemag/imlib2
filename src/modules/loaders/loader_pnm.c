@@ -33,7 +33,7 @@ mm_read(void *dst, unsigned int len)
 static int
 mm_getc(void)
 {
-   int                 ch;
+   unsigned char       ch;
 
    if (mdata.dptr + 1 > mdata.data + mdata.size)
       return -1;                /* Out of data */
