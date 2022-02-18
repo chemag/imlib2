@@ -319,6 +319,11 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    /* set up jepg compression parameters */
    jpeg_set_defaults(&jcs);
    jpeg_set_quality(&jcs, quality, TRUE);
+
+   /* progressive */
+   if ((tag = __imlib_GetTag(im, "interlacing")) && tag->val)
+       jpeg_simple_progression(&jcs);
+
    jpeg_start_compress(&jcs, TRUE);
    /* get the start pointer */
    ptr = im->data;
