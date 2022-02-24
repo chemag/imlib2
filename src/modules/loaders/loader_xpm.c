@@ -177,7 +177,7 @@ load2(ImlibImage * im, int load_data)
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
-   if (!memmem(fdata, im->fsize, " XPM */", 7))
+   if (!memmem(fdata, im->fsize <= 4096 ? im->fsize : 4096, " XPM */", 7))
       goto quit;
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
