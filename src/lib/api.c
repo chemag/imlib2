@@ -1647,41 +1647,6 @@ imlib_image_set_irrelevant_format(char irrelevant)
 }
 
 /**
- * @param irrelevant Irrelevant border flag.
- *
- * Sets if the border of the current image is irrelevant for caching
- * purposes. By default it is. Set irrelevant to 1 to make it
- * irrelevant, and 0 to make it relevant.
- */
-EAPI void
-imlib_image_set_irrelevant_border(char irrelevant)
-{
-   ImlibImage         *im;
-
-   CHECK_PARAM_POINTER("image", ctx->image);
-   CAST_IMAGE(im, ctx->image);
-   IM_FLAG_UPDATE(im, F_BORDER_IRRELEVANT, irrelevant);
-}
-
-/**
- * @param irrelevant Irrelevant alpha flag.
- *
- * Sets if the alpha channel status of the current image (i.e. if
- * there is or is not one) is important for caching purposes. By
- * default it is not. Set irrelevant to 1 to make it irrelevant and 0
- * to make it relevant.
- */
-EAPI void
-imlib_image_set_irrelevant_alpha(char irrelevant)
-{
-   ImlibImage         *im;
-
-   CHECK_PARAM_POINTER("image", ctx->image);
-   CAST_IMAGE(im, ctx->image);
-   IM_FLAG_UPDATE(im, F_ALPHA_IRRELEVANT, irrelevant);
-}
-
-/**
  * @return Current image format.
  *
  * Returns the current image's format. Do not free this

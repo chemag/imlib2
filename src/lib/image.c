@@ -86,7 +86,7 @@ __imlib_ProduceImage(void)
    ImlibImage         *im;
 
    im = calloc(1, sizeof(ImlibImage));
-   im->flags = F_FORMAT_IRRELEVANT | F_BORDER_IRRELEVANT | F_ALPHA_IRRELEVANT;
+   im->flags = F_FORMAT_IRRELEVANT;
 
    return im;
 }

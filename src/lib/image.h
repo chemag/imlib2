@@ -17,14 +17,11 @@ typedef void       *(*ImlibImageDataMemoryFunction)(void *, size_t size);
 enum _iflags {
    F_NONE = 0,
    F_HAS_ALPHA = (1 << 0),
-   F_UNLOADED = (1 << 1),
-   F_UNCACHEABLE = (1 << 2),
-   F_ALWAYS_CHECK_DISK = (1 << 3),
-   F_INVALID = (1 << 4),
-   F_DONT_FREE_DATA = (1 << 5),
-   F_FORMAT_IRRELEVANT = (1 << 6),
-   F_BORDER_IRRELEVANT = (1 << 7),
-   F_ALPHA_IRRELEVANT = (1 << 8)
+   F_UNCACHEABLE = (1 << 1),
+   F_ALWAYS_CHECK_DISK = (1 << 2),
+   F_INVALID = (1 << 3),
+   F_DONT_FREE_DATA = (1 << 4),
+   F_FORMAT_IRRELEVANT = (1 << 5),
 };
 
 typedef enum _iflags ImlibImageFlags;
