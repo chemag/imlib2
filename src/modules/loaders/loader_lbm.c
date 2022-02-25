@@ -489,13 +489,13 @@ load2(ImlibImage * im, int load_data)
 
    ilbm.mask = ilbm.bmhd.data[9];
 
-   UPDATE_FLAG(im->flags, F_HAS_ALPHA, ilbm.mask || ilbm.depth == 32);
+   IM_FLAG_UPDATE(im, F_HAS_ALPHA, ilbm.mask || ilbm.depth == 32);
 
    env = getenv("IMLIB2_LBM_NOMASK");
    if (env
        && (!strcmp(env, "true") || !strcmp(env, "1") || !strcmp(env, "yes")
            || !strcmp(env, "on")))
-      UNSET_FLAG(im->flags, F_HAS_ALPHA);
+      IM_FLAG_CLR(im, F_HAS_ALPHA);
 
    if (!load_data)
       QUIT_WITH_RC(LOAD_SUCCESS);

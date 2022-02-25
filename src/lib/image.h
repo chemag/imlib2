@@ -132,17 +132,11 @@ void                __imlib_SetCacheSize(int size);
 int                 __imlib_GetCacheSize(void);
 int                 __imlib_CurrentCacheSize(void);
 
-#define IMAGE_HAS_ALPHA(im) ((im)->flags & F_HAS_ALPHA)
-#define IMAGE_IS_UNLOADED(im) ((im)->flags & F_UNLOADED)
-#define IMAGE_IS_UNCACHEABLE(im) ((im)->flags & F_UNCACHEABLE)
-#define IMAGE_ALWAYS_CHECK_DISK(im) ((im)->flags & F_ALWAYS_CHECK_DISK)
-#define IMAGE_IS_VALID(im) (!((im)->flags & F_INVALID))
-#define IMAGE_FREE_DATA(im) (!((im)->flags & F_DONT_FREE_DATA))
-
-#define SET_FLAG(flags, f) ((flags) |= (f))
-#define UNSET_FLAG(flags, f) ((flags) &= (~f))
-#define UPDATE_FLAG(flags, f, set) \
-   do { if (set) SET_FLAG(flags, f); else UNSET_FLAG(flags, f); } while(0)
+#define IM_FLAG_SET(im, f)      ((im)->flags |= (f))
+#define IM_FLAG_CLR(im, f)      ((im)->flags &= ~(f))
+#define IM_FLAG_UPDATE(im, f, set) \
+   do { if (set) IM_FLAG_SET(im, f); else IM_FLAG_CLR(im, f); } while(0)
+#define IM_FLAG_ISSET(im, f)    (((im)->flags & (f)) != 0)
 
 #define LOAD_BREAK       2      /* Break signaled by progress callback */
 #define LOAD_SUCCESS     1      /* Image loaded successfully           */

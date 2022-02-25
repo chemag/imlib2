@@ -105,7 +105,7 @@ __imlib_ConsumeImage(ImlibImage * im)
       free(im->real_file);
    free(im->file);
    free(im->key);
-   if ((IMAGE_FREE_DATA(im)) && (im->data))
+   if (im->data && !IM_FLAG_ISSET(im, F_DONT_FREE_DATA))
       __imlib_FreeData(im);
    free(im->format);
 
@@ -122,7 +122,7 @@ __imlib_FindCachedImage(const char *file, int frame)
    for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
         /* if the filenames match and it's valid */
-        if (!strcmp(file, im->file) && IMAGE_IS_VALID(im) &&
+        if (!strcmp(file, im->file) && !IM_FLAG_ISSET(im, F_INVALID) &&
             frame == im->frame_num)
           {
              /* move the image to the head of the image list */
@@ -186,7 +186,7 @@ __imlib_CurrentCacheSize(void)
         /* mayaswell clean out stuff thats invalid that we dont need anymore */
         if (im->references == 0)
           {
-             if (!(IMAGE_IS_VALID(im)))
+             if (IM_FLAG_ISSET(im, F_INVALID))
                {
                   __imlib_RemoveImageFromCache(im);
                   __imlib_ConsumeImage(im);
@@ -217,7 +217,7 @@ __imlib_CleanupImageCache(void)
    for (im = images; im; im = im_next)
      {
         im_next = im->next;
-        if ((im->references <= 0) && (!(IMAGE_IS_VALID(im))))
+        if (im->references <= 0 && IM_FLAG_ISSET(im, F_INVALID))
           {
              __imlib_RemoveImageFromCache(im);
              __imlib_ConsumeImage(im);
@@ -310,7 +310,7 @@ __imlib_CreateImage(int w, int h, DATA32 * data)
    im->h = h;
    im->data = data;
    im->references = 1;
-   SET_FLAG(im->flags, F_UNCACHEABLE);
+   IM_FLAG_SET(im, F_UNCACHEABLE);
    return im;
 }
 
@@ -452,9 +452,9 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    /* if we found a cached image and we should always check that it is */
    /* accurate to the disk conents if they changed since we last loaded */
    /* and that it is still a valid image */
-   if ((im) && (IMAGE_IS_VALID(im)))
+   if (im && !IM_FLAG_ISSET(im, F_INVALID))
      {
-        if (IMAGE_ALWAYS_CHECK_DISK(im))
+        if (IM_FLAG_ISSET(im, F_ALWAYS_CHECK_DISK))
           {
              time_t              current_modified_time;
 
@@ -465,7 +465,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
              if (current_modified_time != im->moddate)
                {
                   /* invalidate image */
-                  SET_FLAG(im->flags, F_INVALID);
+                  IM_FLAG_SET(im, F_INVALID);
                }
              else
                {
@@ -649,7 +649,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    if (!ila->nocache)
       __imlib_AddImageToCache(im);
    else
-      SET_FLAG(im->flags, F_UNCACHEABLE);
+      IM_FLAG_SET(im, F_UNCACHEABLE);
 
    return im;
 }
@@ -728,7 +728,7 @@ __imlib_FreeImage(ImlibImage * im)
         /* reduce a reference from the count */
         im->references--;
         /* if its uncachchable ... */
-        if (IMAGE_IS_UNCACHEABLE(im))
+        if (IM_FLAG_ISSET(im, F_UNCACHEABLE))
           {
              /* and we're down to no references for the image then free it */
              if (im->references == 0)
@@ -744,7 +744,7 @@ __imlib_FreeImage(ImlibImage * im)
 void
 __imlib_DirtyImage(ImlibImage * im)
 {
-   SET_FLAG(im->flags, F_INVALID);
+   IM_FLAG_SET(im, F_INVALID);
 #ifdef BUILD_X11
    /* and dirty all pixmaps generated from it */
    __imlib_DirtyPixmapsForImage(im);

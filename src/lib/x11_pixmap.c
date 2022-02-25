@@ -272,7 +272,8 @@ __imlib_PixmapCacheSize(void)
         if (ip->references == 0)
           {
              /* if the image is invalid */
-             if ((ip->dirty) || ((ip->image) && (!(IMAGE_IS_VALID(ip->image)))))
+             if (ip->dirty ||
+                 (ip->image && IM_FLAG_ISSET(ip->image, F_INVALID)))
                {
                   __imlib_RemoveImagePixmapFromCache(ip);
                   __imlib_ConsumeImagePixmap(ip);

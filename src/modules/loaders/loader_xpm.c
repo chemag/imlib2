@@ -362,7 +362,7 @@ load2(ImlibImage * im, int load_data)
                           qsort(cmap, ncolors, sizeof(cmap_t), xpm_cmap_sort);
                        context++;
 
-                       UPDATE_FLAG(im->flags, F_HAS_ALPHA, transp >= 0);
+                       IM_FLAG_UPDATE(im, F_HAS_ALPHA, transp >= 0);
 
                        if (!load_data)
                           QUIT_WITH_RC(LOAD_SUCCESS);

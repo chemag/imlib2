@@ -153,7 +153,7 @@ load2(ImlibImage * im, int load_data)
                   if (!load_data)
                      QUIT_WITH_RC(LOAD_SUCCESS);
 
-                  UNSET_FLAG(im->flags, F_HAS_ALPHA);
+                  IM_FLAG_CLR(im, F_HAS_ALPHA);
 
                   header = 0;
 

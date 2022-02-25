@@ -75,7 +75,7 @@ load2(ImlibImage * im, int load_data)
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   UPDATE_FLAG(im->flags, F_HAS_ALPHA, alpha);
+   IM_FLAG_UPDATE(im, F_HAS_ALPHA, alpha);
 
    if (!load_data)
       QUIT_WITH_RC(LOAD_SUCCESS);
@@ -129,7 +129,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    if (!f)
       return LOAD_FAIL;
 
-   if (im->flags & F_HAS_ALPHA)
+   if (IM_FLAG_ISSET(im, F_HAS_ALPHA))
       alpha = 1;
 
    fprintf(f, "ARGB %i %i %i\n", im->w, im->h, alpha);

@@ -266,7 +266,7 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
    ImlibBlendFunction  blender = NULL;
 
    blender = __imlib_GetBlendFunction(op, 1, 0,
-                                      (!(im->flags & F_HAS_ALPHA)), NULL);
+                                      !IM_FLAG_ISSET(im, F_HAS_ALPHA), NULL);
 
    /* dont do anything if we have a 0 widht or height image to render */
    if ((dw == 0) || (dh == 0))
@@ -314,7 +314,7 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
    dh = abs(dh);
    ct = __imlib_GetContext(d, v, cm, depth);
    __imlib_RGBASetupContext(ct);
-   if ((blend) && (IMAGE_HAS_ALPHA(im)))
+   if (blend && IM_FLAG_ISSET(im, F_HAS_ALPHA))
      {
         back = malloc(dw * dh * sizeof(DATA32));
         if (!__imlib_GrabDrawableToRGBA
@@ -379,7 +379,7 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
              /* scale the imagedata for this LINESIZE lines chunk of image data */
              if (antialias)
                {
-                  if (IMAGE_HAS_ALPHA(im))
+                  if (IM_FLAG_ISSET(im, F_HAS_ALPHA))
                      __imlib_ScaleAARGBA(scaleinfo, buf, ((sx * dw) / sw),
                                          ((sy * dh) / sh) + y,
                                          0, 0, dw, hh, dw, im->w);

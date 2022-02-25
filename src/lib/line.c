@@ -42,10 +42,11 @@ __imlib_Point_DrawToImage(int x, int y, DATA32 color,
 
    if (A_VAL(&color) == 0xff)
       blend = 0;
-   if (blend && IMAGE_HAS_ALPHA(im))
+   if (blend && IM_FLAG_ISSET(im, F_HAS_ALPHA))
       __imlib_build_pow_lut();
 
-   pfunc = __imlib_GetPointDrawFunction(op, IMAGE_HAS_ALPHA(im), blend);
+   pfunc = __imlib_GetPointDrawFunction(op, IM_FLAG_ISSET(im, F_HAS_ALPHA),
+                                        blend);
    if (pfunc)
       pfunc(color, im->data + (im->w * y) + x);
    if (make_updates)
@@ -695,19 +696,20 @@ __imlib_Line_DrawToImage(int x0, int y0, int x1, int y1, DATA32 color,
    if ((y0 >= (cly + clh)) && (y1 >= (cly + clh)))
       return NULL;
 
-   if (blend && IMAGE_HAS_ALPHA(im))
+   if (blend && IM_FLAG_ISSET(im, F_HAS_ALPHA))
       __imlib_build_pow_lut();
 
    if (anti_alias)
       drew = __imlib_Line_DrawToData_AA(x0, y0, x1, y1, color,
                                         im->data, im->w, clx, cly, clw, clh,
                                         &cl_x0, &cl_y0, &cl_x1, &cl_y1,
-                                        op, IMAGE_HAS_ALPHA(im), blend);
+                                        op, IM_FLAG_ISSET(im, F_HAS_ALPHA),
+                                        blend);
    else
       drew = __imlib_Line_DrawToData(x0, y0, x1, y1, color,
                                      im->data, im->w, clx, cly, clw, clh,
                                      &cl_x0, &cl_y0, &cl_x1, &cl_y1,
-                                     op, IMAGE_HAS_ALPHA(im), blend);
+                                     op, IM_FLAG_ISSET(im, F_HAS_ALPHA), blend);
 
    if (drew && make_updates)
      {

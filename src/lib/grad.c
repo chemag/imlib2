@@ -338,7 +338,7 @@ __imlib_DrawGradient(ImlibImage * im, int x, int y, int w, int h,
    switch (op)
      {
      case OP_COPY:
-        if (IMAGE_HAS_ALPHA(im))
+        if (IM_FLAG_ISSET(im, F_HAS_ALPHA))
           {
              __imlib_build_pow_lut();
              for (yy = 0; yy < h; yy++)
@@ -540,7 +540,7 @@ __imlib_DrawHsvaGradient(ImlibImage * im, int x, int y, int w, int h,
    switch (op)
      {
      case OP_COPY:
-        if (IMAGE_HAS_ALPHA(im))
+        if (IM_FLAG_ISSET(im, F_HAS_ALPHA))
           {
              __imlib_build_pow_lut();
              for (yy = 0; yy < h; yy++)
