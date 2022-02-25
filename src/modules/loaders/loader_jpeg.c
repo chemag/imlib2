@@ -115,8 +115,6 @@ load2(ImlibImage * im, int load_data)
         im->h = h;
      }
 
-   IM_FLAG_CLR(im, F_HAS_ALPHA);
-
    if (!load_data)
       QUIT_WITH_RC(LOAD_SUCCESS);
 
