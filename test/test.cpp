@@ -16,11 +16,12 @@ main(int argc, char **argv)
         s = argv[0];
         if (*s++ != '-')
            break;
-        switch (*s)
+      again:
+        switch (*s++)
           {
           case 'd':
              debug++;
-             break;
+             goto again;
           }
      }
 
