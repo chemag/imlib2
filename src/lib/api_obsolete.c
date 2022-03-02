@@ -1,6 +1,8 @@
 /*
  * Obsolete, useless code
  */
+#include <stddef.h>
+#include "config.h"
 #include "Imlib2.h"
 
 EAPI void
