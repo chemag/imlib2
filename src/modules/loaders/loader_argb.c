@@ -1,7 +1,5 @@
 #include "loader_common.h"
 
-#include <sys/mman.h>
-
 static struct {
    const unsigned char *data, *dptr;
    unsigned int        size;

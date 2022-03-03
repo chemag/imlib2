@@ -1,8 +1,6 @@
 #define _GNU_SOURCE             /* memmem() */
 #include "loader_common.h"
 
-#include <sys/mman.h>
-
 static struct {
    const char         *data, *dptr;
    unsigned int        size;

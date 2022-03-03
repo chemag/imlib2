@@ -1,6 +1,5 @@
 #include "loader_common.h"
 
-#include <sys/mman.h>
 #include <webp/decode.h>
 #include <webp/demux.h>
 #include <webp/encode.h>

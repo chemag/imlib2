@@ -2,7 +2,6 @@
 
 #include <png.h>
 #include <stdint.h>
-#include <sys/mman.h>
 #include <arpa/inet.h>
 
 #define DBG_PFX "LDR-png"

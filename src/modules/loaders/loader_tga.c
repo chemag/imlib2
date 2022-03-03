@@ -12,7 +12,6 @@
 #include "loader_common.h"
 
 #include <stdint.h>
-#include <sys/mman.h>
 
 #define DBG_PFX "LDR-tga"
 

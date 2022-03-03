@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <arpa/inet.h>
-#include <sys/mman.h>
 
 #define mm_check(p) ((const char *)(p) <= (const char *)fdata + im->fsize)
 

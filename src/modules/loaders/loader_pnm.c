@@ -2,7 +2,6 @@
 
 #include <ctype.h>
 #include <stdbool.h>
-#include <sys/mman.h>
 
 #define DBG_PFX "LDR-pnm"
 

@@ -13,8 +13,6 @@
 
 #include "loader_common.h"
 
-#include <sys/mman.h>
-
 #define DBG_PFX "LDR-lbm"
 
 #define L2RLONG(a) ((((int)((a)[0]) & 0xff) << 24) + (((int)((a)[1]) & 0xff) << 16) + (((int)((a)[2]) & 0xff) << 8) + ((int)((a)[3]) & 0xff))

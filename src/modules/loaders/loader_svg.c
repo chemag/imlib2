@@ -1,7 +1,6 @@
 #include "loader_common.h"
 
 #include <math.h>
-#include <sys/mman.h>
 #include <librsvg/rsvg.h>
 
 #define DBG_PFX "LDR-svg"

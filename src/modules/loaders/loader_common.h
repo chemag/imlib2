@@ -2,6 +2,12 @@
 #define __LOADER_COMMON_H 1
 
 #include "config.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/mman.h>
+
 #include "common.h"
 #include "debug.h"
 #include "image.h"

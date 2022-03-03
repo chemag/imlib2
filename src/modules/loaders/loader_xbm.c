@@ -4,8 +4,6 @@
 #define _GNU_SOURCE             /* memmem() */
 #include "loader_common.h"
 
-#include <sys/mman.h>
-
 #define DBG_PFX "LDR-xbm"
 
 static struct {

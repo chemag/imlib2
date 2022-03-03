@@ -9,8 +9,6 @@
  */
 #include "loader_common.h"
 
-#include <sys/mman.h>
-
 #define DBG_PFX "LDR-bmp"
 #define Dx(fmt...)
 

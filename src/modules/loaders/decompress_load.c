@@ -1,7 +1,5 @@
 #include "loader_common.h"
 
-#include <sys/mman.h>
-
 int
 decompress_load(ImlibImage * im, int load_data, const char *const *pext,
                 int next, imlib_decompress_load_f * fdec)

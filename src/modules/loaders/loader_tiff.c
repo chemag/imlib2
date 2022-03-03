@@ -6,7 +6,6 @@
 #include <setjmp.h>
 #include <stdint.h>
 #include <tiffio.h>
-#include <sys/mman.h>
 
 /* This is a wrapper data structure for TIFFRGBAImage, so that data can be */
 /* passed into the callbacks. More elegent, I think, than a bunch of globals */

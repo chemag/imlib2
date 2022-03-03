@@ -8,7 +8,6 @@
 #include "loader_common.h"
 
 #include <limits.h>
-#include <sys/mman.h>
 
 #define DBG_PFX "LDR-ico"
 
