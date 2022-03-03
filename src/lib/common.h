@@ -64,6 +64,4 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-#define round(x) ((x) >=0 ? (int)((x) + 0.5) : (int)((x) - 0.5))
-
 #endif
