@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <X11/Xutil.h>
+#include "config.h"
 #include <Imlib2.h>
 
-#include "config.h"
+#include <X11/Xutil.h>
+
 #include "test.h"
 
 typedef struct {

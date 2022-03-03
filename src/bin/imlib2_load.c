@@ -1,4 +1,9 @@
 #include "config.h"
+#ifndef X_DISPLAY_MISSING
+#define X_DISPLAY_MISSING
+#endif
+#include <Imlib2.h>
+
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -10,11 +15,6 @@
 #else
 #include <sys/time.h>
 #endif
-
-#ifndef X_DISPLAY_MISSING
-#define X_DISPLAY_MISSING
-#endif
-#include <Imlib2.h>
 
 #define PROG_NAME "imlib2_load"
 

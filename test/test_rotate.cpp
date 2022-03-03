@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
 
+#include "config.h"
 #include <Imlib2.h>
+
 #include <zlib.h>
 
-#include "config.h"
 #include "test.h"
 
 #define FILE_REF1	"icon-64"       // RGB

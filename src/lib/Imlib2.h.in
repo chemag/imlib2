@@ -35,6 +35,7 @@
 #define IMLIB2_DEPRECATED
 #endif
 
+#include <stddef.h>
 #ifndef X_DISPLAY_MISSING
 #include <X11/Xlib.h>
 #endif

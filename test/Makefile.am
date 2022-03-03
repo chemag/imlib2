@@ -11,9 +11,11 @@ CLEANFILES = file.c img_save-*.*
  GTESTS += test_load
  GTESTS += test_load_2
  GTESTS += test_save
- GTESTS += test_grab
  GTESTS += test_scale
  GTESTS += test_rotate
+if BUILD_X11
+ GTESTS += test_grab
+endif
 
  AM_CFLAGS  = -Wall -Wextra -Werror -Wno-unused-parameter
  AM_CFLAGS += $(CFLAGS_ASAN)

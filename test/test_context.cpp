@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <stddef.h>
+#include "config.h"
 #include <Imlib2.h>
+
+#include <stddef.h>
 
 #include "test.h"
 

@@ -1,9 +1,8 @@
 /*
  * Obsolete, useless code
  */
-#include <stddef.h>
 #include "config.h"
-#include "Imlib2.h"
+#include <Imlib2.h>
 
 EAPI void
 imlib_image_set_irrelevant_border(char irrelevant)

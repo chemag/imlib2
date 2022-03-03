@@ -1,10 +1,10 @@
 #include "config.h"
+#include <Imlib2.h>
 
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
 
-#include "Imlib2.h"
 #include "blend.h"
 #include "colormod.h"
 #include "color_helpers.h"

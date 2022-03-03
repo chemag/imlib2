@@ -1,7 +1,10 @@
-#include "filter_common.h"
+#include "config.h"
+#include <Imlib2.h>
+
 #include <string.h>
 #include <math.h>
-#include <Imlib2.h>
+
+#include "filter_common.h"
 
 #define GET_INT(x, ptr) (((ptr)->type == VAR_PTR) ?	\
 			(x) = (*(int *)(ptr)->data) :	\

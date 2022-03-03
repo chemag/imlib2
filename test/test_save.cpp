@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
+#include "config.h"
 #include <Imlib2.h>
 
-#include "config.h"
 #include "test.h"
 
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
