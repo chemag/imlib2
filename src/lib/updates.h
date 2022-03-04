@@ -1,8 +1,6 @@
 #ifndef __UPDATES
 #define __UPDATES 1
 
-#include "common.h"
-
 typedef struct _ImlibUpdate {
    int                 x, y, w, h;
    struct _ImlibUpdate *next;

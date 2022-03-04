@@ -1,6 +1,10 @@
 #ifndef __IMAGE
 #define __IMAGE 1
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
 #include "common.h"
 
 typedef struct _imlibldctx ImlibLdCtx;

@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <stdlib.h>
+
 #include "blend.h"
 #include "colormod.h"
 #include "filter.h"

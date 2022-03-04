@@ -1,8 +1,9 @@
 #include "config.h"
 #include <Imlib2.h>
 
-#include <string.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "filter_common.h"
 #include "colormod.h"

@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <stdlib.h>
+#include <string.h>
 #include <X11/Xlib.h>
 
 #include "asm_c.h"

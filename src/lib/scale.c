@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "asm_c.h"
 #include "blend.h"

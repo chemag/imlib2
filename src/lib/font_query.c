@@ -1,4 +1,4 @@
-#include "config.h"
+#include "common.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -9,7 +9,6 @@
 
 #include "blend.h"
 #include "colormod.h"
-#include "common.h"
 #include "image.h"
 #include "font.h"
 #include "rgbadraw.h"

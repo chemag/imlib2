@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <math.h>
+#include <stdlib.h>
 
 #include "blend.h"
 #include "colormod.h"

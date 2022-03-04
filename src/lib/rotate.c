@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <stdlib.h>
+
 #include "asm_c.h"
 #include "blend.h"
 #include "rotate.h"

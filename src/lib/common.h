@@ -3,13 +3,6 @@
 
 #include "config.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-
 #if __GNUC__
 #define __PRINTF_N__(no)  __attribute__((__format__(__printf__, (no), (no)+1)))
 #else

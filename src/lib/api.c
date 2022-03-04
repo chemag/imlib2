@@ -1,14 +1,16 @@
 #include "config.h"
 #include <Imlib2.h>
+#include "common.h"
 
 #include <math.h>
-#include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "blend.h"
 #include "colormod.h"
 #include "color_helpers.h"
-#include "common.h"
 #include "dynamic_filters.h"
 #include "file.h"
 #include "filter.h"
