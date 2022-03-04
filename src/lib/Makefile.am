@@ -62,7 +62,6 @@ if BUILD_X11
 libImlib2_la_SOURCES += \
 x11_color.c	x11_color.h	\
 x11_context.c	x11_context.h	\
-x11_draw.c	x11_draw.h	\
 x11_grab.c	x11_grab.h	\
 x11_pixmap.c	x11_pixmap.h	\
 x11_rend.c	x11_rend.h	\

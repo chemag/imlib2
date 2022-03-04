@@ -23,7 +23,6 @@
 #include "updates.h"
 #ifdef BUILD_X11
 #include "x11_color.h"
-#include "x11_draw.h"
 #include "x11_grab.h"
 #include "x11_pixmap.h"
 #include "x11_rend.h"
