@@ -4,12 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "blend.h"
-#include "colormod.h"
 #include "image.h"
 #include "rgbadraw.h"
-#include "scale.h"
-#include "updates.h"
 
 void
 __imlib_FlipImageHoriz(ImlibImage * im)

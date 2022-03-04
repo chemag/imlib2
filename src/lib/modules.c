@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "file.h"
-#include "image.h"
 
 static const char  *
 __imlib_PathToModules(void)

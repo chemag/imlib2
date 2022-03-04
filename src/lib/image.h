@@ -5,16 +5,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "common.h"
+#include "types.h"
 
 typedef struct _imlibldctx ImlibLdCtx;
-typedef struct _ImlibLoader ImlibLoader;
 
-typedef struct _ImlibImage ImlibImage;
-
-typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
-                                             int update_x, int update_y,
-                                             int update_w, int update_h);
 typedef void        (*ImlibDataDestructorFunction)(ImlibImage * im, void *data);
 typedef void       *(*ImlibImageDataMemoryFunction)(void *, size_t size);
 
@@ -27,8 +21,6 @@ enum _iflags {
    F_DONT_FREE_DATA = (1 << 4),
    F_FORMAT_IRRELEVANT = (1 << 5),
 };
-
-typedef enum _iflags ImlibImageFlags;
 
 /* Must match the ones in Imlib2.h.in */
 #define FF_IMAGE_ANIMATED       (1 << 0)        /* Frames are an animated sequence    */

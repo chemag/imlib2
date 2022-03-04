@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <X11/Xlib.h>
 
-#include "image.h"
 #include "x11_color.h"
 #include "x11_context.h"
 #include "x11_rgba.h"

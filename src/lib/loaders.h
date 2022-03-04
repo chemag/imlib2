@@ -1,7 +1,7 @@
 #ifndef __LOADERS
 #define __LOADERS 1
 
-#include "image.h"
+#include "types.h"
 
 struct _ImlibLoader {
    char               *file;

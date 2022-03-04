@@ -1,7 +1,7 @@
 #ifndef __BLEND
 #define __BLEND 1
 
-#include "colormod.h"
+#include "types.h"
 
 #define INTERSECTS(x, y, w, h, xx, yy, ww, hh) \
    ((x < (xx + ww)) && \
@@ -336,8 +336,6 @@ enum _imlibop {
    OP_SUBTRACT,
    OP_RESHADE
 };
-
-typedef enum _imlibop ImlibOp;
 
 typedef void        (*ImlibBlendFunction)(DATA32 *, int, DATA32 *, int, int,
                                           int, ImlibColorModifier *);

@@ -4,6 +4,9 @@
 #include <string.h>
 #include <X11/Xlib.h>
 
+#include "blend.h"
+#include "colormod.h"
+#include "image.h"
 #include "x11_pixmap.h"
 #include "x11_rend.h"
 

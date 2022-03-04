@@ -1,7 +1,7 @@
 #ifndef X11_RGBA_H
 #define X11_RGBA_H 1
 
-#include "common.h"
+#include "types.h"
 
 #define DM_BS1 (8 + 3)
 #define DM_BS2 (8)

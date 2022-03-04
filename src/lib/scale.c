@@ -5,8 +5,6 @@
 #include <string.h>
 
 #include "asm_c.h"
-#include "blend.h"
-#include "colormod.h"
 #include "image.h"
 #include "scale.h"
 

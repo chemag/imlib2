@@ -1,7 +1,8 @@
 #ifndef X11_CONTEXT_H
 #define X11_CONTEXT_H 1
 
-#include "common.h"
+#include <X11/Xlib.h>
+#include "types.h"
 
 typedef struct _Context {
    int                 last_use;

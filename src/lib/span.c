@@ -3,8 +3,6 @@
 #include <stddef.h>
 
 #include "blend.h"
-#include "colormod.h"
-#include "image.h"
 #include "span.h"
 
 #define ADD_COPY(r, g, b, dest) \

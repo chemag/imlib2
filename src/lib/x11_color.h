@@ -1,7 +1,8 @@
 #ifndef X11_COLOR_H
 #define X11_COLOR_H 1
 
-#include "common.h"
+#include <X11/Xlib.h>
+#include "types.h"
 
 typedef enum {
    PAL_TYPE_332,                /* 0 */

@@ -2,8 +2,6 @@
 
 #include <stdlib.h>
 
-#include "blend.h"
-#include "colormod.h"
 #include "filter.h"
 #include "image.h"
 

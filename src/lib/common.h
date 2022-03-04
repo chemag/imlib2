@@ -2,6 +2,7 @@
 #define __COMMON 1
 
 #include "config.h"
+#include "types.h"
 
 #if __GNUC__
 #define __PRINTF_N__(no)  __attribute__((__format__(__printf__, (no), (no)+1)))
@@ -12,12 +13,6 @@
 #define __PRINTF_2__ __PRINTF_N__(2)
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
-
-#define DATABIG unsigned long long
-#define DATA64  unsigned long long
-#define DATA32  unsigned int
-#define DATA16  unsigned short
-#define DATA8   unsigned char
 
 #define SWAP32(x) \
     ((((x) & 0x000000ff ) << 24) | \

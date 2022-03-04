@@ -3,7 +3,7 @@
 
 #include <X11/Xlib.h>
 
-#include "image.h"
+#include "types.h"
 
 void                __imlib_CleanupImagePixmapCache(void);
 int                 __imlib_PixmapCacheSize(void);
@@ -11,8 +11,6 @@ int                 __imlib_PixmapCacheSize(void);
 void                __imlib_FreePixmap(Display * d, Pixmap p);
 void                __imlib_DirtyPixmapsForImage(const ImlibImage * im);
 void                __imlib_PixmapUnrefImage(const ImlibImage * im);
-
-#include "colormod.h"
 
 char                __imlib_CreatePixmapsForImage(Display * d, Drawable w,
                                                   Visual * v, int depth,

@@ -42,6 +42,7 @@ rotate.c	rotate.h	\
 scale.c		scale.h		\
 script.c	script.h	\
 span.c		span.h		\
+types.h	\
 updates.c	updates.h
 
 MMX_SRCS = \

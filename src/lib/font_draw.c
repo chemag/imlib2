@@ -8,7 +8,6 @@
 #include <sys/types.h>
 
 #include "blend.h"
-#include "colormod.h"
 #include "font.h"
 #include "image.h"
 #include "rgbadraw.h"

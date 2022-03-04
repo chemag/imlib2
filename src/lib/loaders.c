@@ -8,7 +8,6 @@
 
 #include "debug.h"
 #include "file.h"
-#include "image.h"
 #include "loaders.h"
 
 #define DBG_PFX "LOAD"

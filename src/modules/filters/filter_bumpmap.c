@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "filter_common.h"
-#include "colormod.h"
 #include "blend.h"
 
 #define PI (4 * atan(1))

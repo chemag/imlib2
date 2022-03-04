@@ -14,7 +14,6 @@
 #include <sys/stat.h>
 
 #include "dynamic_filters.h"
-#include "image.h"
 #include "script.h"
 
 /*

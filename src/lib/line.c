@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "blend.h"
-#include "colormod.h"
 #include "image.h"
 #include "rgbadraw.h"
 #include "span.h"

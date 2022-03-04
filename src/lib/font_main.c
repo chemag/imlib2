@@ -7,12 +7,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "blend.h"
-#include "colormod.h"
 #include "font.h"
-#include "image.h"
-#include "rgbadraw.h"
-#include "rotate.h"
 
 FT_Library          ft_lib;
 

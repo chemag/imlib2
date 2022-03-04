@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #include "blend.h"
-#include "colormod.h"
 #include "color_helpers.h"
 #include "grad.h"
 #include "image.h"
