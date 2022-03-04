@@ -15,6 +15,7 @@
 #include "font.h"
 #include "grad.h"
 #include "image.h"
+#include "loaders.h"
 #include "rgbadraw.h"
 #include "rotate.h"
 #include "scale.h"

@@ -4,7 +4,7 @@
 #include "common.h"
 
 typedef struct _imlibldctx ImlibLdCtx;
-typedef struct _imlibloader ImlibLoader;
+typedef struct _ImlibLoader ImlibLoader;
 
 typedef struct _ImlibImage ImlibImage;
 
@@ -81,19 +81,6 @@ typedef struct {
    int                 err;
    int                 frame;
 } ImlibLoadArgs;
-
-void                __imlib_RemoveAllLoaders(void);
-ImlibLoader       **__imlib_GetLoaderList(void);
-ImlibLoader        *__imlib_FindBestLoaderForFile(const char *file,
-                                                  int for_save);
-ImlibLoader        *__imlib_FindBestLoaderForFormat(const char *format,
-                                                    int for_save);
-ImlibLoader        *__imlib_FindBestLoaderForFileFormat(const char *file,
-                                                        const char *format,
-                                                        int for_save);
-void                __imlib_LoaderSetFormats(ImlibLoader * l,
-                                             const char *const *fmt,
-                                             unsigned int num);
 
 ImlibImage         *__imlib_CreateImage(int w, int h, DATA32 * data);
 ImlibImage         *__imlib_LoadImage(const char *file, ImlibLoadArgs * ila);
