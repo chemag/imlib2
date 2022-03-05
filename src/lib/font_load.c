@@ -3,9 +3,6 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
-#include <math.h>
-#include <string.h>
-#include <sys/types.h>
 
 #include "file.h"
 #include "font.h"

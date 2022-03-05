@@ -1,6 +1,5 @@
 #include "common.h"
 
-#include <math.h>
 #include <stdlib.h>
 
 #include "asm_c.h"
