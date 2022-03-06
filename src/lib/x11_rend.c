@@ -31,35 +31,35 @@ __imlib_RenderGetPixel(Display * d, Drawable w, Visual * v, Colormap cm,
      {
         switch (ct->palette_type)
           {
-          case 0:              /* 332 */
+          case PAL_TYPE_332:
              return ct->palette[((r >> 0) & 0xe0) |
                                 ((g >> 3) & 0x1b) | ((b >> 6) & 0x02)];
              break;
-          case 1:              /* 232 */
+          case PAL_TYPE_232:
              return ct->palette[((r >> 0) & 0xe0) |
                                 ((g >> 3) & 0x1b) | ((b >> 6) & 0x02)];
              break;
-          case 2:              /* 222 */
+          case PAL_TYPE_222:
              return ct->palette[((r >> 0) & 0xe0) |
                                 ((g >> 3) & 0x1b) | ((b >> 6) & 0x02)];
              break;
-          case 3:              /* 221 */
+          case PAL_TYPE_221:
              return ct->palette[((r >> 0) & 0xe0) |
                                 ((g >> 3) & 0x1b) | ((b >> 6) & 0x02)];
              break;
-          case 4:              /* 121 */
+          case PAL_TYPE_121:
              return ct->palette[((r >> 0) & 0xe0) |
                                 ((g >> 3) & 0x1b) | ((b >> 6) & 0x02)];
              break;
-          case 5:              /* 111 */
+          case PAL_TYPE_111:
              return ct->palette[((r >> 0) & 0xe0) |
                                 ((g >> 3) & 0x1b) | ((b >> 6) & 0x02)];
              break;
-          case 6:              /* 1 */
+          case PAL_TYPE_1:
              return ct->palette[((r >> 0) & 0xe0) |
                                 ((g >> 3) & 0x1b) | ((b >> 6) & 0x02)];
              break;
-          case 7:              /* 666 */
+          case PAL_TYPE_666:
              return ct->palette[((int)(((double)r / 255) * 5.0) * 36) +
                                 ((int)(((double)g / 255) * 5.0) * 6) +
                                 ((int)(((double)b / 255) * 5.0))];

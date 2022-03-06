@@ -12,7 +12,7 @@ typedef struct _Context {
    struct _Context    *next;
 
    DATA8              *palette;
-   DATA8               palette_type;
+   unsigned char       palette_type;
    void               *r_dither;
    void               *g_dither;
    void               *b_dither;

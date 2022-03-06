@@ -3,6 +3,7 @@
 #include <X11/Xlib.h>
 
 #include "asm_c.h"
+#include "x11_color.h"
 #include "x11_context.h"
 #include "x11_rgba.h"
 
@@ -24,7 +25,6 @@
 
 /* lookup table to see what color index to use */
 static DATA8       *_dither_color_lut;
-static DATA8        _pal_type;
 
 /* using DATA32 - major speedup for aligned memory reads */
 
@@ -2409,7 +2409,6 @@ void
 __imlib_RGBASetupContext(Context * ct)
 {
    _dither_color_lut = ct->palette;
-   _pal_type = ct->palette_type;
 
    if ((ct->depth == 16) || (ct->depth == 15))
      {
@@ -2419,20 +2418,20 @@ __imlib_RGBASetupContext(Context * ct)
      }
    else if (ct->depth <= 8)
      {
-        switch (_pal_type)
+        switch (ct->palette_type)
           {
-          case 0:
-          case 1:
-          case 2:
-          case 3:
-          case 4:
-          case 5:
-          case 7:
+          case PAL_TYPE_332:
+          case PAL_TYPE_232:
+          case PAL_TYPE_222:
+          case PAL_TYPE_221:
+          case PAL_TYPE_121:
+          case PAL_TYPE_111:
+          case PAL_TYPE_666:
              _dither_r8 = (DATA8 *) ct->r_dither;
              _dither_g8 = (DATA8 *) ct->g_dither;
              _dither_b8 = (DATA8 *) ct->b_dither;
              break;
-          case 6:
+          case PAL_TYPE_1:
              _dither_r8 = (DATA8 *) ct->r_dither;
              break;
           default:
@@ -2445,7 +2444,7 @@ __imlib_RGBASetupContext(Context * ct)
 /* Palette mode stuff */
 
 void
-__imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, DATA8 palette_type)
+__imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, int palette_type)
 {
    DATA16             *rd16, *gd16, *bd16;
    DATA8              *rd8, *gd8, *bd8;
@@ -2552,7 +2551,7 @@ __imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, DATA8 palette_type)
         bd8 = (DATA8 *) bd;
         switch (palette_type)
           {
-          case 0:
+          case PAL_TYPE_332:
              for (y = 0; y < DM_Y; y++)
                {
                   for (x = 0; x < DM_X; x++)
@@ -2591,7 +2590,7 @@ __imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, DATA8 palette_type)
                     }
                }
              break;
-          case 7:              /* 666 8 bit 216 color rgb cube */
+          case PAL_TYPE_666:   /* 666 8 bit 216 color rgb cube */
              if (!_dither_666r)
                {
                   _dither_666r = malloc(256 * sizeof(DATA8));
@@ -2639,7 +2638,7 @@ __imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, DATA8 palette_type)
                     }
                }
              break;
-          case 1:
+          case PAL_TYPE_232:
              for (y = 0; y < DM_Y; y++)
                {
                   for (x = 0; x < DM_X; x++)
@@ -2678,7 +2677,7 @@ __imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, DATA8 palette_type)
                     }
                }
              break;
-          case 2:
+          case PAL_TYPE_222:
              for (y = 0; y < DM_Y; y++)
                {
                   for (x = 0; x < DM_X; x++)
@@ -2717,7 +2716,7 @@ __imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, DATA8 palette_type)
                     }
                }
              break;
-          case 3:
+          case PAL_TYPE_221:
              for (y = 0; y < DM_Y; y++)
                {
                   for (x = 0; x < DM_X; x++)
@@ -2756,7 +2755,7 @@ __imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, DATA8 palette_type)
                     }
                }
              break;
-          case 4:
+          case PAL_TYPE_121:
              for (y = 0; y < DM_Y; y++)
                {
                   for (x = 0; x < DM_X; x++)
@@ -2795,7 +2794,7 @@ __imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, DATA8 palette_type)
                     }
                }
              break;
-          case 5:
+          case PAL_TYPE_111:
              for (y = 0; y < DM_Y; y++)
                {
                   for (x = 0; x < DM_X; x++)
@@ -2834,7 +2833,7 @@ __imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, DATA8 palette_type)
                     }
                }
              break;
-          case 6:
+          case PAL_TYPE_1:
              for (y = 0; y < DM_Y; y++)
                {
                   for (x = 0; x < DM_X; x++)
@@ -4807,7 +4806,7 @@ __imlib_RGBA_to_Nothing(DATA32 * src, int src_jump,
 ImlibRGBAFunction
 __imlib_GetRGBAFunction(int depth,
                         unsigned long rm, unsigned long gm, unsigned long bm,
-                        char hiq, DATA8 palette_type)
+                        char hiq, int palette_type)
 {
    if (depth == 16)
      {
@@ -4867,40 +4866,40 @@ __imlib_GetRGBAFunction(int depth,
      {
         if (hiq)
           {
-             if (palette_type == 0)
+             if (palette_type == PAL_TYPE_332)
                 return __imlib_RGBA_to_RGB332_dither;
-             if (palette_type == 1)
+             if (palette_type == PAL_TYPE_232)
                 return __imlib_RGBA_to_RGB232_dither;
-             if (palette_type == 2)
+             if (palette_type == PAL_TYPE_222)
                 return __imlib_RGBA_to_RGB222_dither;
-             if (palette_type == 3)
+             if (palette_type == PAL_TYPE_221)
                 return __imlib_RGBA_to_RGB221_dither;
-             if (palette_type == 4)
+             if (palette_type == PAL_TYPE_121)
                 return __imlib_RGBA_to_RGB121_dither;
-             if (palette_type == 5)
+             if (palette_type == PAL_TYPE_111)
                 return __imlib_RGBA_to_RGB111_dither;
-             if (palette_type == 6)
+             if (palette_type == PAL_TYPE_1)
                 return __imlib_RGBA_to_RGB1_dither;
-             if (palette_type == 7)
+             if (palette_type == PAL_TYPE_666)
                 return __imlib_RGBA_to_RGB666_dither;
           }
         else
           {
-             if (palette_type == 0)
+             if (palette_type == PAL_TYPE_332)
                 return __imlib_RGBA_to_RGB332_fast;
-             if (palette_type == 1)
+             if (palette_type == PAL_TYPE_232)
                 return __imlib_RGBA_to_RGB232_fast;
-             if (palette_type == 2)
+             if (palette_type == PAL_TYPE_222)
                 return __imlib_RGBA_to_RGB222_fast;
-             if (palette_type == 3)
+             if (palette_type == PAL_TYPE_221)
                 return __imlib_RGBA_to_RGB221_fast;
-             if (palette_type == 4)
+             if (palette_type == PAL_TYPE_121)
                 return __imlib_RGBA_to_RGB121_fast;
-             if (palette_type == 5)
+             if (palette_type == PAL_TYPE_111)
                 return __imlib_RGBA_to_RGB111_fast;
-             if (palette_type == 6)
+             if (palette_type == PAL_TYPE_1)
                 return __imlib_RGBA_to_RGB1_fast;
-             if (palette_type == 7)
+             if (palette_type == PAL_TYPE_666)
                 return __imlib_RGBA_to_RGB666_fast;
           }
      }
