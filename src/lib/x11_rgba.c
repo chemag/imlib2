@@ -42,13 +42,13 @@ static int          dither_a_init = 0;
 static DATA8        _dither_a1[8 * 8 * 256];
 
 /* the famous dither matrix */
-const DATA8         _dither_44[4][4] = {
+static const DATA8  _dither_44[4][4] = {
    {0, 4, 1, 5},
    {6, 2, 7, 3},
    {1, 5, 0, 4},
    {7, 3, 6, 2}
 };
-const DATA8         _dither_88[8][8] = {
+static const DATA8  _dither_88[8][8] = {
    {0, 32, 8, 40, 2, 34, 10, 42},
    {48, 16, 56, 24, 50, 18, 58, 26},
    {12, 44, 4, 36, 14, 46, 6, 38},
@@ -63,7 +63,7 @@ const DATA8         _dither_88[8][8] = {
  *    technology (US Patent 5,276,535). The dither table itself is in the
  *    public domain. */
 
-const DATA8         _dither_128128[128][128] = {
+static const DATA8  _dither_128128[128][128] = {
    {0, 41, 23, 5, 17, 39, 7, 15, 62, 23, 40, 51, 31, 47, 9, 32, 52, 27, 57, 25,
     6, 61, 27, 52, 37, 7, 40, 63, 18, 36, 10, 42, 25, 62, 45, 34, 20, 42, 37,
     14, 35, 29, 50, 10, 61, 2, 40, 8, 37, 12, 58, 22, 5, 41, 10, 39, 0, 60, 11,
