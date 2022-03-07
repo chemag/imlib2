@@ -101,7 +101,7 @@ __imlib_Rectangle_FillToData(int x, int y, int rw, int rh, DATA32 color,
    y -= cly;
 
    CLIP(x, y, rw, rh, 0, 0, clw, clh);
-   if ((rw < 1) || (rh < 1))
+   if (rw <= 0 || rh <= 0)
       return;
 
    p = dst + (dstw * y) + x;
@@ -117,9 +117,7 @@ __imlib_Rectangle_DrawToImage(int x, int y, int w, int h, DATA32 color,
                               ImlibImage * im, int clx, int cly, int clw,
                               int clh, ImlibOp op, char blend)
 {
-   if ((w < 1) || (h < 1) || (clw < 0))
-      return;
-   if ((w == 1) || (h == 1))
+   if (w == 1 || h == 1)
      {
         (void)__imlib_Line_DrawToImage(x, y, x + w - 1, y + h - 1, color,
                                        im, clx, cly, clw, clh, op, blend, 0, 0);
@@ -130,18 +128,19 @@ __imlib_Rectangle_DrawToImage(int x, int y, int w, int h, DATA32 color,
 
    if (clw == 0)
      {
+        clx = cly = 0;
         clw = im->w;
-        clx = 0;
         clh = im->h;
-        cly = 0;
      }
-
-   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
-   if ((clw < 1) || (clh < 1))
+   else
+     {
+        CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
+     }
+   if (clw <= 0 || clh <= 0)
       return;
 
    CLIP(clx, cly, clw, clh, x, y, w, h);
-   if ((clw < 1) || (clh < 1))
+   if (clw <= 0 || clh <= 0)
       return;
 
    if (blend && IM_FLAG_ISSET(im, F_HAS_ALPHA))
@@ -157,9 +156,7 @@ __imlib_Rectangle_FillToImage(int x, int y, int w, int h, DATA32 color,
                               ImlibImage * im, int clx, int cly, int clw,
                               int clh, ImlibOp op, char blend)
 {
-   if ((w < 1) || (h < 1) || (clw < 0))
-      return;
-   if ((w == 1) || (h == 1))
+   if (w == 1 || h == 1)
      {
         (void)__imlib_Line_DrawToImage(x, y, x + w - 1, y + h - 1, color,
                                        im, clx, cly, clw, clh, op, blend, 0, 0);
@@ -170,18 +167,19 @@ __imlib_Rectangle_FillToImage(int x, int y, int w, int h, DATA32 color,
 
    if (clw == 0)
      {
+        clx = cly = 0;
         clw = im->w;
-        clx = 0;
         clh = im->h;
-        cly = 0;
      }
-
-   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
-   if ((clw < 1) || (clh < 1))
+   else
+     {
+        CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
+     }
+   if (clw <= 0 || clh <= 0)
       return;
 
    CLIP(clx, cly, clw, clh, x, y, w, h);
-   if ((clw < 1) || (clh < 1))
+   if (clw <= 0 || clh <= 0)
       return;
 
    if (blend && IM_FLAG_ISSET(im, F_HAS_ALPHA))

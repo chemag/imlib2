@@ -673,19 +673,18 @@ __imlib_Line_DrawToImage(int x0, int y0, int x1, int y1, DATA32 color,
 
    if (blend && (!A_VAL(&color)))
       return NULL;
-   if (clw < 0)
-      return NULL;
 
    if (clw == 0)
      {
+        clx = cly = 0;
         clw = im->w;
-        clx = 0;
         clh = im->h;
-        cly = 0;
      }
-
-   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
-   if ((clw < 1) || (clh < 1))
+   else
+     {
+        CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
+     }
+   if (clw <= 0 || clh <= 0)
       return NULL;
 
    if ((x0 < clx) && (x1 < clx))
@@ -740,7 +739,7 @@ __imlib_Line_DrawToImage(int x0, int y0, int x1, int y1, DATA32 color,
           }
 
         CLIP(cl_x0, cl_y0, w, h, clx, cly, clw, clh);
-        if ((w < 1) || (h < 1))
+        if (w <= 0 || h <= 0)
            return NULL;
 
         return __imlib_AddUpdate(NULL, cl_x0, cl_y0, w, h);

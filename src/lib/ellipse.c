@@ -688,18 +688,18 @@ __imlib_Ellipse_DrawToImage(int xc, int yc, int a, int b, DATA32 color,
      }
    if (blend && (!A_VAL(&color)))
       return;
-   if (clw < 0)
-      return;
+
    if (clw == 0)
      {
+        clx = cly = 0;
         clw = im->w;
-        clx = 0;
         clh = im->h;
-        cly = 0;
      }
-
-   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
-   if ((clw < 1) || (clh < 1))
+   else
+     {
+        CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
+     }
+   if (clw <= 0 || clh <= 0)
       return;
 
    if (a < 0)
@@ -724,7 +724,7 @@ __imlib_Ellipse_DrawToImage(int xc, int yc, int a, int b, DATA32 color,
      }
 
    CLIP(x, y, w, h, clx, cly, clw, clh);
-   if ((w < 1) || (h < 1))
+   if (w <= 0 || h <= 0)
       return;
 
    if (blend && IM_FLAG_ISSET(im, F_HAS_ALPHA))
@@ -756,18 +756,18 @@ __imlib_Ellipse_FillToImage(int xc, int yc, int a, int b, DATA32 color,
      }
    if (blend && (!A_VAL(&color)))
       return;
-   if (clw < 0)
-      return;
+
    if (clw == 0)
      {
+        clx = cly = 0;
         clw = im->w;
-        clx = 0;
         clh = im->h;
-        cly = 0;
      }
-
-   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
-   if ((clw < 1) || (clh < 1))
+   else
+     {
+        CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
+     }
+   if (clw <= 0 || clh <= 0)
       return;
 
    if (a < 0)
@@ -792,7 +792,7 @@ __imlib_Ellipse_FillToImage(int xc, int yc, int a, int b, DATA32 color,
      }
 
    CLIP(x, y, w, h, clx, cly, clw, clh);
-   if ((w < 1) || (h < 1))
+   if (w <= 0 || h <= 0)
       return;
 
    if (blend && IM_FLAG_ISSET(im, F_HAS_ALPHA))

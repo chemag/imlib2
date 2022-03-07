@@ -1066,14 +1066,15 @@ __imlib_Polygon_DrawToImage(ImlibPoly * poly, char close, DATA32 color,
 
    if (clw == 0)
      {
+        clx = cly = 0;
         clw = im->w;
-        clx = 0;
         clh = im->h;
-        cly = 0;
      }
-
-   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
-   if ((clw < 1) || (clh < 1))
+   else
+     {
+        CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
+     }
+   if (clw <= 0 || clh <= 0)
       return;
 
    if (blend && IM_FLAG_ISSET(im, F_HAS_ALPHA))
@@ -1821,14 +1822,15 @@ __imlib_Polygon_FillToImage(ImlibPoly * poly, DATA32 color,
 
    if (clw == 0)
      {
+        clx = cly = 0;
         clw = im->w;
-        clx = 0;
         clh = im->h;
-        cly = 0;
      }
-
-   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
-   if ((clw < 1) || (clh < 1))
+   else
+     {
+        CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
+     }
+   if (clw <= 0 || clh <= 0)
       return;
 
    if (blend && IM_FLAG_ISSET(im, F_HAS_ALPHA))

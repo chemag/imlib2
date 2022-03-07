@@ -284,7 +284,7 @@ _DrawGradient(ImlibImage * im, int x, int y, int w, int h,
         px = x;
         py = y;
         CLIP(x, y, w, h, clx, cly, clw, clh);
-        if ((w < 1) || (h < 1))
+        if (w <= 0 || h <= 0)
            return;
         xoff += (x - px);
         yoff += (y - py);

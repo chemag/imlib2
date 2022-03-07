@@ -1807,6 +1807,11 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
    if (__imlib_LoadImageData(im_dst))
       return;
 
+   /* don't do anything if we have a 0 width or height image to render */
+   /* if the input rect size < 0 don't render either */
+   if (ssw <= 0 || ssh <= 0 || ddw == 0 || ddh == 0)
+      return;
+
    if ((ssw == ddw) && (ssh == ddh))
      {
         if (!IM_FLAG_ISSET(im_dst, F_HAS_ALPHA))
@@ -1824,14 +1829,12 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
              px = ddx;
              py = ddy;
              CLIP(ddx, ddy, ddw, ddh, clx, cly, clw, clh);
+             if (ddw <= 0 || ddh <= 0)
+                return;
              px = ddx - px;
              py = ddy - py;
              ssx += px;
              ssy += py;
-             if ((ssw < 1) || (ssh < 1))
-                return;
-             if ((ddw < 1) || (ddh < 1))
-                return;
           }
 
         __imlib_BlendRGBAToData(im_src->data, im_src->w, im_src->h,
@@ -1856,16 +1859,15 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
         dy = ddy;
         dw = abs(ddw);
         dh = abs(ddh);
-        /* don't do anything if we have a 0 width or height image to render */
-        /* if the input rect size < 0 don't render either */
-        if ((dw <= 0) || (dh <= 0) || (sw <= 0) || (sh <= 0))
-           return;
+
         /* clip the source rect to be within the actual image */
         psx = sx;
         psy = sy;
         psw = sw;
         psh = sh;
         CLIP(sx, sy, sw, sh, 0, 0, im_src->w, im_src->h);
+        if (sw <= 0 || sh <= 0)
+           return;
         if (psx != sx)
            dx += ((sx - psx) * abs(ddw)) / ssw;
         if (psy != sy)
@@ -1874,10 +1876,9 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
            dw = (dw * sw) / psw;
         if (psh != sh)
            dh = (dh * sh) / psh;
-        if ((dw <= 0) || (dh <= 0) || (sw <= 0) || (sh <= 0))
-          {
-             return;
-          }
+        if (dw <= 0 || dh <= 0)
+           return;
+
         /* clip output coords to clipped input coords */
         psx = dx;
         psy = dy;
@@ -1886,12 +1887,12 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
         x2 = sx;
         y2 = sy;
         CLIP(dx, dy, dw, dh, 0, 0, im_dst->w, im_dst->h);
-        if ((dw <= 0) || (dh <= 0) || (sw <= 0) || (sh <= 0))
+        if (dw <= 0 || dh <= 0)
            return;
         if (clw)
           {
              CLIP(dx, dy, dw, dh, clx, cly, clw, clh);
-             if ((dw < 1) || (dh < 1))
+             if (dw <= 0 || dh <= 0)
                 return;
           }
         if (psw != dw)
@@ -1903,17 +1904,16 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
         dxx += (x2 * abs(ddw)) / ssw;
         dyy += (y2 * abs(ddh)) / ssh;
 
-        if ((dw > 0) && (sw == 0))
+        if (sw == 0)
            sw = 1;
-        if ((dh > 0) && (sh == 0))
+        if (sh == 0)
            sh = 1;
         /* do a second check to see if we now have invalid coords */
         /* don't do anything if we have a 0 width or height image to render */
         /* if the input rect size < 0 don't render either */
-        if ((dw <= 0) || (dh <= 0) || (sw <= 0) || (sh <= 0))
-          {
-             return;
-          }
+        if (sw <= 0 || sh <= 0)
+           return;
+
         scaleinfo = __imlib_CalcScaleInfo(im_src, ssw, ssh, ddw, ddh, aa);
         if (!scaleinfo)
            return;
@@ -1925,6 +1925,7 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
              __imlib_FreeScaleInfo(scaleinfo);
              return;
           }
+
         /* setup h */
         h = dh;
         if (!IM_FLAG_ISSET(im_dst, F_HAS_ALPHA))
@@ -1935,6 +1936,7 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
              if (merge_alpha)
                 blend = 1;
           }
+
         /* scale in LINESIZE Y chunks and convert to depth */
         for (y = 0; y < dh; y += LINESIZE)
           {
