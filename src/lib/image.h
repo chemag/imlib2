@@ -12,6 +12,10 @@ typedef struct _imlibldctx ImlibLdCtx;
 typedef void        (*ImlibDataDestructorFunction)(ImlibImage * im, void *data);
 typedef void       *(*ImlibImageDataMemoryFunction)(void *, size_t size);
 
+typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
+                                             int update_x, int update_y,
+                                             int update_w, int update_h);
+
 #define F_UNCACHEABLE           (1 << 1)
 #define F_ALWAYS_CHECK_DISK     (1 << 2)
 #define F_INVALID               (1 << 3)
@@ -86,10 +90,6 @@ typedef struct {
 
 ImlibLoader        *__imlib_FindBestLoader(const char *file, const char *format,
                                            int for_save);
-
-void                __imlib_LoaderSetFormats(ImlibLoader * l,
-                                             const char *const *fmt,
-                                             unsigned int num);
 
 ImlibImage         *__imlib_CreateImage(int w, int h, uint32_t * data);
 ImlibImage         *__imlib_LoadImage(const char *file, ImlibLoadArgs * ila);

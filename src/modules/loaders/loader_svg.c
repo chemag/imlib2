@@ -10,6 +10,8 @@
 
 #define DBG_PFX "LDR-svg"
 
+static const char  *const _formats[] = { "svg" };
+
 #define DPI 96
 
 #define MATCHSTR(ptr, len, str) (len >= sizeof(str) && memcmp(ptr, str, sizeof(str) - 1) == 0)
@@ -66,8 +68,8 @@ _handle_error(GError * error)
    g_error_free(error);
 }
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -244,9 +246,4 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "svg" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, NULL);

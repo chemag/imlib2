@@ -6,6 +6,8 @@
 
 #define DBG_PFX "LDR-png"
 
+static const char  *const _formats[] = { "png" };
+
 #define USE_IMLIB2_COMMENT_TAG 0
 
 #define _PNG_MIN_SIZE	60      /* Min. PNG file size (8 + 3*12 + 13 (+3) */
@@ -284,8 +286,8 @@ row_callback(png_struct * png_ptr, png_byte * new_row,
      }
 }
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -569,8 +571,8 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-char
-save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
+static int
+_save(ImlibImage * im)
 {
    int                 rc;
    FILE               *f;
@@ -733,9 +735,4 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "png" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, _save);

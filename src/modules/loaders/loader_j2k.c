@@ -10,6 +10,8 @@
 /* position 45: "\xff\x52" */
 #define J2K_CODESTREAM_MAGIC "\xff\x4f\xff\x51"
 
+static const char  *const _formats[] = { "jp2", "j2k" };
+
 #if IMLIB2_DEBUG
 static void
 _j2k_cb(const char *type, const char *msg, void *data)
@@ -90,8 +92,8 @@ mm_seek_set(OPJ_OFF_T offs, void *data)
    return OPJ_TRUE;
 }
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -278,9 +280,4 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "jp2", "j2k" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, NULL);

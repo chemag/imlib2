@@ -14,6 +14,8 @@
 
 #define DBG_PFX "LDR-tga"
 
+static const char  *const _formats[] = { "tga" };
+
 /* flip an inverted image - see RLE reading below */
 static void         tgaflip(uint32_t * in, int w, int h, int fliph, int flipv);
 
@@ -65,8 +67,8 @@ typedef struct {
  * There are several other (uncommon) Targa formats which this function can't currently handle
  */
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -498,8 +500,8 @@ tgaflip(uint32_t * in, int w, int h, int fliph, int flipv)
  * (If anyone wants to write a RLE saver, feel free =)
  */
 
-char
-save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
+static int
+_save(ImlibImage * im)
 {
    int                 rc;
    FILE               *f;
@@ -586,9 +588,4 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "tga" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, _save);

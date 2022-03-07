@@ -16,6 +16,8 @@
 
 #define DBG_PFX "LDR-lbm"
 
+static const char  *const _formats[] = { "iff", "ilbm", "lbm" };
+
 #define L2RLONG(a) ((((int)((a)[0]) & 0xff) << 24) + (((int)((a)[1]) & 0xff) << 16) + (((int)((a)[2]) & 0xff) << 8) + ((int)((a)[3]) & 0xff))
 #define L2RWORD(a) ((((int)((a)[0]) & 0xff) << 8) + ((int)((a)[1]) & 0xff))
 
@@ -437,8 +439,8 @@ deplane(uint32_t * row, int w, ILBM * ilbm, unsigned char *plane[])
  *
  * Imlib2 doesn't support reading comment chunks like ANNO.
  *------------------------------------------------------------------------------*/
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -571,21 +573,4 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-/*------------------------------------------------------------------------------
- * Perhaps save only in 32-bit format? The IFF ILBM format has pretty much gone
- * the way of the Amiga, who saves in this format any more?
- *------------------------------------------------------------------------------*/
-#if 0
-char
-save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
-{
-   return 0;
-}
-#endif
-
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "iff", "ilbm", "lbm" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, NULL);

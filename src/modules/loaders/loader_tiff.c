@@ -6,6 +6,8 @@
 
 #define DBG_PFX "LDR-tiff"
 
+static const char  *const _formats[] = { "tiff", "tif" };
+
 #define DD(fmt...)  DC(0x80, fmt)
 
 static struct {
@@ -330,8 +332,8 @@ put_separate_and_raster(TIFFRGBAImage * img, uint32_t * rast,
    raster((TIFFRGBAImage_Extra *) img, rast, x, y, w, h);
 }
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -455,8 +457,8 @@ load2(ImlibImage * im, int load_data)
 /* this seems to work, except the magic number isn't written. I'm guessing */
 /* this is a problem in libtiff */
 
-char
-save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
+static int
+_save(ImlibImage * im)
 {
    int                 rc;
    TIFF               *tif = NULL;
@@ -591,9 +593,4 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "tiff", "tif" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, _save);

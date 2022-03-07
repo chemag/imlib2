@@ -5,6 +5,8 @@
 
 #define DBG_PFX "LDR-gif"
 
+static const char  *const _formats[] = { "gif" };
+
 static struct {
    const unsigned char *data, *dptr;
    unsigned int        size;
@@ -51,8 +53,8 @@ make_colormap(uint32_t * cmi, ColorMapObject * cmg, int bg, int tr)
       cmi[tr] = bg >= 0 && bg < 256 ? cmi[bg] & 0x00ffffff : 0x00000000;
 }
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc, err;
    void               *fdata;
@@ -304,9 +306,4 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "gif" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, NULL);

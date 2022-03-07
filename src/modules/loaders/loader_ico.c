@@ -12,6 +12,8 @@
 
 #define DBG_PFX "LDR-ico"
 
+static const char  *const _formats[] = { "ico" };
+
 static struct {
    const unsigned char *data, *dptr;
    unsigned int        size;
@@ -390,8 +392,8 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
    return 1;
 }
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -445,9 +447,4 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "ico" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, NULL);

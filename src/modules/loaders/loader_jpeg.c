@@ -7,6 +7,8 @@
 
 #define DBG_PFX "LDR-jpg"
 
+static const char  *const _formats[] = { "jpg", "jpeg", "jfif", "jfi" };
+
 typedef struct {
    struct jpeg_error_mgr jem;
    sigjmp_buf          setjmp_buffer;
@@ -62,8 +64,8 @@ _jdata_init(ImLib_JPEG_data * jd)
    return jem;
 }
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 w, h, rc;
    void               *fdata;
@@ -254,8 +256,8 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-char
-save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
+static int
+_save(ImlibImage * im)
 {
    int                 rc;
    struct jpeg_compress_struct jcs;
@@ -362,9 +364,4 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "jpg", "jpeg", "jfif", "jfi" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, _save);

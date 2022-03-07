@@ -4,6 +4,8 @@
 
 #include <arpa/inet.h>
 
+static const char  *const _formats[] = { "ff" };
+
 #define mm_check(p) ((const char *)(p) <= (const char *)fdata + im->fsize)
 
 typedef struct {
@@ -11,8 +13,8 @@ typedef struct {
    uint32_t            w, h;
 } ff_hdr_t;
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -85,8 +87,8 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-char
-save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
+static int
+_save(ImlibImage * im)
 {
    int                 rc;
    FILE               *f;
@@ -149,9 +151,4 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "ff" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, _save);

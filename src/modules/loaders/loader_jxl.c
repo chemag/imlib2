@@ -10,6 +10,8 @@
 
 #define DBG_PFX "LDR-jxl"
 
+static const char  *const _formats[] = { "jxl" };
+
 static void
 _scanline_cb(void *opaque, size_t x, size_t y,
              size_t num_pixels, const void *pixels)
@@ -31,8 +33,8 @@ _scanline_cb(void *opaque, size_t x, size_t y,
     * progress calbacks here. */
 }
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    static const JxlPixelFormat pbuf_fmt = {
       .num_channels = 4,
@@ -216,9 +218,4 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "jxl" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, NULL);

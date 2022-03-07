@@ -18,10 +18,6 @@ typedef struct _ImlibLoader ImlibLoader;
 
 typedef struct _ImlibImage ImlibImage;
 
-typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
-                                             int update_x, int update_y,
-                                             int update_w, int update_h);
-
 /* common.h */
 
 #undef __EXPORT__
@@ -156,10 +152,6 @@ struct _ImlibImage {
 #define FF_FRAME_DISPOSE_CLEAR  (1 << 2)        /* Clear before rendering next frame  */
 #define FF_FRAME_DISPOSE_PREV   (1 << 3)        /* Revert before rendering next frame */
 
-void                __imlib_LoaderSetFormats(ImlibLoader * l,
-                                             const char *const *fmt,
-                                             unsigned int num);
-
 ImlibLoader        *__imlib_FindBestLoader(const char *file, const char *format,
                                            int for_save);
 int                 __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im,
@@ -186,14 +178,27 @@ int                 __imlib_LoadProgress(ImlibImage * im,
 int                 __imlib_LoadProgressRows(ImlibImage * im,
                                              int row, int nrows);
 
-/* Imlib2_Loader.h */
+/* loader.h */
 
-__EXPORT__ char     load(ImlibImage * im, ImlibProgressFunction progress,
-                         char progress_granularity, char load_data);
-__EXPORT__ int      load2(ImlibImage * im, int load_data);
-__EXPORT__ char     save(ImlibImage * im, ImlibProgressFunction progress,
-                         char progress_granularity);
-__EXPORT__ void     formats(ImlibLoader * l);
+#define IMLIB2_LOADER_VERSION 1
+
+typedef struct {
+   unsigned char       ldr_version;     /* Module ABI version */
+   unsigned char       rsvd;
+   unsigned short      num_formats;     /* Length og known extension list */
+   const char         *const *formats;  /* Known extension list */
+   int                 (*load)(ImlibImage * im, int load_data);
+   int                 (*save)(ImlibImage * im);
+} ImlibLoaderModule;
+
+#define IMLIB_LOADER(_fmts, _ldr, _svr) \
+    __EXPORT__ ImlibLoaderModule loader = { \
+        .ldr_version = IMLIB2_LOADER_VERSION, \
+        .num_formats = ARRAY_SIZE(_fmts), \
+        .formats = _fmts, \
+        .load = _ldr, \
+        .save = _svr, \
+    }
 
 typedef int         (imlib_decompress_load_f) (const void *fdata,
                                                unsigned int fsize, int dest);

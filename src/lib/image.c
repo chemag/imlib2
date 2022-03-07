@@ -278,16 +278,13 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
    int                 rc;
 
    DP("%s: fmt='%s' file='%s'(%s), imm=%d\n", __func__,
-      l->formats[0], im->file, im->real_file, load_data);
+      l->name, im->file, im->real_file, load_data);
 
 #if IMLIB2_DEBUG
    unsigned int        t0 = __imlib_time_us();
 #endif
 
-   if (!im->format)
-      im->format = strdup(l->formats[0]);
-
-   if (l->load2)
+   if (l->module->load)
      {
         FILE               *fp = NULL;
 
@@ -297,17 +294,14 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
              if (!im->fp)
                 return 0;
           }
-        rc = l->load2(im, load_data);
+
+        if (!im->format)
+           im->format = strdup(l->name);
+
+        rc = l->module->load(im, load_data);
 
         if (fp)
            fclose(fp);
-     }
-   else if (l->load)
-     {
-        if (im->lc)
-           rc = l->load(im, im->lc->progress, im->lc->granularity, 1);
-        else
-           rc = l->load(im, NULL, 0, load_data);
      }
    else
      {
@@ -315,7 +309,7 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
      }
 
    DP("%s: %-4s: %s: Elapsed time: %.3f ms\n", __func__,
-      l->formats[0], im->file, 1e-3 * (__imlib_time_us() - t0));
+      l->name, im->file, 1e-3 * (__imlib_time_us() - t0));
 
    if (rc <= LOAD_FAIL)
      {
@@ -753,7 +747,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
    im->real_file = strdup(file);
 
    /* call the saver */
-   loader_ret = l->save(im, ila->pfunc, ila->pgran);
+   loader_ret = l->module->save(im);
 
    /* set the filename back to the laoder image filename */
    free(im->real_file);

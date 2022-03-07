@@ -1,6 +1,8 @@
 #include "config.h"
 #include "Imlib2_Loader.h"
 
+static const char  *const _formats[] = { "argb", "arg" };
+
 static struct {
    const unsigned char *data, *dptr;
    unsigned int        size;
@@ -31,8 +33,8 @@ mm_read(void *dst, unsigned int len)
    return 0;
 }
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -110,8 +112,8 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-char
-save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
+static int
+_save(ImlibImage * im)
 {
    int                 rc;
    FILE               *f;
@@ -163,9 +165,4 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "argb", "arg" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, _save);

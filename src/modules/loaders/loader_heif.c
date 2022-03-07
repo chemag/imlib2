@@ -9,12 +9,15 @@
 
 #include <libheif/heif.h>
 
+static const char  *const _formats[] =
+   { "heif", "heifs", "heic", "heics", "avci", "avcs", "avif", "avifs" };
+
 #define HEIF_BYTES_TO_CHECK 12L
 #define HEIF_8BIT_TO_PIXEL_ARGB(plane, has_alpha) \
    PIXEL_ARGB((has_alpha) ? (plane)[3] : 0xff, (plane)[0], (plane)[1], (plane)[2])
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -157,11 +160,4 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] =
-      { "heif", "heifs", "heic", "heics", "avci", "avcs", "avif", "avifs" };
-   __imlib_LoaderSetFormats(l, list_formats,
-                            sizeof(list_formats) / sizeof(char *));
-}
+IMLIB_LOADER(_formats, _load, NULL);

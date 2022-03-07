@@ -7,6 +7,8 @@
 
 #define USE_TAGS 0
 
+static const char  *const _formats[] = { "mp3" };
+
 typedef struct context {
    int                 id;
    char               *filename;
@@ -488,8 +490,8 @@ write_tags(ImlibImage * im, lopt * opt)
 }
 #endif
 
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    ImlibLoader        *loader;
@@ -597,9 +599,4 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "mp3" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, NULL);

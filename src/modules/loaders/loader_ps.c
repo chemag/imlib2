@@ -5,8 +5,10 @@
 
 #define DBG_PFX "LDR-ps"
 
-int
-load2(ImlibImage * im, int load_data)
+static const char  *const _formats[] = { "ps", "eps" };
+
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -140,9 +142,4 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "ps", "eps" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, NULL);

@@ -3,6 +3,8 @@
 
 #include <lzma.h>
 
+static const char  *const _formats[] = { "xz", "lzma" };
+
 #define OUTBUF_SIZE 16484
 
 static int
@@ -49,18 +51,12 @@ uncompress_file(const void *fdata, unsigned int fsize, int dest)
    return ok;
 }
 
-static const char  *const list_formats[] = { "xz", "lzma" };
-
-int
-load2(ImlibImage * im, int load_data)
+static int
+_load(ImlibImage * im, int load_data)
 {
 
-   return decompress_load(im, load_data, list_formats, ARRAY_SIZE(list_formats),
+   return decompress_load(im, load_data, _formats, ARRAY_SIZE(_formats),
                           uncompress_file);
 }
 
-void
-formats(ImlibLoader * l)
-{
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, NULL);

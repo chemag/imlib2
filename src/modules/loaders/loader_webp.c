@@ -7,8 +7,10 @@
 
 #define DBG_PFX "LDR-webp"
 
-int
-load2(ImlibImage * im, int load_data)
+static const char  *const _formats[] = { "webp" };
+
+static int
+_load(ImlibImage * im, int load_data)
 {
    int                 rc;
    void               *fdata;
@@ -104,8 +106,8 @@ load2(ImlibImage * im, int load_data)
    return rc;
 }
 
-char
-save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
+static int
+_save(ImlibImage * im)
 {
    FILE               *f;
    int                 rc;
@@ -159,9 +161,4 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    return rc;
 }
 
-void
-formats(ImlibLoader * l)
-{
-   static const char  *const list_formats[] = { "webp" };
-   __imlib_LoaderSetFormats(l, list_formats, ARRAY_SIZE(list_formats));
-}
+IMLIB_LOADER(_formats, _load, _save);
