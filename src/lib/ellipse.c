@@ -698,7 +698,7 @@ __imlib_Ellipse_DrawToImage(int xc, int yc, int a, int b, DATA32 color,
         cly = 0;
      }
 
-   CLIP_RECT_TO_RECT(clx, cly, clw, clh, 0, 0, im->w, im->h);
+   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
    if ((clw < 1) || (clh < 1))
       return;
 
@@ -723,7 +723,7 @@ __imlib_Ellipse_DrawToImage(int xc, int yc, int a, int b, DATA32 color,
         y--;
      }
 
-   CLIP_RECT_TO_RECT(x, y, w, h, clx, cly, clw, clh);
+   CLIP(x, y, w, h, clx, cly, clw, clh);
    if ((w < 1) || (h < 1))
       return;
 
@@ -766,7 +766,7 @@ __imlib_Ellipse_FillToImage(int xc, int yc, int a, int b, DATA32 color,
         cly = 0;
      }
 
-   CLIP_RECT_TO_RECT(clx, cly, clw, clh, 0, 0, im->w, im->h);
+   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
    if ((clw < 1) || (clh < 1))
       return;
 
@@ -791,7 +791,7 @@ __imlib_Ellipse_FillToImage(int xc, int yc, int a, int b, DATA32 color,
         y--;
      }
 
-   CLIP_RECT_TO_RECT(x, y, w, h, clx, cly, clw, clh);
+   CLIP(x, y, w, h, clx, cly, clw, clh);
    if ((w < 1) || (h < 1))
       return;
 

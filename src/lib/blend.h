@@ -3,39 +3,6 @@
 
 #include "types.h"
 
-#define INTERSECTS(x, y, w, h, xx, yy, ww, hh) \
-   ((x < (xx + ww)) && \
-       (y < (yy + hh)) && \
-       ((x + w) > xx) && \
-       ((y + h) > yy))
-
-#define CLIP_TO(_x, _y, _w, _h, _cx, _cy, _cw, _ch) \
-{ \
-if (INTERSECTS(_x, _y, _w, _h, _cx, _cy, _cw, _ch)) \
-   { \
-         if (_x < _cx) \
-	{ \
-	           _w += _x - _cx; \
-	           _x = _cx; \
-	           if (_w < 0) _w = 0; \
-	} \
-         if ((_x + _w) > (_cx + _cw)) \
-	     _w = _cx + _cw - _x; \
-         if (_y < _cy) \
-	{ \
-	           _h += _y - _cy; \
-	           _y = _cy; \
-	           if (_h < 0) _h = 0; \
-	} \
-         if ((_y + _h) > (_cy + _ch)) \
-	     _h = _cy + _ch - _y; \
-   } \
-else \
-   { \
-      _w = 0; _h = 0; \
-   } \
-}
-
 /*
  * 1) Basic Saturation - 8 bit unsigned
  *

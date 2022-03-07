@@ -684,7 +684,7 @@ __imlib_Line_DrawToImage(int x0, int y0, int x1, int y1, DATA32 color,
         cly = 0;
      }
 
-   CLIP_RECT_TO_RECT(clx, cly, clw, clh, 0, 0, im->w, im->h);
+   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
    if ((clw < 1) || (clh < 1))
       return NULL;
 
@@ -739,7 +739,7 @@ __imlib_Line_DrawToImage(int x0, int y0, int x1, int y1, DATA32 color,
                 h++;
           }
 
-        CLIP_RECT_TO_RECT(cl_x0, cl_y0, w, h, clx, cly, clw, clh);
+        CLIP(cl_x0, cl_y0, w, h, clx, cly, clw, clh);
         if ((w < 1) || (h < 1))
            return NULL;
 

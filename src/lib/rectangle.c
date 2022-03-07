@@ -100,7 +100,7 @@ __imlib_Rectangle_FillToData(int x, int y, int rw, int rh, DATA32 color,
    x -= clx;
    y -= cly;
 
-   CLIP_RECT_TO_RECT(x, y, rw, rh, 0, 0, clw, clh);
+   CLIP(x, y, rw, rh, 0, 0, clw, clh);
    if ((rw < 1) || (rh < 1))
       return;
 
@@ -136,11 +136,11 @@ __imlib_Rectangle_DrawToImage(int x, int y, int w, int h, DATA32 color,
         cly = 0;
      }
 
-   CLIP_RECT_TO_RECT(clx, cly, clw, clh, 0, 0, im->w, im->h);
+   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
    if ((clw < 1) || (clh < 1))
       return;
 
-   CLIP_RECT_TO_RECT(clx, cly, clw, clh, x, y, w, h);
+   CLIP(clx, cly, clw, clh, x, y, w, h);
    if ((clw < 1) || (clh < 1))
       return;
 
@@ -176,11 +176,11 @@ __imlib_Rectangle_FillToImage(int x, int y, int w, int h, DATA32 color,
         cly = 0;
      }
 
-   CLIP_RECT_TO_RECT(clx, cly, clw, clh, 0, 0, im->w, im->h);
+   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
    if ((clw < 1) || (clh < 1))
       return;
 
-   CLIP_RECT_TO_RECT(clx, cly, clw, clh, x, y, w, h);
+   CLIP(clx, cly, clw, clh, x, y, w, h);
    if ((clw < 1) || (clh < 1))
       return;
 

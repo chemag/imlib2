@@ -1823,7 +1823,7 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
 
              px = ddx;
              py = ddy;
-             CLIP_TO(ddx, ddy, ddw, ddh, clx, cly, clw, clh);
+             CLIP(ddx, ddy, ddw, ddh, clx, cly, clw, clh);
              px = ddx - px;
              py = ddy - py;
              ssx += px;
@@ -1890,7 +1890,7 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
            return;
         if (clw)
           {
-             CLIP_TO(dx, dy, dw, dh, clx, cly, clw, clh);
+             CLIP(dx, dy, dw, dh, clx, cly, clw, clh);
              if ((dw < 1) || (dh < 1))
                 return;
           }

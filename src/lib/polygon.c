@@ -1072,7 +1072,7 @@ __imlib_Polygon_DrawToImage(ImlibPoly * poly, char close, DATA32 color,
         cly = 0;
      }
 
-   CLIP_RECT_TO_RECT(clx, cly, clw, clh, 0, 0, im->w, im->h);
+   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
    if ((clw < 1) || (clh < 1))
       return;
 
@@ -1827,7 +1827,7 @@ __imlib_Polygon_FillToImage(ImlibPoly * poly, DATA32 color,
         cly = 0;
      }
 
-   CLIP_RECT_TO_RECT(clx, cly, clw, clh, 0, 0, im->w, im->h);
+   CLIP(clx, cly, clw, clh, 0, 0, im->w, im->h);
    if ((clw < 1) || (clh < 1))
       return;
 
