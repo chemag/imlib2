@@ -88,6 +88,8 @@ struct _ImlibImage {
 
 typedef struct {
    FILE               *fp;
+   const void         *fdata;
+   size_t              fsize;
    ImlibProgressFunction pfunc;
    int                 pgran;
    char                immed;

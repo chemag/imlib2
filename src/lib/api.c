@@ -890,6 +890,23 @@ imlib_load_image_fd(int fd, const char *file)
 }
 
 EAPI                Imlib_Image
+imlib_load_image_mem(const char *file, int *err, const void *data, size_t size)
+{
+   Imlib_Image         im;
+   ImlibLoadArgs       ila = { ILA0(ctx, 1, 1) };
+
+   CHECK_PARAM_POINTER_RETURN("file", file, NULL);
+   CHECK_PARAM_POINTER_RETURN("data", data, NULL);
+
+   ila.fdata = data;
+   ila.fsize = size;
+
+   im = __imlib_LoadImage(file, &ila);
+
+   return (Imlib_Image) im;
+}
+
+EAPI                Imlib_Image
 imlib_load_image_frame(const char *file, int frame)
 {
    Imlib_Image         im;

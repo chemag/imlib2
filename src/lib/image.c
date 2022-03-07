@@ -76,17 +76,17 @@ __imlib_ReplaceData(ImlibImage * im, unsigned int *new_data)
 }
 
 static int
-__imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp, off_t fsize)
+__imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp,
+                        const void *fdata, off_t fsize)
 {
    struct stat         st;
-   void               *fdata;
 
    if (fp)
      {
         fi->keep_fp = true;
         fi->fp = fp;
      }
-   else
+   else if (!fdata)
      {
         fi->fp = fopen(fi->name, "rb");
         if (!fi->fp)
@@ -103,9 +103,12 @@ __imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp, off_t fsize)
         fi->fsize = fsize;
      }
 
-   fdata = mmap(NULL, fi->fsize, PROT_READ, MAP_SHARED, fileno(fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return -1;
+   if (!fdata)
+     {
+        fdata = mmap(NULL, fi->fsize, PROT_READ, MAP_SHARED, fileno(fi->fp), 0);
+        if (fdata == MAP_FAILED)
+           return -1;
+     }
 
    fi->fdata = fdata;
 
@@ -487,7 +490,12 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
      }
 
    im_file = im_key = NULL;
-   if (ila->fp)
+   if (ila->fdata)
+     {
+        err = 0;
+        st.st_size = ila->fsize;
+     }
+   else if (ila->fp)
      {
         err = fstat(fileno(ila->fp), &st);
      }
@@ -507,10 +515,10 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 
    if (err)
       err = errno;
-   else if (__imlib_StatIsDir(&st))
-      err = EISDIR;
    else if (st.st_size == 0)
       err = IMLIB_ERR_BAD_IMAGE;
+   else if (!ila->fdata && __imlib_StatIsDir(&st))
+      err = EISDIR;
 
    if (err)
      {
@@ -528,7 +536,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    im->frame_num = ila->frame;
 
    if (__imlib_ImageFileContextPush(im, true, im_file ? im_file : im->file) ||
-       __imlib_FileContextOpen(im->fi, ila->fp, st.st_size))
+       __imlib_FileContextOpen(im->fi, ila->fp, ila->fdata, st.st_size))
      {
         ila->err = errno;
         __imlib_ConsumeImage(im);
@@ -595,8 +603,11 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 
           case LOAD_FAIL:
              /* Image was not recognized by loader - try next */
-             fflush(im->fi->fp);
-             rewind(im->fi->fp);
+             if (im->fi->fp)
+               {
+                  fflush(im->fi->fp);
+                  rewind(im->fi->fp);
+               }
              continue;
 
           default:             /* We should not go here */
@@ -652,7 +663,7 @@ __imlib_LoadImageData(ImlibImage * im)
    if (!im->loader)
       return IMLIB_ERR_INTERNAL;
 
-   err = __imlib_FileContextOpen(im->fi, NULL, 0);
+   err = __imlib_FileContextOpen(im->fi, NULL, NULL, 0);
    if (err)
       return err;
    err = __imlib_LoadImageWrapper(im->loader, im, 1);
@@ -672,7 +683,7 @@ __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
       return 0;
 
    __imlib_ImageFileContextPush(im, true, strdup(file));
-   rc = __imlib_FileContextOpen(im->fi, NULL, 0);
+   rc = __imlib_FileContextOpen(im->fi, NULL, NULL, 0);
    if (rc)
       return LOAD_FAIL;
 

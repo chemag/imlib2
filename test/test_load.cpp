@@ -6,6 +6,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/mman.h>
 
 #include "test.h"
 
@@ -185,6 +186,30 @@ test_load(void)
         EXPECT_EQ(err, 0);
         err = close(fd);
         EXPECT_NE(err, 0);
+
+        if (!strcmp(pfxs[i], "jpg.mp3"))        // id3 cannot do mem
+           continue;
+
+        // Load via mem
+        snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
+        fd = open(fileo, O_RDONLY);
+        void               *fdata;
+        struct stat         st;
+
+        err = stat(fileo, &st);
+        ASSERT_EQ(err, 0);
+        fdata = mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+        ASSERT_TRUE(fdata != NULL);
+        ASSERT_TRUE(fdata != MAP_FAILED);
+        D("Load mem %d '%s'\n", fd, fileo);
+        snprintf(fileo, sizeof(fileo), ".%s", pfxs[i]);
+        im = imlib_load_image_mem(pfxs[i], &err, fdata, st.st_size);
+        EXPECT_TRUE(im) << "Load mem: " << fileo;
+        if (im)
+           image_free(im);
+        munmap(fdata, st.st_size);
+        err = close(fd);
+        EXPECT_EQ(err, 0);
      }
 }
 
