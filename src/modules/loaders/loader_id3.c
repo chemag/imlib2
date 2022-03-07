@@ -4,19 +4,6 @@
 #include <limits.h>
 #include <id3tag.h>
 
-#if ! defined (__STDC_VERSION__) || __STDC_VERSION__ < 199901L
-#if __GNUC__ >= 2
-#define inline __inline__
-#else
-#define inline
-#endif
-#endif
-
-#ifdef __GNUC__
-#define UNLIKELY(exp) __builtin_expect ((exp), 0)
-#else
-#define UNLIKELY(exp) (exp)
-#endif
 
 typedef struct context {
    int                 id;
@@ -28,19 +15,19 @@ typedef struct context {
 
 static context     *id3_ctxs = NULL;
 
-static inline struct id3_frame *
+static struct id3_frame *
 id3_tag_get_frame(struct id3_tag *tag, size_t index)
 {
    return tag->frames[index];
 }
 
-static inline unsigned int
+static unsigned int
 id3_tag_get_numframes(struct id3_tag *tag)
 {
    return tag->nframes;
 }
 
-static inline char const *
+static char const  *
 id3_frame_id(struct id3_frame *frame)
 {
    return frame->id;
@@ -95,7 +82,7 @@ context_create(const char *filename, FILE * f)
    ptr = id3_ctxs;
 
    last = NULL;
-   while (UNLIKELY(ptr && (ptr->id + 1) >= last_id))
+   while (ptr && (ptr->id + 1) >= last_id)
      {
         last_id = ptr->id;
         last = ptr;
@@ -103,7 +90,7 @@ context_create(const char *filename, FILE * f)
      }
 
    /* Paranoid! this can occur only if there are INT_MAX contexts :) */
-   if (UNLIKELY(!ptr))
+   if (!ptr)
      {
         fprintf(stderr, "Too many open ID3 contexts\n");
         goto fail_close;
@@ -111,7 +98,7 @@ context_create(const char *filename, FILE * f)
 
    node->id = ptr->id + 1;
 
-   if (UNLIKELY(!!last))
+   if (last)
      {
         node->next = last->next;
         last->next = node;
@@ -139,7 +126,7 @@ context_destroy(context * ctx)
    free(ctx);
 }
 
-static inline void
+static void
 context_addref(context * ctx)
 {
    ctx->refcount++;
