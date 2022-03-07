@@ -119,13 +119,13 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    DATA32             *ptr;
    int                 y, alpha = 0;
 
-#ifdef WORDS_BIGENDIAN
-   DATA32             *buf = (DATA32 *) malloc(im->w * 4);
-#endif
-
    f = fopen(im->real_file, "wb");
    if (!f)
       return LOAD_FAIL;
+
+#ifdef WORDS_BIGENDIAN
+   DATA32             *buf = (DATA32 *) malloc(im->w * 4);
+#endif
 
    if (IM_FLAG_ISSET(im, F_HAS_ALPHA))
       alpha = 1;
