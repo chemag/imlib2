@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <id3tag.h>
 
+#define USE_TAGS 0
 
 typedef struct context {
    int                 id;
@@ -212,6 +213,7 @@ str2uint(const char *str, unsigned int old)
    return ((errno || index > UINT_MAX) ? old : index);
 }
 
+#if USE_TAGS
 static void
 destructor_data(ImlibImage * im, void *data)
 {
@@ -223,6 +225,7 @@ destructor_context(ImlibImage * im, void *data)
 {
    context_delref((context *) data);
 }
+#endif
 
 typedef struct lopt {
    context            *ctx;
@@ -379,6 +382,7 @@ get_loader(lopt * opt, ImlibLoader ** loader)
    return 1;
 }
 
+#if USE_TAGS
 static const char  *const id3_pic_types[] = {
    /* $00 */ "Other",
    /* $01 */ "32x32 pixels file icon",
@@ -479,6 +483,7 @@ write_tags(ImlibImage * im, lopt * opt)
         __imlib_AttachTag(im, "next", 0, buf, destructor_data);
      }
 }
+#endif
 
 int
 load2(ImlibImage * im, int load_data)
@@ -554,14 +559,18 @@ load2(ImlibImage * im, int load_data)
 
         rc = __imlib_LoadEmbedded(loader, im, file, load_data);
 
+#if USE_TAGS
         if (!im->loader)
            __imlib_AttachTag(im, "id3-link-url", 0, url, destructor_data);
         else
+#endif
            free(url);
      }
 
+#if USE_TAGS
    if (!im->loader)
       write_tags(im, &opt);
+#endif
 
 #ifdef DEBUG
    if (!im->loader)
