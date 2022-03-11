@@ -257,7 +257,7 @@ load2(ImlibImage * im, int load_data)
         goto quit;
      }
 
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA, amask);
+   im->has_alpha = amask;
 
    imgsize = size - bfh_offset;
    D("w=%3d h=%3d bitcount=%d comp=%d imgsize=%d\n",
@@ -686,7 +686,7 @@ load2(ImlibImage * im, int load_data)
                {
                   pixel = *(unsigned short *)buffer_ptr;
 
-                  if (IM_FLAG_ISSET(im, F_HAS_ALPHA))
+                  if (im->has_alpha)
                      a = SCALE(a, pixel);
                   else
                      a = 0xff;
@@ -735,7 +735,7 @@ load2(ImlibImage * im, int load_data)
                {
                   pixel = *(unsigned int *)buffer_ptr;
 
-                  if (IM_FLAG_ISSET(im, F_HAS_ALPHA))
+                  if (im->has_alpha)
                      a = SCALE(a, pixel);
                   else
                      a = 0xff;

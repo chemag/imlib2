@@ -76,7 +76,7 @@ load2(ImlibImage * im, int load_data)
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA, iter.has_alpha);
+   im->has_alpha = iter.has_alpha;
 
    if (!load_data)
       QUIT_WITH_RC(LOAD_SUCCESS);

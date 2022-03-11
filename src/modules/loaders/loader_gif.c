@@ -246,7 +246,7 @@ load2(ImlibImage * im, int load_data)
           }
      }
 
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA, transp >= 0);
+   im->has_alpha = transp >= 0;
    im->frame_count = fcount;
    multiframe = im->frame_count > 1;
    if (multiframe)

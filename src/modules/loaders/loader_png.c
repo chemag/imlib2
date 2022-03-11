@@ -153,7 +153,7 @@ info_callback(png_struct * png_ptr, png_info * info_ptr)
       hasa = 1;
    if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
       hasa = 1;
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA, hasa);
+   im->has_alpha = hasa;
 
    if (!ctx->load_data)
       QUIT_WITH_RC(LOAD_SUCCESS);
@@ -614,7 +614,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
      }
 
    png_init_io(png_ptr, f);
-   has_alpha = IM_FLAG_ISSET(im, F_HAS_ALPHA);
+   has_alpha = im->has_alpha;
    if (has_alpha)
      {
         png_set_IHDR(png_ptr, info_ptr, im->w, im->h, 8,

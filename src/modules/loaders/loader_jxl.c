@@ -137,7 +137,7 @@ load2(ImlibImage * im, int load_data)
 
              im->w = info.xsize;
              im->h = info.ysize;
-             IM_FLAG_UPDATE(im, F_HAS_ALPHA, info.alpha_bits > 0);
+             im->has_alpha = info.alpha_bits > 0;
 
              int                 frame;
 

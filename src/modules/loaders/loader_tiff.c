@@ -406,8 +406,7 @@ load2(ImlibImage * im, int load_data)
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA,
-                  rgba_image.rgba.alpha != EXTRASAMPLE_UNSPECIFIED);
+   im->has_alpha = rgba_image.rgba.alpha != EXTRASAMPLE_UNSPECIFIED;
 
    if (!load_data)
       QUIT_WITH_RC(LOAD_SUCCESS);
@@ -466,7 +465,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    double              alpha_factor;
    int                 x, y;
    uint8_t             r, g, b, a = 0;
-   int                 has_alpha = IM_FLAG_ISSET(im, F_HAS_ALPHA);
+   int                 has_alpha = im->has_alpha;
    int                 compression_type;
    int                 i;
    ImlibImageTag      *tag;

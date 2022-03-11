@@ -1017,7 +1017,7 @@ imlib_image_has_alpha(void)
 
    CHECK_PARAM_POINTER_RETURN("image", ctx->image, 0);
    CAST_IMAGE(im, ctx->image);
-   if (IM_FLAG_ISSET(im, F_HAS_ALPHA))
+   if (im->has_alpha)
       return 1;
    return 0;
 }
@@ -1111,7 +1111,7 @@ imlib_image_set_has_alpha(char has_alpha)
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA, has_alpha);
+   im->has_alpha = has_alpha;
 }
 
 #ifdef BUILD_X11
@@ -1348,7 +1348,7 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
                                   ctx->colormap, ctx->depth, x, y, width,
                                   height, &domask, need_to_grab_x))
      {
-        IM_FLAG_UPDATE(im, F_HAS_ALPHA, domask);
+        im->has_alpha = domask;
      }
    else
      {
@@ -1419,7 +1419,7 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
                                     source_width, source_height,
                                     &domask, need_to_grab_x);
 
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA, domask);
+   im->has_alpha = domask;
 
    return im;
 }
@@ -1545,9 +1545,9 @@ imlib_create_cropped_image(int x, int y, int width, int height)
         __imlib_FreeImage(im);
         return NULL;
      }
-   if (IM_FLAG_ISSET(im_old, F_HAS_ALPHA))
+   if (im_old->has_alpha)
      {
-        IM_FLAG_SET(im, F_HAS_ALPHA);
+        im->has_alpha = 1;
         __imlib_BlendImageToImage(im_old, im, 0, 0, 1, x, y, abs(width),
                                   abs(height), 0, 0, width, height, NULL,
                                   (ImlibOp) IMLIB_OP_COPY,
@@ -1587,9 +1587,9 @@ imlib_create_cropped_scaled_image(int source_x, int source_y,
         __imlib_FreeImage(im);
         return NULL;
      }
-   if (IM_FLAG_ISSET(im_old, F_HAS_ALPHA))
+   if (im_old->has_alpha)
      {
-        IM_FLAG_SET(im, F_HAS_ALPHA);
+        im->has_alpha = 1;
         __imlib_BlendImageToImage(im_old, im, ctx->anti_alias, 0, 1, source_x,
                                   source_y, source_width, source_height, 0, 0,
                                   destination_width, destination_height, NULL,
@@ -2426,7 +2426,7 @@ imlib_apply_color_modifier(void)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   __imlib_DataCmodApply(im->data, im->w, im->h, 0, &(im->flags),
+   __imlib_DataCmodApply(im->data, im->w, im->h, 0, im->has_alpha,
                          (ImlibColorModifier *) ctx->color_modifier);
 }
 
@@ -2464,7 +2464,7 @@ imlib_apply_color_modifier_to_rectangle(int x, int y, int width, int height)
       return;
    __imlib_DirtyImage(im);
    __imlib_DataCmodApply(im->data + (y * im->w) + x, width, height,
-                         im->w - width, &(im->flags),
+                         im->w - width, im->has_alpha,
                          (ImlibColorModifier *) ctx->color_modifier);
 }
 
@@ -2957,7 +2957,7 @@ imlib_create_rotated_image(double angle)
         __imlib_RotateSample(im_old->data, im->data, im_old->w, im_old->w,
                              im_old->h, im->w, sz, sz, x, y, dx, dy, -dy, dx);
      }
-   IM_FLAG_SET(im, F_HAS_ALPHA);
+   im->has_alpha = 1;
 
    return im;
 }
@@ -3016,7 +3016,7 @@ imlib_rotate_image_from_buffer(double angle, Imlib_Image source_image)
         __imlib_RotateSample(im_old->data, im->data, im_old->w, im_old->w,
                              im_old->h, im->w, sz, sz, x, y, dx, dy, -dy, dx);
      }
-   IM_FLAG_SET(im, F_HAS_ALPHA);
+   im->has_alpha = 1;
 
    return;
 }

@@ -192,7 +192,7 @@ load2(ImlibImage * im, int load_data)
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
 
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA, 1);
+   im->has_alpha = 1;
 
    if (!load_data)
       QUIT_WITH_RC(LOAD_SUCCESS);

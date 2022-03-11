@@ -175,11 +175,9 @@ load2(ImlibImage * im, int load_data)
       goto quit;
    im->w = jimage->x1 - jimage->x0;
    im->h = jimage->y1 - jimage->y0;
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA,
-                  jimage->numcomps == 4 || jimage->numcomps == 2);
+   im->has_alpha = jimage->numcomps == 4 || jimage->numcomps == 2;
    D("WxH=%dx%d alpha=%d numcomp=%d colorspace=%d\n",
-     im->w, im->h, IM_FLAG_ISSET(im, F_HAS_ALPHA),
-     jimage->numcomps, jimage->color_space);
+     im->w, im->h, im->has_alpha, jimage->numcomps, jimage->color_space);
 
    for (i = 0; i < (int)jimage->numcomps; i++)
      {

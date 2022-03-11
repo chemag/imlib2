@@ -308,7 +308,7 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
    im->w = w;
    im->h = h;
 
-   IM_FLAG_SET(im, F_HAS_ALPHA);
+   im->has_alpha = 1;
 
    if (!load_data)
       return 1;

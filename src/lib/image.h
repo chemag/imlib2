@@ -12,15 +12,11 @@ typedef struct _imlibldctx ImlibLdCtx;
 typedef void        (*ImlibDataDestructorFunction)(ImlibImage * im, void *data);
 typedef void       *(*ImlibImageDataMemoryFunction)(void *, size_t size);
 
-enum _iflags {
-   F_NONE = 0,
-   F_HAS_ALPHA = (1 << 0),
-   F_UNCACHEABLE = (1 << 1),
-   F_ALWAYS_CHECK_DISK = (1 << 2),
-   F_INVALID = (1 << 3),
-   F_DONT_FREE_DATA = (1 << 4),
-   F_FORMAT_IRRELEVANT = (1 << 5),
-};
+#define F_UNCACHEABLE           (1 << 1)
+#define F_ALWAYS_CHECK_DISK     (1 << 2)
+#define F_INVALID               (1 << 3)
+#define F_DONT_FREE_DATA        (1 << 4)
+#define F_FORMAT_IRRELEVANT     (1 << 5)
 
 /* Must match the ones in Imlib2.h.in */
 #define FF_IMAGE_ANIMATED       (1 << 0)        /* Frames are an animated sequence    */
@@ -49,7 +45,8 @@ struct _ImlibImage {
 
    int                 w, h;
    uint32_t           *data;
-   ImlibImageFlags     flags;
+   char                has_alpha;
+   char                rsvd[3];
 
    int                 canvas_w;        /* Canvas size      */
    int                 canvas_h;
@@ -67,6 +64,7 @@ struct _ImlibImage {
    char               *file;
    char               *key;
    time_t              moddate;
+   unsigned int        flags;
    int                 references;
    char               *format;
 

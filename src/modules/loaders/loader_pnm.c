@@ -189,7 +189,7 @@ load2(ImlibImage * im, int load_data)
    if (!IMAGE_DIMENSIONS_OK(w, h))
       goto quit;
 
-   IM_FLAG_UPDATE(im, F_HAS_ALPHA, p == '8');
+   im->has_alpha = p == '8';
 
    if (!load_data)
       QUIT_WITH_RC(LOAD_SUCCESS);
@@ -490,7 +490,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    ptr = im->data;
 
    /* if the image has a useful alpha channel */
-   if (IM_FLAG_ISSET(im, F_HAS_ALPHA))
+   if (im->has_alpha)
      {
         fprintf(f, "P8\n" "# PNM File written by Imlib2\n" "%i %i\n" "255\n",
                 im->w, im->h);

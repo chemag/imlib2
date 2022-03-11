@@ -7,7 +7,6 @@
 typedef struct _ImlibLoader ImlibLoader;
 
 typedef struct _ImlibImage ImlibImage;
-typedef unsigned int ImlibImageFlags;
 
 typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
                                              int update_x, int update_y,

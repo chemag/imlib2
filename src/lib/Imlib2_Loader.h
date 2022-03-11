@@ -17,7 +17,6 @@
 typedef struct _ImlibLoader ImlibLoader;
 
 typedef struct _ImlibImage ImlibImage;
-typedef unsigned int ImlibImageFlags;
 
 typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
                                              int update_x, int update_y,
@@ -138,7 +137,8 @@ struct _ImlibImage {
 
    int                 w, h;
    uint32_t           *data;
-   ImlibImageFlags     flags;
+   char                has_alpha;
+   char                rsvd[3];
 
    int                 canvas_w;        /* Canvas size      */
    int                 canvas_h;
@@ -149,14 +149,6 @@ struct _ImlibImage {
    int                 frame_flags;     /* Frame flags      */
    int                 frame_delay;     /* Frame delay (ms) */
 };
-
-#define F_HAS_ALPHA (1 << 0)
-
-#define IM_FLAG_SET(im, f)      ((im)->flags |= (f))
-#define IM_FLAG_CLR(im, f)      ((im)->flags &= ~(f))
-#define IM_FLAG_UPDATE(im, f, set) \
-   do { if (set) IM_FLAG_SET(im, f); else IM_FLAG_CLR(im, f); } while(0)
-#define IM_FLAG_ISSET(im, f)    (((im)->flags & (f)) != 0)
 
 /* Must match the ones in Imlib2.h.in */
 #define FF_IMAGE_ANIMATED       (1 << 0)        /* Frames are an animated sequence    */
