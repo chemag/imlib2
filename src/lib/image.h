@@ -100,6 +100,8 @@ int                 __imlib_LoadProgress(ImlibImage * im,
 int                 __imlib_LoadProgressRows(ImlibImage * im,
                                              int row, int nrows);
 
+const char         *__imlib_GetKey(const ImlibImage * im);
+
 void                __imlib_AttachTag(ImlibImage * im, const char *key,
                                       int val, void *data,
                                       ImlibDataDestructorFunction destructor);

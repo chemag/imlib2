@@ -754,6 +754,12 @@ __imlib_DirtyImage(ImlibImage * im)
 #endif
 }
 
+__EXPORT__ const char *
+__imlib_GetKey(const ImlibImage * im)
+{
+   return im->key;
+}
+
 void
 __imlib_SaveImage(ImlibImage * im, const char *file,
                   ImlibProgressFunction progress, char progress_granularity,

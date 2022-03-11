@@ -239,10 +239,12 @@ get_options(lopt * opt, const ImlibImage * im)
 {
    unsigned int        handle = 0, index = 0, traverse = 0;
    context            *ctx;
+   const char         *str;
 
-   if (im->key)
+   str = __imlib_GetKey(im);
+   if (str)
      {
-        char               *key = strdup(im->key);
+        char               *key = strdup(str);
         char               *tok = strtok(key, ",");
 
         traverse = 0;
