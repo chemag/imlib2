@@ -7,7 +7,8 @@
  * - Simplify and make secure RLE encoding
  * - Fix 16 and 32 bit depth (old code was incorrect and it's commented)
  */
-#include "loader_common.h"
+#include "config.h"
+#include "Imlib2_Loader.h"
 
 #define DBG_PFX "LDR-bmp"
 #define Dx(fmt...)

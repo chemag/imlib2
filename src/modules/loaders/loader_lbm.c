@@ -11,7 +11,8 @@
  * Version: 2004-08-28
  *------------------------------------------------------------------------------*/
 
-#include "loader_common.h"
+#include "config.h"
+#include "Imlib2_Loader.h"
 
 #define DBG_PFX "LDR-lbm"
 

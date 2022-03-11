@@ -5,7 +5,8 @@
  * https://en.wikipedia.org/wiki/ICO_(file_format)
  * https://en.wikipedia.org/wiki/BMP_file_format
  */
-#include "loader_common.h"
+#include "config.h"
+#include "Imlib2_Loader.h"
 
 #include <limits.h>
 

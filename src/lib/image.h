@@ -41,23 +41,16 @@ typedef struct _ImlibImageTag {
 } ImlibImageTag;
 
 struct _ImlibImage {
-   char               *file;
+   char               *real_file;
+   FILE               *fp;
+   off_t               fsize;
+
+   ImlibLdCtx         *lc;
+
    int                 w, h;
    uint32_t           *data;
    ImlibImageFlags     flags;
-   time_t              moddate;
-   ImlibBorder         border;
-   int                 references;
-   ImlibLoader        *loader;
-   char               *format;
-   ImlibImage         *next;
-   ImlibImageTag      *tags;
-   char               *real_file;
-   char               *key;
-   ImlibImageDataMemoryFunction data_memory_func;
-   ImlibLdCtx         *lc;
-   FILE               *fp;
-   off_t               fsize;
+
    int                 canvas_w;        /* Canvas size      */
    int                 canvas_h;
    int                 frame_count;     /* Number of frames */
@@ -66,6 +59,21 @@ struct _ImlibImage {
    int                 frame_y;
    int                 frame_flags;     /* Frame flags      */
    int                 frame_delay;     /* Frame delay (ms) */
+
+   /* vvv Private vvv */
+   ImlibLoader        *loader;
+   ImlibImage         *next;
+
+   char               *file;
+   char               *key;
+   time_t              moddate;
+   int                 references;
+   char               *format;
+
+   ImlibBorder         border;
+   ImlibImageTag      *tags;
+   ImlibImageDataMemoryFunction data_memory_func;
+   /* ^^^ Private ^^^ */
 };
 
 typedef struct {

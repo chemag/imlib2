@@ -1,4 +1,5 @@
-#include "loader_common.h"
+#include "config.h"
+#include "Imlib2_Loader.h"
 
 #define MAX_RUNNERS 4           /* Maybe set to Ncpu/2? */
 

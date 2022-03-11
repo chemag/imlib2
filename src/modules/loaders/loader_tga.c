@@ -9,7 +9,8 @@
  *
  * header/footer structures courtesy of the GIMP Targa plugin
  */
-#include "loader_common.h"
+#include "config.h"
+#include "Imlib2_Loader.h"
 
 #define DBG_PFX "LDR-tga"
 

@@ -9,7 +9,8 @@ AM_CPPFLAGS          = -DPACKAGE_LIB_DIR=\"$(libdir)\" \
 AM_CCASFLAGS = -I$(top_builddir)
 
 lib_LTLIBRARIES      = libImlib2.la
-include_HEADERS      = Imlib2.h
+include_HEADERS      = Imlib2.h Imlib2_Loader.h
+
 libImlib2_la_SOURCES = \
 api.c 		api_obsolete.c	\
 asm.h \

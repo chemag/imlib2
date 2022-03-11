@@ -2,7 +2,8 @@
  * XBM loader
  */
 #define _GNU_SOURCE             /* memmem() */
-#include "loader_common.h"
+#include "config.h"
+#include "Imlib2_Loader.h"
 
 #define DBG_PFX "LDR-xbm"
 

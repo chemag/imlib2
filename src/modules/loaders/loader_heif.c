@@ -4,7 +4,8 @@
  * Only loads the primary image for any file, whether it be a still image or an
  * image sequence.
  */
-#include "loader_common.h"
+#include "config.h"
+#include "Imlib2_Loader.h"
 
 #include <libheif/heif.h>
 

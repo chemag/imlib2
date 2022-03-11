@@ -1,4 +1,5 @@
-#include "loader_common.h"
+#include "config.h"
+#include "Imlib2_Loader.h"
 
 #include <jpeglib.h>
 #include <setjmp.h>

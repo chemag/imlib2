@@ -1,5 +1,6 @@
 /* Farbfeld (http://tools.suckless.org/farbfeld) */
-#include "loader_common.h"
+#include "config.h"
+#include "Imlib2_Loader.h"
 
 #include <arpa/inet.h>
 
