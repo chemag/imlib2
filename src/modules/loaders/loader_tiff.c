@@ -1,6 +1,3 @@
-/* To do: */
-/* o Need code to handle tiff with different orientations */
-
 #include "loader_common.h"
 
 #include <setjmp.h>
