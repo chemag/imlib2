@@ -553,7 +553,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    loader_ret = LOAD_FAIL;
 
    /* take a guess by extension on the best loader to use */
-   best_loader = __imlib_FindBestLoaderForFile(im->real_file, 0);
+   best_loader = __imlib_FindBestLoader(im->real_file, NULL, 0);
    errno = 0;
    if (best_loader)
       loader_ret = __imlib_LoadImageWrapper(best_loader, im, ila->immed);
@@ -777,7 +777,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
      }
 
    /* find the laoder for the format - if its null use the extension */
-   l = __imlib_FindBestLoaderForFileFormat(file, im->format, 1);
+   l = __imlib_FindBestLoader(file, im->format, 1);
    /* no loader - abort */
    if (!l)
      {

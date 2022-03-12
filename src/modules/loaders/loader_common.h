@@ -10,7 +10,6 @@
 
 #include "debug.h"
 #include "image.h"
-#include "loaders.h"
 
 __EXPORT__ char     load(ImlibImage * im, ImlibProgressFunction progress,
                          char progress_granularity, char load_data);

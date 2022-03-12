@@ -20,15 +20,5 @@ struct _ImlibLoader {
 
 void                __imlib_RemoveAllLoaders(void);
 ImlibLoader       **__imlib_GetLoaderList(void);
-ImlibLoader        *__imlib_FindBestLoaderForFile(const char *file,
-                                                  int for_save);
-ImlibLoader        *__imlib_FindBestLoaderForFormat(const char *format,
-                                                    int for_save);
-ImlibLoader        *__imlib_FindBestLoaderForFileFormat(const char *file,
-                                                        const char *format,
-                                                        int for_save);
-void                __imlib_LoaderSetFormats(ImlibLoader * l,
-                                             const char *const *fmt,
-                                             unsigned int num);
 
 #endif /* __LOADERS */

@@ -78,6 +78,13 @@ typedef struct {
    int                 frame;
 } ImlibLoadArgs;
 
+ImlibLoader        *__imlib_FindBestLoader(const char *file, const char *format,
+                                           int for_save);
+
+void                __imlib_LoaderSetFormats(ImlibLoader * l,
+                                             const char *const *fmt,
+                                             unsigned int num);
+
 ImlibImage         *__imlib_CreateImage(int w, int h, DATA32 * data);
 ImlibImage         *__imlib_LoadImage(const char *file, ImlibLoadArgs * ila);
 int                 __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im,

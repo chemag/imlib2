@@ -376,7 +376,7 @@ get_loader(lopt * opt, ImlibLoader ** loader)
         return 0;
      }
    strncpy(ext + 1, data + 6, EXT_LEN);
-   if (!(*loader = __imlib_FindBestLoaderForFile(ext, 0)))
+   if (!(*loader = __imlib_FindBestLoader(ext, NULL, 0)))
      {
         fprintf(stderr, "No loader found for extension %s\n", ext);
         return 0;
@@ -552,7 +552,7 @@ load2(ImlibImage * im, int load_data)
         strncpy(url, data, length);
         url[length] = '\0';
         file = (strncmp(url, "file://", 7) ? url : url + 7);
-        if (!(loader = __imlib_FindBestLoaderForFile(file, 0)))
+        if (!(loader = __imlib_FindBestLoader(file, NULL, 0)))
           {
              fprintf(stderr, "No loader found for file %s\n", file);
              free(url);
