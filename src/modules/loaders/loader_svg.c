@@ -162,11 +162,11 @@ load2(ImlibImage * im, int load_data)
    if (!__imlib_AllocateData(im))
       QUIT_WITH_RC(LOAD_OOM);
 
-   memset(im->data, 0, im->w * im->h * sizeof(DATA32));
+   memset(im->data, 0, im->w * im->h * sizeof(uint32_t));
    surface =
       cairo_image_surface_create_for_data((void *)im->data, CAIRO_FORMAT_ARGB32,
                                           im->w, im->h,
-                                          im->w * sizeof(DATA32));;
+                                          im->w * sizeof(uint32_t));;
    if (!surface)
       QUIT_WITH_RC(LOAD_OOM);
 

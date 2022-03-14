@@ -39,16 +39,9 @@
 #endif
 
 #include <stddef.h>
+#include <stdint.h>
 #ifndef X_DISPLAY_MISSING
 #include <X11/Xlib.h>
-#endif
-
-/* Data types to use */
-#ifndef DATA64
-#define DATA64 unsigned long long
-#define DATA32 unsigned int
-#define DATA16 unsigned short
-#define DATA8  unsigned char
 #endif
 
 /* opaque data types */
@@ -864,7 +857,7 @@ EAPI const char    *imlib_image_get_filename(void);
  * caching - in fact all images cached from this one will also be affected
  * when you put the data back. If this matters it is suggested you clone
  * the image first before playing with the image data.
- * The image data is returned in the format of a DATA32 (32 bits) per
+ * The image data is returned in the format of a uint32_t (32 bits) per
  * pixel in a linear array ordered from the top left of the image to the
  * bottom right going from left to right each line.
  * Each pixel has the upper 8 bits as the alpha channel and the lower 8 bits
@@ -874,7 +867,7 @@ EAPI const char    *imlib_image_get_filename(void);
  *
  * @return A pointer to the image data
  */
-EAPI DATA32        *imlib_image_get_data(void);
+EAPI uint32_t      *imlib_image_get_data(void);
 
 /**
  * Get a pointer to the image data for the current image (read-only)
@@ -887,7 +880,7 @@ EAPI DATA32        *imlib_image_get_data(void);
  *
  * @return A pointer to the image data
  */
-EAPI DATA32        *imlib_image_get_data_for_reading_only(void);
+EAPI uint32_t      *imlib_image_get_data_for_reading_only(void);
 
 /**
  * Put back @p data obtained by imlib_image_get_data().
@@ -896,7 +889,7 @@ EAPI DATA32        *imlib_image_get_data_for_reading_only(void);
  *
  * @param data          The pointer to the image data
  */
-EAPI void           imlib_image_put_back_data(DATA32 * data);
+EAPI void           imlib_image_put_back_data(uint32_t * data);
 
 /**
  * Return whether or not the current image has an alpa channel
@@ -1139,7 +1132,7 @@ EAPI void           imlib_render_image_part_on_drawable_at_size(int source_x,
 /**
  * Return X11 pixel value of current color
  */
-EAPI DATA32         imlib_render_get_pixel_color(void);
+EAPI uint32_t       imlib_render_get_pixel_color(void);
 
 #endif /* X_DISPLAY_MISSING */
 
@@ -1260,7 +1253,7 @@ EAPI Imlib_Image    imlib_create_cropped_scaled_image(int source_x,
  * @return Image handle (NULL on failure)
  */
 EAPI Imlib_Image    imlib_create_image_using_data(int width, int height,
-                                                  DATA32 * data);
+                                                  uint32_t * data);
 
 /**
  * Create a new image using given pixel data and memory management function
@@ -1280,7 +1273,7 @@ EAPI Imlib_Image    imlib_create_image_using_data(int width, int height,
  * @return Image handle (NULL on failure)
  */
 EAPI Imlib_Image    imlib_create_image_using_data_and_memory_function
-   (int width, int height, DATA32 * data,
+   (int width, int height, uint32_t * data,
     Imlib_Image_Data_Memory_Function func);
 
 /**
@@ -1298,7 +1291,7 @@ EAPI Imlib_Image    imlib_create_image_using_data_and_memory_function
  * @return Image handle (NULL on failure)
  */
 EAPI Imlib_Image    imlib_create_image_using_copied_data(int width, int height,
-                                                         DATA32 * data);
+                                                         uint32_t * data);
 
 #ifndef X_DISPLAY_MISSING
 /**
@@ -2121,36 +2114,36 @@ EAPI void           imlib_modify_color_modifier_contrast(double
  *
  * Explicitly copies the mapping tables from the table pointers passed
  * into this function into those of the current color modifier. Tables
- * are 256 entry arrays of DATA8 which are a mapping of that channel
+ * are 256 entry arrays of uint8_t which are a mapping of that channel
  * value to a new channel value. A normal mapping would be linear (v[0]
  * = 0, v[10] = 10, v[50] = 50, v[200] = 200, v[255] = 255).
  *
- * @param red_table     A 256 element DATA8 array
- * @param green_table   A 256 element DATA8 array
- * @param blue_table    A 256 element DATA8 array
- * @param alpha_table   A 256 element DATA8 array
+ * @param red_table     A 256 element uint8_t array
+ * @param green_table   A 256 element uint8_t array
+ * @param blue_table    A 256 element uint8_t array
+ * @param alpha_table   A 256 element uint8_t array
  */
-EAPI void           imlib_set_color_modifier_tables(DATA8 * red_table,
-                                                    DATA8 * green_table,
-                                                    DATA8 * blue_table,
-                                                    DATA8 * alpha_table);
+EAPI void           imlib_set_color_modifier_tables(uint8_t * red_table,
+                                                    uint8_t * green_table,
+                                                    uint8_t * blue_table,
+                                                    uint8_t * alpha_table);
 
 /**
  * Get current color modifier tables
  *
  * Copies the table values from the current color modifier into the
  * pointers to mapping tables specified. They must have 256 entries and
- * be DATA8 format.
+ * be uint8_t format.
  *
- * @param red_table     A 256 element DATA8 array
- * @param green_table   A 256 element DATA8 array
- * @param blue_table    A 256 element DATA8 array
- * @param alpha_table   A 256 element DATA8 array
+ * @param red_table     A 256 element uint8_t array
+ * @param green_table   A 256 element uint8_t array
+ * @param blue_table    A 256 element uint8_t array
+ * @param alpha_table   A 256 element uint8_t array
  */
-EAPI void           imlib_get_color_modifier_tables(DATA8 * red_table,
-                                                    DATA8 * green_table,
-                                                    DATA8 * blue_table,
-                                                    DATA8 * alpha_table);
+EAPI void           imlib_get_color_modifier_tables(uint8_t * red_table,
+                                                    uint8_t * green_table,
+                                                    uint8_t * blue_table,
+                                                    uint8_t * alpha_table);
 
 /**
  * Reset current color modifier tables
@@ -2828,6 +2821,15 @@ EAPI const char    *imlib_strerror(int err);
 /*--------------------------------
  * Deprecated functionality
  */
+
+/* Old data types, no longer used by imlib2, likely to be removed */
+#ifndef DATA64
+#define DATA64 uint64_t IMLIB2_DEPRECATED
+#define DATA32 uint32_t IMLIB2_DEPRECATED
+#define DATA16 uint16_t IMLIB2_DEPRECATED
+#define DATA8  uint8_t  IMLIB2_DEPRECATED
+#endif
+
 /* *INDENT-OFF* */
 
 typedef enum {

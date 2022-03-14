@@ -86,7 +86,7 @@ typedef struct {
    Imlib_Text_Direction direction;
    double              angle;
    Imlib_Color         color;
-   DATA32              pixel;
+   uint32_t            pixel;
    Imlib_Color_Range   color_range;
    Imlib_Image         image;
    Imlib_Image_Data_Memory_Function image_data_memory_func;
@@ -543,7 +543,7 @@ imlib_context_get_direction(void)
 EAPI void
 imlib_context_set_color(int red, int green, int blue, int alpha)
 {
-   DATA8               r, g, b, a;
+   uint8_t             r, g, b, a;
 
    r = red;
    g = green;
@@ -616,7 +616,7 @@ imlib_context_get_color_hlsa(float *hue, float *lightness, float *saturation,
 EAPI void
 imlib_context_set_color_cmya(int cyan, int magenta, int yellow, int alpha)
 {
-   DATA8               r, g, b, a;
+   uint8_t             r, g, b, a;
 
    r = 255 - cyan;
    g = 255 - magenta;
@@ -962,7 +962,7 @@ imlib_image_get_filename(void)
    return im->file;
 }
 
-EAPI DATA32        *
+EAPI uint32_t      *
 imlib_image_get_data(void)
 {
    ImlibImage         *im;
@@ -975,7 +975,7 @@ imlib_image_get_data(void)
    return im->data;
 }
 
-EAPI DATA32        *
+EAPI uint32_t      *
 imlib_image_get_data_for_reading_only(void)
 {
    ImlibImage         *im;
@@ -988,7 +988,7 @@ imlib_image_get_data_for_reading_only(void)
 }
 
 EAPI void
-imlib_image_put_back_data(DATA32 * data)
+imlib_image_put_back_data(uint32_t * data)
 {
    ImlibImage         *im;
 
@@ -1201,14 +1201,14 @@ imlib_render_image_part_on_drawable_at_size(int source_x, int source_y,
                        0, ctx->color_modifier, ctx->operation);
 }
 
-EAPI                DATA32
+EAPI                uint32_t
 imlib_render_get_pixel_color(void)
 {
    return __imlib_RenderGetPixel(ctx->display, ctx->drawable, ctx->visual,
                                  ctx->colormap, ctx->depth,
-                                 (DATA8) ctx->color.red,
-                                 (DATA8) ctx->color.green,
-                                 (DATA8) ctx->color.blue);
+                                 (uint8_t) ctx->color.red,
+                                 (uint8_t) ctx->color.green,
+                                 (uint8_t) ctx->color.blue);
 }
 
 #endif
@@ -1249,18 +1249,18 @@ imlib_blend_image_onto_image(Imlib_Image source_image, char merge_alpha,
 EAPI                Imlib_Image
 imlib_create_image(int width, int height)
 {
-   DATA32             *data;
+   uint32_t           *data;
 
    if (!IMAGE_DIMENSIONS_OK(width, height))
       return NULL;
-   data = malloc(width * height * sizeof(DATA32));
+   data = malloc(width * height * sizeof(uint32_t));
    if (data)
       return __imlib_CreateImage(width, height, data);
    return NULL;
 }
 
 EAPI                Imlib_Image
-imlib_create_image_using_data(int width, int height, DATA32 * data)
+imlib_create_image_using_data(int width, int height, uint32_t * data)
 {
    ImlibImage         *im;
 
@@ -1275,8 +1275,8 @@ imlib_create_image_using_data(int width, int height, DATA32 * data)
 
 EAPI                Imlib_Image
    imlib_create_image_using_data_and_memory_function
-   (int width, int height, DATA32 * data, Imlib_Image_Data_Memory_Function func)
-{
+   (int width, int height, uint32_t * data,
+    Imlib_Image_Data_Memory_Function func) {
    ImlibImage         *im;
 
    CHECK_PARAM_POINTER_RETURN("data", data, NULL);
@@ -1290,7 +1290,7 @@ EAPI                Imlib_Image
 }
 
 EAPI                Imlib_Image
-imlib_create_image_using_copied_data(int width, int height, DATA32 * data)
+imlib_create_image_using_copied_data(int width, int height, uint32_t * data)
 {
    ImlibImage         *im;
 
@@ -1300,10 +1300,10 @@ imlib_create_image_using_copied_data(int width, int height, DATA32 * data)
    im = __imlib_CreateImage(width, height, NULL);
    if (!im)
       return NULL;
-   im->data = malloc(width * height * sizeof(DATA32));
+   im->data = malloc(width * height * sizeof(uint32_t));
    if (data)
      {
-        memcpy(im->data, data, width * height * sizeof(DATA32));
+        memcpy(im->data, data, width * height * sizeof(uint32_t));
         return im;
      }
    else
@@ -1328,7 +1328,7 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
            mask = None;
      }
    im = __imlib_CreateImage(width, height, NULL);
-   im->data = malloc(width * height * sizeof(DATA32));
+   im->data = malloc(width * height * sizeof(uint32_t));
    if (__imlib_GrabDrawableToRGBA(im->data, 0, 0, width, height, ctx->display,
                                   ctx->drawable, mask, ctx->visual,
                                   ctx->colormap, ctx->depth, x, y, width,
@@ -1354,7 +1354,7 @@ imlib_create_image_from_ximage(XImage * image, XImage * mask, int x, int y,
    if (!IMAGE_DIMENSIONS_OK(width, height))
       return NULL;
    im = __imlib_CreateImage(width, height, NULL);
-   im->data = malloc(width * height * sizeof(DATA32));
+   im->data = malloc(width * height * sizeof(uint32_t));
    __imlib_GrabXImageToRGBA(im->data, 0, 0, width, height,
                             ctx->display, image, mask, ctx->visual,
                             ctx->depth, x, y, width, height, need_to_grab_x);
@@ -1381,7 +1381,7 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
    domask = mask != 0 || get_mask_from_shape;
 
    im = __imlib_CreateImage(destination_width, destination_height, NULL);
-   im->data = malloc(destination_width * destination_height * sizeof(DATA32));
+   im->data = malloc(destination_width * destination_height * sizeof(uint32_t));
 
    __imlib_GrabDrawableScaledToRGBA(im->data, 0, 0,
                                     destination_width, destination_height,
@@ -1480,13 +1480,13 @@ imlib_clone_image(void)
    im = __imlib_CreateImage(im_old->w, im_old->h, NULL);
    if (!(im))
       return NULL;
-   im->data = malloc(im->w * im->h * sizeof(DATA32));
+   im->data = malloc(im->w * im->h * sizeof(uint32_t));
    if (!(im->data))
      {
         __imlib_FreeImage(im);
         return NULL;
      }
-   memcpy(im->data, im_old->data, im->w * im->h * sizeof(DATA32));
+   memcpy(im->data, im_old->data, im->w * im->h * sizeof(uint32_t));
    im->flags = im_old->flags;
    IM_FLAG_SET(im, F_UNCACHEABLE);
    im->moddate = im_old->moddate;
@@ -1511,7 +1511,7 @@ imlib_create_cropped_image(int x, int y, int width, int height)
    if (__imlib_LoadImageData(im_old))
       return NULL;
    im = __imlib_CreateImage(abs(width), abs(height), NULL);
-   im->data = malloc(abs(width * height) * sizeof(DATA32));
+   im->data = malloc(abs(width * height) * sizeof(uint32_t));
    if (!(im->data))
      {
         __imlib_FreeImage(im);
@@ -1553,7 +1553,7 @@ imlib_create_cropped_scaled_image(int source_x, int source_y,
    im = __imlib_CreateImage(abs(destination_width), abs(destination_height),
                             NULL);
    im->data =
-      malloc(abs(destination_width * destination_height) * sizeof(DATA32));
+      malloc(abs(destination_width * destination_height) * sizeof(uint32_t));
    if (!(im->data))
      {
         __imlib_FreeImage(im);
@@ -2363,8 +2363,8 @@ imlib_modify_color_modifier_contrast(double contrast_value)
 }
 
 EAPI void
-imlib_set_color_modifier_tables(DATA8 * red_table, DATA8 * green_table,
-                                DATA8 * blue_table, DATA8 * alpha_table)
+imlib_set_color_modifier_tables(uint8_t * red_table, uint8_t * green_table,
+                                uint8_t * blue_table, uint8_t * alpha_table)
 {
    CHECK_PARAM_POINTER("color_modifier", ctx->color_modifier);
    __imlib_CmodSetTables((ImlibColorModifier *) ctx->color_modifier,
@@ -2372,8 +2372,8 @@ imlib_set_color_modifier_tables(DATA8 * red_table, DATA8 * green_table,
 }
 
 EAPI void
-imlib_get_color_modifier_tables(DATA8 * red_table, DATA8 * green_table,
-                                DATA8 * blue_table, DATA8 * alpha_table)
+imlib_get_color_modifier_tables(uint8_t * red_table, uint8_t * green_table,
+                                uint8_t * blue_table, uint8_t * alpha_table)
 {
    CHECK_PARAM_POINTER("color_modifier", ctx->color_modifier);
    __imlib_CmodGetTables((ImlibColorModifier *) ctx->color_modifier,
@@ -2663,7 +2663,7 @@ EAPI void
 imlib_image_query_pixel(int x, int y, Imlib_Color * color_return)
 {
    ImlibImage         *im;
-   DATA32             *p;
+   uint32_t           *p;
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CHECK_PARAM_POINTER("color_return", color_return);
@@ -2690,7 +2690,7 @@ imlib_image_query_pixel_hsva(int x, int y, float *hue, float *saturation,
                              float *value, int *alpha)
 {
    ImlibImage         *im;
-   DATA32             *p;
+   uint32_t           *p;
    int                 r, g, b;
 
    CHECK_PARAM_POINTER("image", ctx->image);
@@ -2719,7 +2719,7 @@ imlib_image_query_pixel_hlsa(int x, int y, float *hue, float *lightness,
                              float *saturation, int *alpha)
 {
    ImlibImage         *im;
-   DATA32             *p;
+   uint32_t           *p;
    int                 r, g, b;
 
    CHECK_PARAM_POINTER("image", ctx->image);
@@ -2748,7 +2748,7 @@ imlib_image_query_pixel_cmya(int x, int y, int *cyan, int *magenta, int *yellow,
                              int *alpha)
 {
    ImlibImage         *im;
-   DATA32             *p;
+   uint32_t           *p;
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);
@@ -2912,7 +2912,7 @@ imlib_create_rotated_image(double angle)
       return NULL;
 
    im = __imlib_CreateImage(sz, sz, NULL);
-   im->data = calloc(sz * sz, sizeof(DATA32));
+   im->data = calloc(sz * sz, sizeof(uint32_t));
    if (!(im->data))
      {
         __imlib_FreeImage(im);
@@ -2970,7 +2970,7 @@ imlib_rotate_image_from_buffer(double angle, Imlib_Image source_image)
 
 #if 0                           /* Not necessary 'cause destination is context */
    im = __imlib_CreateImage(sz, sz, NULL);
-   im->data = calloc(sz * sz, sizeof(DATA32));
+   im->data = calloc(sz * sz, sizeof(uint32_t));
    if (!(im->data))
      {
         __imlib_FreeImage(im);
@@ -3329,7 +3329,7 @@ imlib_image_clear(void)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_DirtyImage(im);
-   memset(im->data, 0, im->w * im->h * sizeof(DATA32));
+   memset(im->data, 0, im->w * im->h * sizeof(uint32_t));
 }
 
 EAPI void
@@ -3337,7 +3337,7 @@ imlib_image_clear_color(int r, int g, int b, int a)
 {
    ImlibImage         *im;
    int                 i, max;
-   DATA32              col;
+   uint32_t            col;
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);

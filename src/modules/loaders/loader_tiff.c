@@ -1,7 +1,6 @@
 #include "loader_common.h"
 
 #include <setjmp.h>
-#include <stdint.h>
 #include <tiffio.h>
 
 /* This is a wrapper data structure for TIFFRGBAImage, so that data can be */
@@ -23,7 +22,7 @@ raster(TIFFRGBAImage_Extra * img, uint32_t * rast,
    uint32_t            image_width, image_height;
    uint32_t           *pixel, pixel_value;
    uint32_t            i, j, k;
-   DATA32             *buffer_pixel, *buffer = img->image->data;
+   uint32_t           *buffer_pixel, *buffer = img->image->data;
    int                 alpha_premult;
    int                 a, r, g, b;
 
@@ -366,7 +365,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    int                 rc;
    TIFF               *tif = NULL;
    uint8_t            *buf = NULL;
-   DATA32              pixel, *data = im->data;
+   uint32_t            pixel, *data = im->data;
    double              alpha_factor;
    int                 x, y;
    uint8_t             r, g, b, a = 0;

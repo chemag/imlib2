@@ -27,7 +27,7 @@ load2(ImlibImage * im, int load_data)
    struct heif_image_handle *img_handle = NULL;
    struct heif_image  *img_data = NULL;
    struct heif_decoding_options *decode_opts = NULL;
-   DATA32             *ptr;
+   uint32_t           *ptr;
    const uint8_t      *img_plane = NULL;
 
    rc = LOAD_FAIL;

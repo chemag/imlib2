@@ -53,7 +53,7 @@ test_scale(int no)
    h = imlib_image_get_height();
 
    data = (unsigned char *)imlib_image_get_data_for_reading_only();
-   crc = crc32(0, data, w * h * sizeof(DATA32));
+   crc = crc32(0, data, w * h * sizeof(uint32_t));
    EXPECT_EQ(crc, ptd->crcs[0]);
 
    for (i = 0; i < 4; i++)
@@ -70,7 +70,7 @@ test_scale(int no)
         h = imlib_image_get_height();
 
         data = (unsigned char *)imlib_image_get_data_for_reading_only();
-        crc = crc32(0, data, w * h * sizeof(DATA32));
+        crc = crc32(0, data, w * h * sizeof(uint32_t));
         EXPECT_EQ(crc, ptd->crcs[i]);
 
         snprintf(fileo, sizeof(fileo), "%s/scale-%s-%dx%d.%s",

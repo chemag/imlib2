@@ -98,7 +98,7 @@ test_rotate(int no, int aa)
            D("Error %d saving '%s'\n", err, fileo);
 
         data = (unsigned char *)imlib_image_get_data_for_reading_only();
-        crc = crc32(0, data, wo * ho * sizeof(DATA32));
+        crc = crc32(0, data, wo * ho * sizeof(uint32_t));
         EXPECT_EQ(crc, ptd->tv[i].crc[ic]);
 
         imlib_context_set_image(imo);

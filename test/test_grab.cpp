@@ -173,7 +173,7 @@ static void
 _test_grab_1(int w, int h, int x0, int y0)
 {
    Imlib_Image         im;
-   DATA32             *dptr, pix, col;
+   uint32_t           *dptr, pix, col;
    int                 x, y, err;
    int                 xs, ys, ws, hs;
    char                buf[128];

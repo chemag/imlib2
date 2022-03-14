@@ -274,11 +274,11 @@ scalecmap(ILBM * ilbm)
 }
 
 /*------------------------------------------------------------------------------
- * Deplanes and converts an array of bitplanes to a single scanline of DATA32
- * (unsigned int) values. DATA32 is ARGB.
+ * Deplanes and converts an array of bitplanes to a single scanline of uint32_t
+ * (unsigned int) values. uint32_t is ARGB.
  *------------------------------------------------------------------------------*/
 static void
-deplane(DATA32 * row, int w, ILBM * ilbm, unsigned char *plane[])
+deplane(uint32_t * row, int w, ILBM * ilbm, unsigned char *plane[])
 {
    unsigned int        l, r, g, b, a;
    int                 i, o, x;

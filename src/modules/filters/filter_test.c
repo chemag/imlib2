@@ -39,9 +39,9 @@ exec(char *filter, void *im, IFunctionParam * params)
    if (strcmp(filter, "tint") == 0)
      {
         Imlib_Color_Modifier cm;
-        DATA8               atab[256];
+        uint8_t             atab[256];
         int                 x = 0, y = 0, w = 0, h = 0;
-        DATA8               r = 255, b = 255, g = 255, a = 255;
+        uint8_t             r = 255, b = 255, g = 255, a = 255;
 
 /*     
       printf( "filter_test.c: tint called\n" );
@@ -53,14 +53,14 @@ exec(char *filter, void *im, IFunctionParam * params)
 
         for (ptr = params; ptr; ptr = ptr->next)
           {
-             ASSIGN_DATA8("red", r);
-             ASSIGN_DATA8("blue", b);
-             ASSIGN_DATA8("green", g);
+             ASSIGN_uint8_t("red", r);
+             ASSIGN_uint8_t("blue", b);
+             ASSIGN_uint8_t("green", g);
              ASSIGN_INT("x", x);
              ASSIGN_INT("y", y);
              ASSIGN_INT("w", w);
              ASSIGN_INT("h", h);
-             ASSIGN_DATA8("alpha", a);
+             ASSIGN_uint8_t("alpha", a);
           }
 /*
       printf( "Using values red=%d,blue=%d,green=%d,x=%d,y=%d,height=%d,width=%d,alpha=%d\n", r,b,g,x,y,w,h,a );

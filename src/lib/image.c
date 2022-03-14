@@ -35,7 +35,7 @@ static ImlibImage  *images = NULL;
 
 static int          cache_size = 4096 * 1024;
 
-__EXPORT__ DATA32  *
+__EXPORT__ uint32_t *
 __imlib_AllocateData(ImlibImage * im)
 {
    int                 w = im->w;
@@ -45,9 +45,9 @@ __imlib_AllocateData(ImlibImage * im)
       return NULL;
 
    if (im->data_memory_func)
-      im->data = im->data_memory_func(NULL, w * h * sizeof(DATA32));
+      im->data = im->data_memory_func(NULL, w * h * sizeof(uint32_t));
    else
-      im->data = malloc(w * h * sizeof(DATA32));
+      im->data = malloc(w * h * sizeof(uint32_t));
 
    return im->data;
 }
@@ -58,7 +58,7 @@ __imlib_FreeData(ImlibImage * im)
    if (im->data)
      {
         if (im->data_memory_func)
-           im->data_memory_func(im->data, im->w * im->h * sizeof(DATA32));
+           im->data_memory_func(im->data, im->w * im->h * sizeof(uint32_t));
         else
            free(im->data);
 
@@ -74,7 +74,7 @@ __imlib_ReplaceData(ImlibImage * im, unsigned int *new_data)
    if (im->data)
      {
         if (im->data_memory_func)
-           im->data_memory_func(im->data, im->w * im->h * sizeof(DATA32));
+           im->data_memory_func(im->data, im->w * im->h * sizeof(uint32_t));
         else
            free(im->data);
      }
@@ -196,7 +196,7 @@ __imlib_CurrentCacheSize(void)
                }
              /* it's valid but has 0 ref's - append to cache size count */
              else
-                current_cache += im->w * im->h * sizeof(DATA32);
+                current_cache += im->w * im->h * sizeof(uint32_t);
           }
      }
 
@@ -267,7 +267,7 @@ __imlib_GetCacheSize(void)
 /* create a new image struct from data passed that is wize w x h then return */
 /* a pointer to that image sturct */
 ImlibImage         *
-__imlib_CreateImage(int w, int h, DATA32 * data)
+__imlib_CreateImage(int w, int h, uint32_t * data)
 {
    ImlibImage         *im;
 

@@ -83,7 +83,7 @@ TEST(LOAD2, load_1)
         data = (unsigned char *)imlib_image_get_data();
         w = imlib_image_get_width();
         h = imlib_image_get_height();
-        crc = crc32(0, data, w * h * sizeof(DATA32));
+        crc = crc32(0, data, w * h * sizeof(uint32_t));
         EXPECT_EQ(crc, tii[i].crc);
      }
 }

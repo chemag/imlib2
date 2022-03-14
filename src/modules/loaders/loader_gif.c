@@ -5,11 +5,11 @@
 #define DBG_PFX "LDR-gif"
 
 static void
-make_colormap(DATA32 * cmi, ColorMapObject * cmg, int bg, int tr)
+make_colormap(uint32_t * cmi, ColorMapObject * cmg, int bg, int tr)
 {
    int                 i, r, g, b;
 
-   memset(cmi, 0, 256 * sizeof(DATA32));
+   memset(cmi, 0, 256 * sizeof(uint32_t));
    if (!cmg)
       return;
 
@@ -30,7 +30,7 @@ int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   DATA32             *ptr;
+   uint32_t           *ptr;
    GifFileType        *gif;
    GifRowType         *rows;
    GifRecordType       rec;
@@ -38,7 +38,7 @@ load2(ImlibImage * im, int load_data)
    int                 i, j, bg, bits;
    int                 transp;
    int                 fd;
-   DATA32              colormap[256];
+   uint32_t            colormap[256];
    int                 fcount, frame, multiframe;
 
    fd = dup(fileno(im->fp));

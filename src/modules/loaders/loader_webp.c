@@ -87,7 +87,7 @@ load2(ImlibImage * im, int load_data)
 
    if (WebPDecodeBGRAInto
        (iter.fragment.bytes, iter.fragment.size, (uint8_t *) im->data,
-        sizeof(DATA32) * im->w * im->h, im->w * 4) == NULL)
+        sizeof(uint32_t) * im->w * im->h, im->w * 4) == NULL)
       goto quit;
 
    if (im->lc)
