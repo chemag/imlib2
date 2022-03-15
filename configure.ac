@@ -256,9 +256,9 @@ data/Makefile
 data/fonts/Makefile
 data/images/Makefile
 doc/Makefile
-test/Makefile
 README
 ])
+AM_COND_IF([SRC_IS_GIT], [ AC_CONFIG_FILES([test/Makefile]) ])
 AC_OUTPUT
 
 #####################################################################
