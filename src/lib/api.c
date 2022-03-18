@@ -188,7 +188,7 @@ imlib_context_new(void)
 
    *context = ctx_default;
 
-   return (Imlib_Context) context;
+   return context;
 }
 
 /* frees the given context if it doesn't have any reference anymore. The
@@ -248,7 +248,7 @@ imlib_context_pop(void)
 EAPI                Imlib_Context
 imlib_context_get(void)
 {
-   return (Imlib_Context) ctx;
+   return ctx;
 }
 
 /* context setting/getting functions */
@@ -736,7 +736,7 @@ imlib_load_image(const char *file)
 
    im = __imlib_LoadImage(file, &ila);
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -749,7 +749,7 @@ imlib_load_image_immediately(const char *file)
 
    im = __imlib_LoadImage(file, &ila);
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -762,7 +762,7 @@ imlib_load_image_without_cache(const char *file)
 
    im = __imlib_LoadImage(file, &ila);
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -775,7 +775,7 @@ imlib_load_image_immediately_without_cache(const char *file)
 
    im = __imlib_LoadImage(file, &ila);
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -798,7 +798,7 @@ imlib_load_image_fd(int fd, const char *file)
         close(fd);
      }
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -820,14 +820,14 @@ imlib_load_image_with_error_return(const char *file,
 EAPI                Imlib_Image
 imlib_load_image_frame(const char *file, int frame)
 {
-   ImlibImage         *im;
+   Imlib_Image         im;
    ImlibLoadArgs       ila = { ILA0(ctx, 1, 0),.frame = frame };
 
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
    im = __imlib_LoadImage(file, &ila);
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI void
@@ -898,7 +898,7 @@ imlib_image_get_filename(void)
    CHECK_PARAM_POINTER_RETURN("image", ctx->image, 0);
    CAST_IMAGE(im, ctx->image);
    /* strdup() the returned value if you want to alter it! */
-   return (const char *)(im->file);
+   return im->file;
 }
 
 EAPI DATA32        *
@@ -1194,7 +1194,7 @@ imlib_create_image(int width, int height)
       return NULL;
    data = malloc(width * height * sizeof(DATA32));
    if (data)
-      return (Imlib_Image) __imlib_CreateImage(width, height, data);
+      return __imlib_CreateImage(width, height, data);
    return NULL;
 }
 
@@ -1209,7 +1209,7 @@ imlib_create_image_using_data(int width, int height, DATA32 * data)
    im = __imlib_CreateImage(width, height, data);
    if (im)
       IM_FLAG_SET(im, F_DONT_FREE_DATA);
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -1225,7 +1225,7 @@ EAPI                Imlib_Image
    if (im)
       im->data_memory_func = func;
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -1243,7 +1243,7 @@ imlib_create_image_using_copied_data(int width, int height, DATA32 * data)
    if (data)
      {
         memcpy(im->data, data, width * height * sizeof(DATA32));
-        return (Imlib_Image) im;
+        return im;
      }
    else
       __imlib_FreeImage(im);
@@ -1281,7 +1281,7 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
         im = NULL;
      }
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -1297,7 +1297,7 @@ imlib_create_image_from_ximage(XImage * image, XImage * mask, int x, int y,
    __imlib_GrabXImageToRGBA(im->data, 0, 0, width, height,
                             ctx->display, image, mask, ctx->visual,
                             ctx->depth, x, y, width, height, need_to_grab_x);
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -1332,7 +1332,7 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
 
    IM_FLAG_UPDATE(im, F_HAS_ALPHA, domask);
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI char
@@ -1435,7 +1435,7 @@ imlib_clone_image(void)
       im->format = strdup(im_old->format);
    if (im_old->file)
       im->file = strdup(im_old->file);
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -1473,7 +1473,7 @@ imlib_create_cropped_image(int x, int y, int width, int height)
                                   ctx->cliprect.x, ctx->cliprect.y,
                                   ctx->cliprect.w, ctx->cliprect.h);
      }
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -1517,7 +1517,7 @@ imlib_create_cropped_scaled_image(int source_x, int source_y,
                                   ctx->cliprect.x, ctx->cliprect.y,
                                   ctx->cliprect.w, ctx->cliprect.h);
      }
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Updates
@@ -1526,7 +1526,7 @@ imlib_updates_clone(Imlib_Updates updates)
    ImlibUpdate        *u;
 
    u = (ImlibUpdate *) updates;
-   return (Imlib_Updates) __imlib_DupUpdates(u);
+   return __imlib_DupUpdates(u);
 }
 
 EAPI                Imlib_Updates
@@ -1535,7 +1535,7 @@ imlib_update_append_rect(Imlib_Updates updates, int x, int y, int w, int h)
    ImlibUpdate        *u;
 
    u = (ImlibUpdate *) updates;
-   return (Imlib_Updates) __imlib_AddUpdate(u, x, y, w, h);
+   return __imlib_AddUpdate(u, x, y, w, h);
 }
 
 EAPI                Imlib_Updates
@@ -1544,7 +1544,7 @@ imlib_updates_merge(Imlib_Updates updates, int w, int h)
    ImlibUpdate        *u;
 
    u = (ImlibUpdate *) updates;
-   return (Imlib_Updates) __imlib_MergeUpdate(u, w, h, 0);
+   return __imlib_MergeUpdate(u, w, h, 0);
 }
 
 EAPI                Imlib_Updates
@@ -1553,7 +1553,7 @@ imlib_updates_merge_for_rendering(Imlib_Updates updates, int w, int h)
    ImlibUpdate        *u;
 
    u = (ImlibUpdate *) updates;
-   return (Imlib_Updates) __imlib_MergeUpdate(u, w, h, 3);
+   return __imlib_MergeUpdate(u, w, h, 3);
 }
 
 EAPI void
@@ -1571,7 +1571,7 @@ imlib_updates_get_next(Imlib_Updates updates)
    ImlibUpdate        *u;
 
    u = (ImlibUpdate *) updates;
-   return (Imlib_Updates) (u->next);
+   return u->next;
 }
 
 EAPI void
@@ -1640,7 +1640,7 @@ imlib_render_image_updates_on_drawable(Imlib_Updates updates, int x, int y)
 EAPI                Imlib_Updates
 imlib_updates_init(void)
 {
-   return (Imlib_Updates) NULL;
+   return NULL;
 }
 
 EAPI                Imlib_Updates
@@ -1652,9 +1652,9 @@ imlib_updates_append_updates(Imlib_Updates updates,
    u = (ImlibUpdate *) updates;
    uu = (ImlibUpdate *) appended_updates;
    if (!uu)
-      return (Imlib_Updates) u;
+      return u;
    if (!u)
-      return (Imlib_Updates) uu;
+      return uu;
    while (u)
      {
         if (!(u->next))
@@ -1664,7 +1664,7 @@ imlib_updates_append_updates(Imlib_Updates updates,
           }
         u = u->next;
      }
-   return (Imlib_Updates) u;
+   return u;
 }
 
 EAPI void
@@ -2266,7 +2266,7 @@ imlib_get_maximum_font_descent(void)
 EAPI                Imlib_Color_Modifier
 imlib_create_color_modifier(void)
 {
-   return (Imlib_Color_Modifier) __imlib_CreateCmod();
+   return __imlib_CreateCmod();
 }
 
 EAPI void
@@ -2389,13 +2389,12 @@ imlib_image_draw_pixel(int x, int y, char make_updates)
    if (__imlib_LoadImageData(im))
       return NULL;
    __imlib_DirtyImage(im);
-   return (Imlib_Updates) __imlib_Point_DrawToImage(x, y, ctx->pixel, im,
-                                                    ctx->cliprect.x,
-                                                    ctx->cliprect.y,
-                                                    ctx->cliprect.w,
-                                                    ctx->cliprect.h,
-                                                    ctx->operation, ctx->blend,
-                                                    make_updates);
+   return __imlib_Point_DrawToImage(x, y, ctx->pixel, im,
+                                    ctx->cliprect.x,
+                                    ctx->cliprect.y,
+                                    ctx->cliprect.w,
+                                    ctx->cliprect.h,
+                                    ctx->operation, ctx->blend, make_updates);
 }
 
 EAPI                Imlib_Updates
@@ -2408,14 +2407,13 @@ imlib_image_draw_line(int x1, int y1, int x2, int y2, char make_updates)
    if (__imlib_LoadImageData(im))
       return NULL;
    __imlib_DirtyImage(im);
-   return (Imlib_Updates) __imlib_Line_DrawToImage(x1, y1, x2, y2, ctx->pixel,
-                                                   im, ctx->cliprect.x,
-                                                   ctx->cliprect.y,
-                                                   ctx->cliprect.w,
-                                                   ctx->cliprect.h,
-                                                   ctx->operation, ctx->blend,
-                                                   ctx->anti_alias,
-                                                   make_updates);
+   return __imlib_Line_DrawToImage(x1, y1, x2, y2, ctx->pixel,
+                                   im, ctx->cliprect.x,
+                                   ctx->cliprect.y,
+                                   ctx->cliprect.w,
+                                   ctx->cliprect.h,
+                                   ctx->operation, ctx->blend,
+                                   ctx->anti_alias, make_updates);
 }
 
 EAPI void
@@ -2542,7 +2540,7 @@ imlib_image_copy_rect(int x, int y, int width, int height, int new_x, int new_y)
 EAPI                Imlib_Color_Range
 imlib_create_color_range(void)
 {
-   return (Imlib_Color_Range) __imlib_CreateRange();
+   return __imlib_CreateRange();
 }
 
 EAPI void
@@ -2779,37 +2777,37 @@ imlib_image_remove_and_free_attached_data_value(const char *key)
 }
 
 EAPI void
-imlib_save_image(const char *filename)
+imlib_save_image(const char *file)
 {
    ImlibImage         *im;
 
    CHECK_PARAM_POINTER("image", ctx->image);
-   CHECK_PARAM_POINTER("filename", filename);
+   CHECK_PARAM_POINTER("file", file);
    CAST_IMAGE(im, ctx->image);
 
    if (__imlib_LoadImageData(im))
       return;
 
-   __imlib_SaveImage(im, filename, (ImlibProgressFunction) ctx->progress_func,
+   __imlib_SaveImage(im, file, (ImlibProgressFunction) ctx->progress_func,
                      ctx->progress_granularity, NULL);
 }
 
 EAPI void
-imlib_save_image_with_error_return(const char *filename,
+imlib_save_image_with_error_return(const char *file,
                                    Imlib_Load_Error * error_return)
 {
    ImlibImage         *im;
    int                 er;
 
    CHECK_PARAM_POINTER("image", ctx->image);
-   CHECK_PARAM_POINTER("filename", filename);
+   CHECK_PARAM_POINTER("file", file);
    CHECK_PARAM_POINTER("error_return", error_return);
    CAST_IMAGE(im, ctx->image);
 
    if (__imlib_LoadImageData(im))
       return;
 
-   __imlib_SaveImage(im, filename, (ImlibProgressFunction) ctx->progress_func,
+   __imlib_SaveImage(im, file, (ImlibProgressFunction) ctx->progress_func,
                      ctx->progress_granularity, &er);
    *error_return = er;
 }
@@ -2860,7 +2858,7 @@ imlib_create_rotated_image(double angle)
      }
    IM_FLAG_SET(im, F_HAS_ALPHA);
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 void
@@ -3043,7 +3041,7 @@ imlib_image_filter(void)
 EAPI                Imlib_Filter
 imlib_create_filter(int initsize)
 {
-   return (Imlib_Filter) __imlib_CreateFilter(initsize);
+   return __imlib_CreateFilter(initsize);
 }
 
 EAPI void
@@ -3152,7 +3150,7 @@ imlib_apply_filter(const char *script, ...)
 EAPI                ImlibPolygon
 imlib_polygon_new(void)
 {
-   return (ImlibPolygon) __imlib_polygon_new();
+   return __imlib_polygon_new();
 }
 
 EAPI void
