@@ -675,7 +675,6 @@ EAPI void           imlib_context_set_cliprect(int x, int y, int w, int h);
  */
 EAPI void           imlib_context_get_cliprect(int *x, int *y, int *w, int *h);
 
-
 /**
  * Return the current size of the image cache in bytes
  *
@@ -816,6 +815,25 @@ EAPI Imlib_Image    imlib_load_image_immediately_without_cache(const char
 EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
                                                        Imlib_Load_Error *
                                                        error_return);
+
+/**
+ * Load an image from file with error return
+ *
+ * The image is loaded without deferred image data decoding.
+ *
+ * On error @p error_return is set to the detail of the error.
+ * error values:
+ *     0: Success
+ *   > 0: Regular errnos
+ *   < 0: IMLIB_ERR_... values, see above
+ *
+ * @param file          File name
+ * @param error_return  The returned error
+ *
+ * @return Image handle (NULL on failure)
+ */
+EAPI Imlib_Image    imlib_load_image_with_errno_return(const char *file,
+                                                       int *error_return);
 
 /**
  * Read an image from file descriptor
@@ -2553,6 +2571,22 @@ EAPI void           imlib_save_image_with_error_return(const char *filename,
                                                        Imlib_Load_Error *
                                                        error_return);
 
+/**
+ * Save image to file with error return
+ *
+ * Works the same way imlib_save_image() works, but will set the
+ * @p error_return to an error value if the save fails.
+ * error values:
+ *     0: Success
+ *   > 0: Regular errnos
+ *   < 0: IMLIB_ERR_... values, see above
+ *
+ * @param filename      The file name
+ * @param error_return  The returned error
+ */
+EAPI void           imlib_save_image_with_errno_return(const char *filename,
+                                                       int *error_return);
+
 /*--------------------------------
  * Image rotation/skewing
  */
@@ -2824,6 +2858,18 @@ typedef struct {
 EAPI Imlib_Image    imlib_load_image_frame(const char *file, int frame);
 
 EAPI void           imlib_image_get_frame_info(Imlib_Frame_Info * info);
+
+/**
+ * Return string describing error code
+ *
+ * @p err must be a value returned by imlib_load/save_image_with_errno_return().
+ * The returned string must not be modified or freed.
+ *
+ * @param err 		The error code
+ *
+ * @return String describing the error code
+ */
+EAPI const char    *imlib_strerror(int err);
 
 /*--------------------------------
  * Deprecated functionality

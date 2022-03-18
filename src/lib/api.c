@@ -844,6 +844,19 @@ imlib_load_image_with_error_return(const char *file,
 }
 
 EAPI                Imlib_Image
+imlib_load_image_with_errno_return(const char *file, int *error_return)
+{
+   Imlib_Image         im;
+   int                 err = 0;
+
+   im = _imlib_load_image_immediately(file, &err);
+   if (error_return)
+      *error_return = err;
+
+   return im;
+}
+
+EAPI                Imlib_Image
 imlib_load_image_fd(int fd, const char *file)
 {
    Imlib_Image         im;
@@ -2862,6 +2875,17 @@ imlib_save_image_with_error_return(const char *file,
       *error_return = __imlib_ErrorFromErrno(err, 1);
 }
 
+EAPI void
+imlib_save_image_with_errno_return(const char *file, int *error_return)
+{
+   int                 err = 0;
+
+   _imlib_save_image(file, &err);
+
+   if (error_return)
+      *error_return = err;
+}
+
 EAPI                Imlib_Image
 imlib_create_rotated_image(double angle)
 {
@@ -3325,4 +3349,41 @@ imlib_image_clear_color(int r, int g, int b, int a)
    col = PIXEL_ARGB(a, r, g, b);
    for (i = 0; i < max; i++)
       im->data[i] = col;
+}
+
+EAPI const char    *
+imlib_strerror(int err)
+{
+   const char         *str;
+
+   if (err >= 0)
+     {
+        str = strerror(err);
+     }
+   else
+     {
+        switch (err)
+          {
+          default:             /* Should not happen */
+             str = "Imlib2: Unknown error";
+             break;
+          case IMLIB_ERR_INTERNAL:     /* Should not happen */
+             str = "Imlib2: Internal error";
+             break;
+          case IMLIB_ERR_NO_LOADER:
+             str = "Imlib2: No loader for file format";
+             break;
+          case IMLIB_ERR_NO_SAVER:
+             str = "Imlib2: No saver for file format";
+             break;
+          case IMLIB_ERR_BAD_IMAGE:
+             str = "Imlib2: Invalid image file";
+             break;
+          case IMLIB_ERR_BAD_FRAME:
+             str = "Imlib2: Requested frame not in image";
+             break;
+          }
+     }
+
+   return str;
 }
