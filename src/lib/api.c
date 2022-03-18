@@ -2783,10 +2783,11 @@ imlib_image_remove_and_free_attached_data_value(const char *key)
    __imlib_FreeTag(im, t);
 }
 
-EAPI void
-imlib_save_image(const char *file)
+static void
+_imlib_save_image(const char *file, int *err)
 {
    ImlibImage         *im;
+   ImlibLoadArgs       ila = { ILA0(ctx, 0, 0) };
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CHECK_PARAM_POINTER("file", file);
@@ -2795,28 +2796,27 @@ imlib_save_image(const char *file)
    if (__imlib_LoadImageData(im))
       return;
 
-   __imlib_SaveImage(im, file, (ImlibProgressFunction) ctx->progress_func,
-                     ctx->progress_granularity, NULL);
+   __imlib_SaveImage(im, file, &ila);
+   *err = ila.err;
+}
+
+EAPI void
+imlib_save_image(const char *file)
+{
+   int                 err;
+
+   _imlib_save_image(file, &err);
 }
 
 EAPI void
 imlib_save_image_with_error_return(const char *file,
                                    Imlib_Load_Error * error_return)
 {
-   ImlibImage         *im;
-   int                 er;
+   int                 err = 0;
 
-   CHECK_PARAM_POINTER("image", ctx->image);
-   CHECK_PARAM_POINTER("file", file);
-   CHECK_PARAM_POINTER("error_return", error_return);
-   CAST_IMAGE(im, ctx->image);
+   _imlib_save_image(file, &err);
 
-   if (__imlib_LoadImageData(im))
-      return;
-
-   __imlib_SaveImage(im, file, (ImlibProgressFunction) ctx->progress_func,
-                     ctx->progress_granularity, &er);
-   *error_return = er;
+   *error_return = err;
 }
 
 EAPI                Imlib_Image

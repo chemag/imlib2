@@ -761,9 +761,7 @@ __imlib_GetKey(const ImlibImage * im)
 }
 
 void
-__imlib_SaveImage(ImlibImage * im, const char *file,
-                  ImlibProgressFunction progress, char progress_granularity,
-                  int *er)
+__imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
 {
    ImlibLoader        *l;
    char                e, *pfile;
@@ -771,8 +769,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
 
    if (!file)
      {
-        if (er)
-           *er = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
+        ila->err = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
         return;
      }
 
@@ -781,20 +778,19 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
    /* no loader - abort */
    if (!l)
      {
-        if (er)
-           *er = IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
+        ila->err = IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
         return;
      }
 
-   if (progress)
-      __imlib_LoadCtxInit(im, &ilc, progress, progress_granularity);
+   if (ila->pfunc)
+      __imlib_LoadCtxInit(im, &ilc, ila->pfunc, ila->pgran);
 
    /* set the filename to the user supplied one */
    pfile = im->real_file;
    im->real_file = strdup(file);
 
    /* call the saver */
-   e = l->save(im, progress, progress_granularity);
+   e = l->save(im, ila->pfunc, ila->pgran);
 
    /* set the filename back to the laoder image filename */
    free(im->real_file);
@@ -802,6 +798,5 @@ __imlib_SaveImage(ImlibImage * im, const char *file,
 
    im->lc = NULL;
 
-   if (er)
-      *er = __imlib_ErrorFromErrno(e > 0 ? 0 : errno, 1);
+   ila->err = __imlib_ErrorFromErrno(e > 0 ? 0 : errno, 1);
 }

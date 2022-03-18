@@ -93,8 +93,7 @@ int                 __imlib_LoadImageData(ImlibImage * im);
 void                __imlib_DirtyImage(ImlibImage * im);
 void                __imlib_FreeImage(ImlibImage * im);
 void                __imlib_SaveImage(ImlibImage * im, const char *file,
-                                      ImlibProgressFunction progress,
-                                      char progress_granularity, int *er);
+                                      ImlibLoadArgs * ila);
 
 DATA32             *__imlib_AllocateData(ImlibImage * im);
 void                __imlib_FreeData(ImlibImage * im);
