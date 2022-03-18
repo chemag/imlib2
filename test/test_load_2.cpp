@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "config.h"
+#define IMLIB2_DEPRECATED       // Suppress deprecation warnings
 #include <Imlib2.h>
 
 #include <fcntl.h>

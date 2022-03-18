@@ -30,10 +30,12 @@
 #endif
 #endif
 
+#ifndef IMLIB2_DEPRECATED
 #ifdef __GNUC__
 #define IMLIB2_DEPRECATED __attribute__((deprecated))
 #else
 #define IMLIB2_DEPRECATED
+#endif
 #endif
 
 #include <stddef.h>
@@ -74,26 +76,6 @@ typedef enum {
    IMLIB_TEXT_TO_UP = 3,
    IMLIB_TEXT_TO_ANGLE = 4
 } Imlib_Text_Direction;
-
-typedef enum {
-   IMLIB_LOAD_ERROR_NONE,
-   IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST,
-   IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY,
-   IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ,
-   IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT,
-   IMLIB_LOAD_ERROR_PATH_TOO_LONG,
-   IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT,
-   IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY,
-   IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE,
-   IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS,
-   IMLIB_LOAD_ERROR_OUT_OF_MEMORY,
-   IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS,
-   IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE,
-   IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE,
-   IMLIB_LOAD_ERROR_UNKNOWN,
-   IMLIB_LOAD_ERROR_IMAGE_READ,
-   IMLIB_LOAD_ERROR_IMAGE_FRAME
-} Imlib_Load_Error;
 
 #define IMLIB_ERR_INTERNAL      -1      /* Internal error (should not happen) */
 #define IMLIB_ERR_NO_LOADER     -2      /* No loader for file format */
@@ -806,22 +788,6 @@ EAPI Imlib_Image    imlib_load_image_immediately_without_cache(const char
  * The image is loaded without deferred image data decoding.
  *
  * On error @p error_return is set to the detail of the error.
- *
- * @param file          File name
- * @param error_return  The returned error
- *
- * @return Image handle (NULL on failure)
- */
-EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
-                                                       Imlib_Load_Error *
-                                                       error_return);
-
-/**
- * Load an image from file with error return
- *
- * The image is loaded without deferred image data decoding.
- *
- * On error @p error_return is set to the detail of the error.
  * error values:
  *     0: Success
  *   > 0: Regular errnos
@@ -1314,7 +1280,8 @@ EAPI Imlib_Image    imlib_create_image_using_data(int width, int height,
  * @return Image handle (NULL on failure)
  */
 EAPI Imlib_Image    imlib_create_image_using_data_and_memory_function
-   (int width, int height, DATA32 * data, Imlib_Image_Data_Memory_Function func);
+   (int width, int height, DATA32 * data,
+    Imlib_Image_Data_Memory_Function func);
 
 /**
  * Create a new image using given pixel data
@@ -2563,19 +2530,6 @@ EAPI void           imlib_save_image(const char *filename);
  *
  * Works the same way imlib_save_image() works, but will set the
  * @p error_return to an error value if the save fails.
- *
- * @param filename      The file name
- * @param error_return  The returned error
- */
-EAPI void           imlib_save_image_with_error_return(const char *filename,
-                                                       Imlib_Load_Error *
-                                                       error_return);
-
-/**
- * Save image to file with error return
- *
- * Works the same way imlib_save_image() works, but will set the
- * @p error_return to an error value if the save fails.
  * error values:
  *     0: Success
  *   > 0: Regular errnos
@@ -2874,6 +2828,58 @@ EAPI const char    *imlib_strerror(int err);
 /*--------------------------------
  * Deprecated functionality
  */
+/* *INDENT-OFF* */
+
+typedef enum {
+   IMLIB_LOAD_ERROR_NONE,
+   IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST,
+   IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY,
+   IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ,
+   IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT,
+   IMLIB_LOAD_ERROR_PATH_TOO_LONG,
+   IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT,
+   IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY,
+   IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE,
+   IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS,
+   IMLIB_LOAD_ERROR_OUT_OF_MEMORY,
+   IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS,
+   IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE,
+   IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE,
+   IMLIB_LOAD_ERROR_UNKNOWN,
+   IMLIB_LOAD_ERROR_IMAGE_READ,
+   IMLIB_LOAD_ERROR_IMAGE_FRAME
+} Imlib_Load_Error;
+
+/**
+ * Load an image from file with error return
+ *
+ * The image is loaded without deferred image data decoding.
+ *
+ * On error @p error_return is set to the detail of the error.
+ *
+ * @param file          File name
+ * @param error_return  The returned error
+ *
+ * @return Image handle (NULL on failure)
+ */
+IMLIB2_DEPRECATED
+EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
+                                                       Imlib_Load_Error *
+                                                       error_return);
+
+/**
+ * Save image to file with error return
+ *
+ * Works the same way imlib_save_image() works, but will set the
+ * @p error_return to an error value if the save fails.
+ *
+ * @param filename      The file name
+ * @param error_return  The returned error
+ */
+IMLIB2_DEPRECATED
+EAPI void           imlib_save_image_with_error_return(const char *filename,
+                                                       Imlib_Load_Error *
+                                                       error_return);
 
 /** Deprecated function - hasn't done anything useful ever */
 IMLIB2_DEPRECATED
@@ -2900,7 +2906,6 @@ EAPI void           imlib_context_set_TTF_encoding(Imlib_TTF_Encoding encoding);
 IMLIB2_DEPRECATED
 EAPI Imlib_TTF_Encoding imlib_context_get_TTF_encoding(void);
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
 }
 #endif
