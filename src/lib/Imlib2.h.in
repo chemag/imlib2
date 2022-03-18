@@ -95,6 +95,12 @@ typedef enum {
    IMLIB_LOAD_ERROR_IMAGE_FRAME
 } Imlib_Load_Error;
 
+#define IMLIB_ERR_INTERNAL      -1      /* Internal error (should not happen) */
+#define IMLIB_ERR_NO_LOADER     -2      /* No loader for file format */
+#define IMLIB_ERR_NO_SAVER      -3      /* No saver for file format */
+#define IMLIB_ERR_BAD_IMAGE     -4      /* Invalid image file */
+#define IMLIB_ERR_BAD_FRAME     -5      /* Requested frame not in image */
+
 typedef struct {
    int                 left, right, top, bottom;
 } Imlib_Border;

@@ -264,43 +264,6 @@ __imlib_GetCacheSize(void)
    return cache_size;
 }
 
-static int
-__imlib_ErrorFromErrno(int err, int save)
-{
-   switch (err)
-     {
-     default:
-        return IMLIB_LOAD_ERROR_UNKNOWN;
-        /* standrad fopen() type errors translated */
-     case 0:
-        return IMLIB_LOAD_ERROR_NONE;
-     case EEXIST:
-        return IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
-     case EISDIR:
-        return IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
-     case EACCES:
-     case EROFS:
-        return (save) ? IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE :
-           IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ;
-     case ENAMETOOLONG:
-        return IMLIB_LOAD_ERROR_PATH_TOO_LONG;
-     case ENOENT:
-        return IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT;
-     case ENOTDIR:
-        return IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY;
-     case EFAULT:
-        return IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE;
-     case ELOOP:
-        return IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS;
-     case ENOMEM:
-        return IMLIB_LOAD_ERROR_OUT_OF_MEMORY;
-     case EMFILE:
-        return IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS;
-     case ENOSPC:
-        return IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE;
-     }
-}
-
 /* create a new image struct from data passed that is wize w x h then return */
 /* a pointer to that image sturct */
 ImlibImage         *
@@ -436,6 +399,28 @@ __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
    return rc;
 }
 
+static int
+__imlib_LoadErrorToErrno(int loader_ret, int save)
+{
+   switch (loader_ret)
+     {
+     default:                  /* We should not go here */
+        return IMLIB_ERR_INTERNAL;
+     case LOAD_SUCCESS:
+        return 0;
+     case LOAD_FAIL:
+        return (save) ? IMLIB_ERR_NO_SAVER : IMLIB_ERR_NO_LOADER;
+     case LOAD_OOM:
+        return ENOMEM;
+     case LOAD_BADFILE:
+        return errno;
+     case LOAD_BADIMAGE:
+        return IMLIB_ERR_BAD_IMAGE;
+     case LOAD_BADFRAME:
+        return IMLIB_ERR_BAD_FRAME;
+     }
+}
+
 ImlibImage         *
 __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 {
@@ -505,11 +490,11 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
      }
 
    if (err)
-      err = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
+      err = errno;
    else if (__imlib_StatIsDir(&st))
-      err = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
+      err = EISDIR;
    else if (st.st_size == 0)
-      err = IMLIB_LOAD_ERROR_IMAGE_READ;
+      err = IMLIB_ERR_BAD_IMAGE;
 
    if (err)
      {
@@ -535,7 +520,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 
    if (!im->fp)
      {
-        ila->err = __imlib_ErrorFromErrno(errno, 0);
+        ila->err = errno;
         __imlib_ConsumeImage(im);
         return NULL;
      }
@@ -603,7 +588,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
      case LOAD_OOM:            /* Could not allocate memory           */
      case LOAD_BADFILE:        /* File could not be accessed          */
         /* Unlikely that another loader will succeed */
-     case LOAD_BADIMAGE:       /* Image is corrupt                    */
+     case LOAD_BADIMAGE:       /* Image is invalid                    */
      case LOAD_BADFRAME:       /* Requested frame not found           */
         /* Signature was good but file was somehow not */
         break;
@@ -619,27 +604,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
      {
         /* Image loading failed.
          * Free the skeleton image struct we had and return NULL */
-        switch (loader_ret)
-          {
-          default:             /* We should not go here */
-             ila->err = IMLIB_LOAD_ERROR_UNKNOWN;
-             break;
-          case LOAD_FAIL:
-             ila->err = IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
-             break;
-          case LOAD_OOM:
-             ila->err = IMLIB_LOAD_ERROR_OUT_OF_MEMORY;
-             break;
-          case LOAD_BADFILE:
-             ila->err = IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ;
-             break;
-          case LOAD_BADIMAGE:
-             ila->err = IMLIB_LOAD_ERROR_IMAGE_READ;
-             break;
-          case LOAD_BADFRAME:
-             ila->err = IMLIB_LOAD_ERROR_IMAGE_FRAME;
-             break;
-          }
+        ila->err = __imlib_LoadErrorToErrno(loader_ret, 0);
         __imlib_ConsumeImage(im);
         return NULL;
      }
@@ -667,13 +632,11 @@ __imlib_LoadImageData(ImlibImage * im)
 
    /* Just checking - it should be impossible that loader is not set */
    if (!im->loader)
-      return IMLIB_LOAD_ERROR_UNKNOWN;
+      return IMLIB_ERR_INTERNAL;
 
    err = __imlib_LoadImageWrapper(im->loader, im, 1);
-   if (err <= LOAD_FAIL)
-      return 1;                 /* Load failed */
 
-   return 0;                    /* Ok */
+   return __imlib_LoadErrorToErrno(err, 0);
 }
 
 __EXPORT__ void
@@ -774,12 +737,13 @@ void
 __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
 {
    ImlibLoader        *l;
-   char                e, *pfile;
+   char               *pfile;
    ImlibLdCtx          ilc;
+   int                 loader_ret;
 
    if (!file)
      {
-        ila->err = IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
+        ila->err = ENOENT;
         return;
      }
 
@@ -788,7 +752,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
    /* no loader - abort */
    if (!l)
      {
-        ila->err = IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
+        ila->err = IMLIB_ERR_NO_SAVER;
         return;
      }
 
@@ -800,7 +764,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
    im->real_file = strdup(file);
 
    /* call the saver */
-   e = l->save(im, ila->pfunc, ila->pgran);
+   loader_ret = l->save(im, ila->pfunc, ila->pgran);
 
    /* set the filename back to the laoder image filename */
    free(im->real_file);
@@ -808,5 +772,5 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
 
    im->lc = NULL;
 
-   ila->err = __imlib_ErrorFromErrno(e > 0 ? 0 : errno, 1);
+   ila->err = __imlib_LoadErrorToErrno(loader_ret, 1);
 }

@@ -2,6 +2,7 @@
 #include <Imlib2.h>
 #include "common.h"
 
+#include <errno.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -139,6 +140,47 @@ int
 imlib_version(void)
 {
    return IMLIB2_VERSION;
+}
+
+static              Imlib_Load_Error
+__imlib_ErrorFromErrno(int err, int save)
+{
+   switch (err)
+     {
+     default:
+        return IMLIB_LOAD_ERROR_UNKNOWN;
+     case 0:
+        return IMLIB_LOAD_ERROR_NONE;
+     case IMLIB_ERR_NO_LOADER:
+     case IMLIB_ERR_NO_SAVER:
+        return IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT;
+     case IMLIB_ERR_BAD_IMAGE:
+        return IMLIB_LOAD_ERROR_IMAGE_READ;
+     case IMLIB_ERR_BAD_FRAME:
+        return IMLIB_LOAD_ERROR_IMAGE_FRAME;
+     case ENOENT:
+        return IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST;
+     case EISDIR:
+        return IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
+     case EACCES:
+     case EROFS:
+        return (save) ? IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE :
+           IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ;
+     case ENAMETOOLONG:
+        return IMLIB_LOAD_ERROR_PATH_TOO_LONG;
+     case ENOTDIR:
+        return IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY;
+     case EFAULT:
+        return IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE;
+     case ELOOP:
+        return IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS;
+     case ENOMEM:
+        return IMLIB_LOAD_ERROR_OUT_OF_MEMORY;
+     case EMFILE:
+        return IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS;
+     case ENOSPC:
+        return IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE;
+     }
 }
 
 /* frees the given context including all its members */
@@ -796,7 +838,7 @@ imlib_load_image_with_error_return(const char *file,
 
    im = _imlib_load_image_immediately(file, &err);
    if (error_return)
-      *error_return = (Imlib_Load_Error) err;
+      *error_return = __imlib_ErrorFromErrno(err, 0);
 
    return im;
 }
@@ -2816,7 +2858,8 @@ imlib_save_image_with_error_return(const char *file,
 
    _imlib_save_image(file, &err);
 
-   *error_return = err;
+   if (error_return)
+      *error_return = __imlib_ErrorFromErrno(err, 1);
 }
 
 EAPI                Imlib_Image
