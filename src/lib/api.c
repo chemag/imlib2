@@ -739,8 +739,8 @@ imlib_load_image(const char *file)
    return im;
 }
 
-EAPI                Imlib_Image
-imlib_load_image_immediately(const char *file)
+static              Imlib_Image
+_imlib_load_image_immediately(const char *file, int *err)
 {
    Imlib_Image         im;
    ImlibLoadArgs       ila = { ILA0(ctx, 1, 0) };
@@ -748,8 +748,17 @@ imlib_load_image_immediately(const char *file)
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
    im = __imlib_LoadImage(file, &ila);
+   *err = ila.err;
 
    return im;
+}
+
+EAPI                Imlib_Image
+imlib_load_image_immediately(const char *file)
+{
+   int                 err;
+
+   return _imlib_load_image_immediately(file, &err);
 }
 
 EAPI                Imlib_Image
@@ -779,6 +788,20 @@ imlib_load_image_immediately_without_cache(const char *file)
 }
 
 EAPI                Imlib_Image
+imlib_load_image_with_error_return(const char *file,
+                                   Imlib_Load_Error * error_return)
+{
+   Imlib_Image         im;
+   int                 err = 0;
+
+   im = _imlib_load_image_immediately(file, &err);
+   if (error_return)
+      *error_return = (Imlib_Load_Error) err;
+
+   return im;
+}
+
+EAPI                Imlib_Image
 imlib_load_image_fd(int fd, const char *file)
 {
    Imlib_Image         im;
@@ -797,22 +820,6 @@ imlib_load_image_fd(int fd, const char *file)
         im = NULL;
         close(fd);
      }
-
-   return im;
-}
-
-EAPI                Imlib_Image
-imlib_load_image_with_error_return(const char *file,
-                                   Imlib_Load_Error * error_return)
-{
-   Imlib_Image         im;
-   ImlibLoadArgs       ila = { ILA0(ctx, 1, 0) };
-
-   CHECK_PARAM_POINTER_RETURN("file", file, NULL);
-
-   im = __imlib_LoadImage(file, &ila);
-   if (error_return)
-      *error_return = (Imlib_Load_Error) ila.err;
 
    return im;
 }

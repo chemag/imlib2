@@ -796,6 +796,22 @@ EAPI Imlib_Image    imlib_load_image_immediately_without_cache(const char
                                                                *file);
 
 /**
+ * Load an image from file with error return
+ *
+ * The image is loaded without deferred image data decoding.
+ *
+ * On error @p error_return is set to the detail of the error.
+ *
+ * @param file          File name
+ * @param error_return  The returned error
+ *
+ * @return Image handle (NULL on failure)
+ */
+EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
+                                                       Imlib_Load_Error *
+                                                       error_return);
+
+/**
  * Read an image from file descriptor
  *
  * The file name @p file is only used to guess the file format.
@@ -811,22 +827,6 @@ EAPI Imlib_Image    imlib_load_image_immediately_without_cache(const char
  * @return Image handle (NULL on failure)
  */
 EAPI Imlib_Image    imlib_load_image_fd(int fd, const char *file);
-
-/**
- * Load an image from file with error return
- *
- * The image is loaded without deferred image data decoding.
- *
- * On error @p error_return is set to the detail of the error.
- *
- * @param file          File name
- * @param error_return  The returned error
- *
- * @return Image handle (NULL on failure)
- */
-EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
-                                                       Imlib_Load_Error *
-                                                       error_return);
 
 /**
  * Free the current image
