@@ -45,7 +45,7 @@ test_save(const char *file, int prog)
    char                filei[256];
    char                fileo[256];
    unsigned int        i;
-   int                 w, h;
+   int                 w, h, err;
    Imlib_Image         im, im1, im2, im3;
    Imlib_Load_Error    lerr;
 
@@ -85,10 +85,10 @@ test_save(const char *file, int prog)
         snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
                  IMG_GEN, file, w, h, pfxs[i]);
         D("Save '%s'\n", fileo);
-        imlib_save_image_with_error_return(fileo, &lerr);
-        EXPECT_EQ(lerr, 0);
-        if (lerr)
-           D("Error %d saving '%s'\n", lerr, fileo);
+        imlib_save_image_with_errno_return(fileo, &err);
+        EXPECT_EQ(err, 0);
+        if (err)
+           D("Error %d saving '%s'\n", err, fileo);
 
         imlib_context_set_image(im1);
         imlib_image_set_format(pfxs[i]);
@@ -109,10 +109,10 @@ test_save(const char *file, int prog)
         snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
                  IMG_GEN, file, w, h, pfxs[i]);
         D("Save '%s'\n", fileo);
-        imlib_save_image_with_error_return(fileo, &lerr);
-        EXPECT_EQ(lerr, 0);
-        if (lerr)
-           D("Error %d saving '%s'\n", lerr, fileo);
+        imlib_save_image_with_errno_return(fileo, &err);
+        EXPECT_EQ(err, 0);
+        if (err)
+           D("Error %d saving '%s'\n", err, fileo);
 
         imlib_context_set_image(im3);
         imlib_image_set_format(pfxs[i]);

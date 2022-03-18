@@ -3,6 +3,7 @@
 #include "config.h"
 #include <Imlib2.h>
 
+#include <errno.h>
 #include <fcntl.h>
 
 #include "test.h"
@@ -90,9 +91,9 @@ test_load(void)
         // Load files of all types
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
         D("Load '%s'\n", fileo);
-        im = imlib_load_image_with_error_return(fileo, &lerr);
+        im = imlib_load_image_with_errno_return(fileo, &err);
         EXPECT_TRUE(im);
-        EXPECT_EQ(lerr, 0);
+        EXPECT_EQ(err, 0);
         if (!im || lerr)
            D("Error %d im=%p loading '%s'\n", lerr, im, fileo);
         if (im)
@@ -112,11 +113,11 @@ test_load(void)
                   unlink(fileo);
                   symlink(filei, fileo);
                   D("Load incorrect suffix '%s'\n", fileo);
-                  im = imlib_load_image_with_error_return(fileo, &lerr);
+                  im = imlib_load_image_with_errno_return(fileo, &err);
                   EXPECT_TRUE(im);
-                  EXPECT_EQ(lerr, 0);
-                  if (!im || lerr)
-                     D("Error %d im=%p loading '%s'\n", lerr, im, fileo);
+                  EXPECT_EQ(err, 0);
+                  if (!im || err)
+                     D("Error %d im=%p loading '%s'\n", err, im, fileo);
                   if (im)
                      image_free(im);
                }
@@ -128,8 +129,13 @@ test_load(void)
         fp = fopen(fileo, "wb");
         fclose(fp);
         D("Load empty '%s'\n", fileo);
+        im = imlib_load_image_with_errno_return(fileo, &err);
+        D("  err = %d\n", err);
+        EXPECT_FALSE(im);
+        EXPECT_EQ(err, IMLIB_ERR_BAD_IMAGE);
         im = imlib_load_image_with_error_return(fileo, &lerr);
         D("  err = %d\n", lerr);
+        EXPECT_FALSE(im);
         EXPECT_EQ(lerr, IMLIB_LOAD_ERROR_IMAGE_READ);
 
         // Non-existing files of all types
@@ -137,7 +143,13 @@ test_load(void)
         unlink(fileo);
         symlink("non-existing", fileo);
         D("Load non-existing '%s'\n", fileo);
+        im = imlib_load_image_with_errno_return(fileo, &err);
+        D("  err = %d\n", err);
+        EXPECT_FALSE(im);
+        EXPECT_EQ(err, ENOENT);
         im = imlib_load_image_with_error_return(fileo, &lerr);
+        D("  err = %d\n", lerr);
+        EXPECT_FALSE(im);
         EXPECT_EQ(lerr, IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST);
 
         // Load via fd

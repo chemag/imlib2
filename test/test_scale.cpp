@@ -33,7 +33,7 @@ test_scale(int no)
    int                 w, h;
    unsigned int        i, crc;
    Imlib_Image         imi, imo;
-   Imlib_Load_Error    lerr;
+   int                 err;
    unsigned char      *data;
 
 #ifdef DO_MMX_ASM
@@ -77,10 +77,10 @@ test_scale(int no)
                  IMG_GEN, ptd->file, w, h, "png");
         imlib_image_set_format("png");
         D("Save '%s'\n", fileo);
-        imlib_save_image_with_error_return(fileo, &lerr);
-        EXPECT_EQ(lerr, 0);
-        if (lerr)
-           D("Error %d saving '%s'\n", lerr, fileo);
+        imlib_save_image_with_errno_return(fileo, &err);
+        EXPECT_EQ(err, 0);
+        if (err)
+           D("Error %d saving '%s'\n", err, fileo);
 
         imlib_context_set_image(imo);
         imlib_free_image_and_decache();

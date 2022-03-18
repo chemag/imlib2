@@ -54,7 +54,7 @@ test_rotate(int no, int aa)
    int                 wo, ho;
    unsigned int        i, ic, crc;
    Imlib_Image         imi, imo;
-   Imlib_Load_Error    lerr;
+   int                 err;
    unsigned char      *data;
 
    ptd = &td[no];
@@ -92,10 +92,10 @@ test_rotate(int no, int aa)
                  IMG_GEN, ptd->file, wo, ho, i, "png");
         imlib_image_set_format("png");
         D("Save '%s'\n", fileo);
-        imlib_save_image_with_error_return(fileo, &lerr);
-        EXPECT_EQ(lerr, 0);
-        if (lerr)
-           D("Error %d saving '%s'\n", lerr, fileo);
+        imlib_save_image_with_errno_return(fileo, &err);
+        EXPECT_EQ(err, 0);
+        if (err)
+           D("Error %d saving '%s'\n", err, fileo);
 
         data = (unsigned char *)imlib_image_get_data_for_reading_only();
         crc = crc32(0, data, wo * ho * sizeof(DATA32));

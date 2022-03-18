@@ -92,7 +92,7 @@ main(int argc, char **argv)
 {
    int                 opt;
    Imlib_Image         im;
-   Imlib_Load_Error    lerr;
+   int                 err;
    unsigned int        t0;
    char                nbuf[4096];
    int                 frame;
@@ -177,10 +177,10 @@ main(int argc, char **argv)
 
         for (cnt = 0; cnt < load_cnt; cnt++)
           {
-             lerr = 0;
+             err = 0;
 
              if (check_progress)
-                im = imlib_load_image_with_error_return(argv[0], &lerr);
+                im = imlib_load_image_with_errno_return(argv[0], &err);
              else if (load_fd)
                 im = image_load_fd(argv[0]);
              else if (load_now)
@@ -198,8 +198,8 @@ main(int argc, char **argv)
 
              if (!im)
                {
-                  fprintf(fout, "*** Error %d loading image: %s\n",
-                          lerr, argv[0]);
+                  fprintf(fout, "*** Error %d:'%s' loading image: '%s'\n",
+                          err, imlib_strerror(err), argv[0]);
                   if (break_on_error & 2)
                      goto quit;
                   goto next;
