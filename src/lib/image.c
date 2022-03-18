@@ -660,10 +660,20 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 int
 __imlib_LoadImageData(ImlibImage * im)
 {
-   if (!im->data && im->loader)
-      if (__imlib_LoadImageWrapper(im->loader, im, 1) <= LOAD_FAIL)
-         return 1;              /* Load failed */
-   return im->data == NULL;
+   int                 err;
+
+   if (im->data)
+      return 0;                 /* Ok */
+
+   /* Just checking - it should be impossible that loader is not set */
+   if (!im->loader)
+      return IMLIB_LOAD_ERROR_UNKNOWN;
+
+   err = __imlib_LoadImageWrapper(im->loader, im, 1);
+   if (err <= LOAD_FAIL)
+      return 1;                 /* Load failed */
+
+   return 0;                    /* Ok */
 }
 
 __EXPORT__ void
