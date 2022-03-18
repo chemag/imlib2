@@ -147,7 +147,7 @@ save(ImlibImage * im, ImlibProgressFunction progress, char progress_granularity)
    encoded_size = WebPEncodeBGRA((uint8_t *) im->data, im->w, im->h,
                                  im->w * 4, quality, &fdata);
 
-   if (fwrite(fdata, encoded_size, 1, f) != encoded_size)
+   if (fwrite(fdata, encoded_size, 1, f) != 1)
       goto quit;
 
    rc = LOAD_SUCCESS;
