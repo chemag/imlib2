@@ -509,7 +509,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    else if (__imlib_StatIsDir(&st))
       err = IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY;
    else if (st.st_size == 0)
-      err = IMLIB_LOAD_ERROR_UNKNOWN;
+      err = IMLIB_LOAD_ERROR_IMAGE_READ;
 
    if (err)
      {

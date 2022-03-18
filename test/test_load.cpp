@@ -130,7 +130,7 @@ test_load(void)
         D("Load empty '%s'\n", fileo);
         im = imlib_load_image_with_error_return(fileo, &lerr);
         D("  err = %d\n", lerr);
-        EXPECT_TRUE(lerr == IMLIB_LOAD_ERROR_UNKNOWN);
+        EXPECT_EQ(lerr, IMLIB_LOAD_ERROR_IMAGE_READ);
 
         // Non-existing files of all types
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_GEN, "nonex", pfxs[i]);
