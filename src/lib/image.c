@@ -425,7 +425,7 @@ ImlibImage         *
 __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 {
    ImlibImage         *im;
-   ImlibLoader        *best_loader;
+   ImlibLoader       **loaders, *best_loader, *l, *previous_l;
    int                 err, loader_ret;
    ImlibLdCtx          ilc;
    struct stat         st;
@@ -535,62 +535,71 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
         ila->immed = 1;
      }
 
-   loader_ret = LOAD_FAIL;
-
    /* take a guess by extension on the best loader to use */
    best_loader = __imlib_FindBestLoader(im->real_file, NULL, 0);
-   errno = 0;
-   if (best_loader)
-      loader_ret = __imlib_LoadImageWrapper(best_loader, im, ila->immed);
 
-   switch (loader_ret)
+   loader_ret = LOAD_FAIL;
+   loaders = NULL;
+
+   for (l = previous_l = NULL;;)
      {
-        ImlibLoader       **loaders, *l, *previous_l;
-
-     case LOAD_BREAK:          /* Break signaled by progress callback */
-     case LOAD_SUCCESS:        /* Image loaded successfully           */
-        /* Loader accepted image */
-        im->loader = best_loader;
-        break;
-
-     case LOAD_FAIL:           /* Image was not recognized by loader  */
-        loaders = __imlib_GetLoaderList();
-        errno = 0;
-        /* run through all loaders and try load until one succeeds */
-        for (l = *loaders, previous_l = NULL; l; previous_l = l, l = l->next)
+        if (l == NULL && best_loader)
           {
-             /* if its not the best loader that already failed - try load */
-             if (l == best_loader)
-                continue;
-             fflush(im->fp);
-             rewind(im->fp);
-             loader_ret = __imlib_LoadImageWrapper(l, im, ila->immed);
-             if (loader_ret > LOAD_FAIL)
-                break;
+             l = best_loader;   /* First try best_loader, if any */
           }
-
-        /* if we have a loader then its the loader that succeeded */
-        /* move the successful loader to the head of the list */
-        /* as long as it's not already at the head of the list */
-        if (l)
+        else if (!loaders)
           {
+             loaders = __imlib_GetLoaderList();
+             l = *loaders;
+             if (best_loader && l == best_loader)
+                continue;       /* Skip best_loader that already failed */
+          }
+        else
+          {
+             previous_l = l;
+             l = l->next;
+             if (best_loader && l == best_loader)
+                continue;       /* Skip best_loader that already failed */
+          }
+        if (!l)
+           break;
+
+        errno = 0;
+        loader_ret = __imlib_LoadImageWrapper(l, im, ila->immed);
+
+        switch (loader_ret)
+          {
+          case LOAD_BREAK:     /* Break signaled by progress callback */
+          case LOAD_SUCCESS:   /* Image loaded successfully           */
+             /* Loader accepted image - done */
              im->loader = l;
+
+             /* move the successful loader to the head of the list */
              if (previous_l)
                {
                   previous_l->next = l->next;
                   l->next = *loaders;
                   *loaders = l;
                }
-          }
-        break;
+             break;
 
-     default:                  /* We should not go here */
-     case LOAD_OOM:            /* Could not allocate memory           */
-     case LOAD_BADFILE:        /* File could not be accessed          */
-        /* Unlikely that another loader will succeed */
-     case LOAD_BADIMAGE:       /* Image is invalid                    */
-     case LOAD_BADFRAME:       /* Requested frame not found           */
-        /* Signature was good but file was somehow not */
+          case LOAD_FAIL:
+             /* Image was not recognized by loader - try next */
+             fflush(im->fp);
+             rewind(im->fp);
+             continue;
+
+          default:             /* We should not go here */
+          case LOAD_OOM:       /* Could not allocate memory           */
+          case LOAD_BADFILE:   /* File could not be accessed          */
+             /* Unlikely that another loader will succeed */
+          case LOAD_BADIMAGE:  /* Image is invalid                    */
+          case LOAD_BADFRAME:  /* Requested frame not found           */
+             /* Signature was good but file was somehow not */
+             break;
+          }
+
+        /* Done or don't look for other */
         break;
      }
 
