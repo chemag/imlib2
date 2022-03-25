@@ -30,7 +30,7 @@ static FILE        *fout;
    "OPTIONS:\n" \
    "  -e  : Break on error\n" \
    "  -f  : Load with imlib_load_image_fd()\n" \
-   "  -i  : Load with imlib_load_image_immediately()\n" \
+   "  -i  : Load image immediately (don't defer data loading)\n" \
    "  -n N: Repeat load N times\n" \
    "  -p  : Check that progress is called\n" \
    "  -v  : Increase verbosity\n" \
@@ -177,14 +177,12 @@ main(int argc, char **argv)
 
         for (cnt = 0; cnt < load_cnt; cnt++)
           {
-             err = 0;
+             err = -1000;
 
-             if (check_progress)
+             if (load_now || check_progress)
                 im = imlib_load_image_with_errno_return(argv[0], &err);
              else if (load_fd)
                 im = image_load_fd(argv[0]);
-             else if (load_now)
-                im = imlib_load_image_immediately(argv[0]);
              else
                {
                   frame = -1;
@@ -198,15 +196,18 @@ main(int argc, char **argv)
 
              if (!im)
                {
-                  fprintf(fout, "*** Error %d:'%s' loading image: '%s'\n",
-                          err, imlib_strerror(err), argv[0]);
+                  if (err > -1000)
+                     fprintf(fout, "*** Error %d:'%s' loading image: '%s'\n",
+                             err, imlib_strerror(err), argv[0]);
+                  else
+                     fprintf(fout, "*** Failed to load image: '%s'\n", argv[0]);
                   if (break_on_error & 2)
                      goto quit;
                   goto next;
                }
 
              imlib_context_set_image(im);
-             V2printf("Image  WxH=%dx%d\n",
+             V2printf("- Image: fmt=%s WxH=%dx%d\n", imlib_image_format(),
                       imlib_image_get_width(), imlib_image_get_height());
 
              if (!check_progress && !load_now && !load_nodata)
