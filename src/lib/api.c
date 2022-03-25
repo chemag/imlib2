@@ -23,7 +23,6 @@
 #include "rotate.h"
 #include "scale.h"
 #include "script.h"
-#include "span.h"
 #include "updates.h"
 #ifdef BUILD_X11
 #include "x11_color.h"
