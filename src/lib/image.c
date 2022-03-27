@@ -74,6 +74,77 @@ __imlib_ReplaceData(ImlibImage * im, unsigned int *new_data)
    im->data_memory_func = NULL;
 }
 
+static int
+__imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp, off_t fsize)
+{
+   struct stat         st;
+
+   if (fp)
+     {
+        fi->keep_fp = true;
+        fi->fp = fp;
+     }
+   else
+     {
+        fi->fp = fopen(fi->name, "rb");
+        if (!fi->fp)
+           return -1;
+     }
+
+   if (fi->fsize == 0)
+     {
+        if (fsize == 0)
+          {
+             __imlib_FileStat(fi->name, &st);
+             fsize = st.st_size;
+          }
+        fi->fsize = fsize;
+     }
+
+   return 0;
+}
+
+static void
+__imlib_FileContextClose(ImlibImageFileInfo * fi)
+{
+   if (!fi->keep_fp)
+     {
+        if (fi->fp)
+          {
+             fclose(fi->fp);
+             fi->fp = NULL;
+          }
+     }
+}
+
+static int
+__imlib_ImageFileContextPush(ImlibImage * im, bool load, char *file)
+{
+   ImlibImageFileInfo *fi;
+
+   fi = calloc(1, sizeof(ImlibImageFileInfo));
+   if (!fi)
+      return -1;
+
+   fi->name = file;             /* file must have been alloced, will be freed */
+
+   fi->next = im->fi;
+   im->fi = fi;
+
+   return 0;
+}
+
+static void
+__imlib_ImageFileContextPop(ImlibImage * im)
+{
+   ImlibImageFileInfo *fi = im->fi;
+
+   im->fi = fi->next;
+
+   free(fi->name);
+   free(fi);
+}
+
 /* create an image data struct and fill it in */
 static ImlibImage  *
 __imlib_ProduceImage(void)
@@ -96,13 +167,15 @@ __imlib_ConsumeImage(ImlibImage * im)
 
    __imlib_FreeAllTags(im);
 
-   if (im->real_file && im->real_file != im->file)
-      free(im->real_file);
-   free(im->file);
+   if (im->fi && im->fi->name && im->fi->name != im->file)
+      free(im->file);
    free(im->key);
    if (im->data && !IM_FLAG_ISSET(im, F_DONT_FREE_DATA))
       __imlib_FreeData(im);
    free(im->format);
+
+   if (im->fi)
+      __imlib_ImageFileContextPop(im);
 
    free(im);
 }
@@ -127,7 +200,7 @@ __imlib_FindCachedImage(const char *file, int frame)
                   im->next = images;
                   images = im;
                }
-             DP(" got %p: '%s' frame %d\n", im, im->real_file, im->frame_num);
+             DP(" got %p: '%s' frame %d\n", im, im->fi->name, im->frame_num);
              return im;
           }
      }
@@ -139,7 +212,7 @@ __imlib_FindCachedImage(const char *file, int frame)
 static void
 __imlib_AddImageToCache(ImlibImage * im)
 {
-   DP("%s: %p: '%s' frame %d\n", __func__, im, im->real_file, im->frame_num);
+   DP("%s: %p: '%s' frame %d\n", __func__, im, im->fi->name, im->frame_num);
    im->next = images;
    images = im;
 }
@@ -151,7 +224,7 @@ __imlib_RemoveImageFromCache(ImlibImage * im_del)
    ImlibImage         *im, *im_prev;
 
    im = im_del;
-   DP("%s: %p: '%s' frame %d\n", __func__, im, im->real_file, im->frame_num);
+   DP("%s: %p: '%s' frame %d\n", __func__, im, im->fi->name, im->frame_num);
 
    for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
@@ -278,7 +351,7 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
    int                 rc;
 
    DP("%s: fmt='%s' file='%s'(%s), imm=%d\n", __func__,
-      l->name, im->file, im->real_file, load_data);
+      l->name, im->file, im->fi->name, load_data);
 
 #if IMLIB2_DEBUG
    unsigned int        t0 = __imlib_time_us();
@@ -286,22 +359,10 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
 
    if (l->module->load)
      {
-        FILE               *fp = NULL;
-
-        if (!im->fp)
-          {
-             fp = im->fp = fopen(im->real_file, "rb");
-             if (!im->fp)
-                return 0;
-          }
-
         if (!im->format)
            im->format = strdup(l->name);
 
         rc = l->module->load(im, load_data);
-
-        if (fp)
-           fclose(fp);
      }
    else
      {
@@ -309,7 +370,7 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
      }
 
    DP("%s: %-4s: %s: Elapsed time: %.3f ms\n", __func__,
-      l->name, im->file, 1e-3 * (__imlib_time_us() - t0));
+      l->name, im->fi->name, 1e-3 * (__imlib_time_us() - t0));
 
    if (rc <= LOAD_FAIL)
      {
@@ -389,7 +450,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 
                   current_modified_time = ila->fp ?
                      __imlib_FileModDateFd(fileno(ila->fp)) :
-                     __imlib_FileModDate(im->real_file);
+                     __imlib_FileModDate(im->fi->name);
                   /* if the file on disk is newer than the cached one */
                   if (current_modified_time != im->moddate)
                     {
@@ -450,17 +511,11 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    /* so produce a new one and load an image into that */
    im = __imlib_ProduceImage();
    im->file = strdup(file);
-   im->fsize = st.st_size;
-   im->real_file = im_file ? im_file : im->file;
    im->key = im_key;
    im->frame_num = ila->frame;
 
-   if (ila->fp)
-      im->fp = ila->fp;
-   else
-      im->fp = fopen(im->real_file, "rb");
-
-   if (!im->fp)
+   if (__imlib_ImageFileContextPush(im, true, im_file ? im_file : im->file) ||
+       __imlib_FileContextOpen(im->fi, ila->fp, st.st_size))
      {
         ila->err = errno;
         __imlib_ConsumeImage(im);
@@ -478,7 +533,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
      }
 
    /* take a guess by extension on the best loader to use */
-   best_loader = __imlib_FindBestLoader(im->real_file, NULL, 0);
+   best_loader = __imlib_FindBestLoader(im->fi->name, NULL, 0);
 
    loader_ret = LOAD_FAIL;
    loaders = NULL;
@@ -527,8 +582,8 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 
           case LOAD_FAIL:
              /* Image was not recognized by loader - try next */
-             fflush(im->fp);
-             rewind(im->fp);
+             fflush(im->fi->fp);
+             rewind(im->fi->fp);
              continue;
 
           default:             /* We should not go here */
@@ -548,8 +603,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    im->lc = NULL;
 
    if (!ila->fp)
-      fclose(im->fp);
-   im->fp = NULL;
+      __imlib_FileContextClose(im->fi);
 
    if (loader_ret <= LOAD_FAIL)
      {
@@ -585,7 +639,12 @@ __imlib_LoadImageData(ImlibImage * im)
    if (!im->loader)
       return IMLIB_ERR_INTERNAL;
 
+   err = __imlib_FileContextOpen(im->fi, NULL, 0);
+   if (err)
+      return err;
    err = __imlib_LoadImageWrapper(im->loader, im, 1);
+
+   __imlib_FileContextClose(im->fi);
 
    return __imlib_LoadErrorToErrno(err, 0);
 }
@@ -595,29 +654,19 @@ __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
                      int load_data)
 {
    int                 rc;
-   struct stat         st;
-   char               *file_save;
-   FILE               *fp_save;
-   off_t               fsize_save;
 
    if (!l || !im)
       return 0;
 
-   /* remember the original filename */
-   file_save = im->real_file;
-   im->real_file = strdup(file);
-   fp_save = im->fp;
-   im->fp = NULL;
-   fsize_save = im->fsize;
-   __imlib_FileStat(file, &st);
-   im->fsize = st.st_size;
+   __imlib_ImageFileContextPush(im, true, strdup(file));
+   rc = __imlib_FileContextOpen(im->fi, NULL, 0);
+   if (rc)
+      return LOAD_FAIL;
 
    rc = __imlib_LoadImageWrapper(l, im, load_data);
 
-   im->fp = fp_save;
-   free(im->real_file);
-   im->real_file = file_save;
-   im->fsize = fsize_save;
+   __imlib_FileContextClose(im->fi);
+   __imlib_ImageFileContextPop(im);
 
    return rc;
 }
@@ -720,7 +769,6 @@ void
 __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
 {
    ImlibLoader        *l;
-   char               *pfile;
    ImlibLdCtx          ilc;
    int                 loader_ret;
 
@@ -742,16 +790,12 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
    if (ila->pfunc)
       __imlib_LoadCtxInit(im, &ilc, ila->pfunc, ila->pgran);
 
-   /* set the filename to the user supplied one */
-   pfile = im->real_file;
-   im->real_file = strdup(file);
+   __imlib_ImageFileContextPush(im, false, strdup(file));
 
    /* call the saver */
    loader_ret = l->module->save(im);
 
-   /* set the filename back to the laoder image filename */
-   free(im->real_file);
-   im->real_file = pfile;
+   __imlib_ImageFileContextPop(im);
 
    im->lc = NULL;
 

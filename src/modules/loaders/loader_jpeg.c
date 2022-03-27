@@ -78,7 +78,8 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return rc;
 
@@ -88,7 +89,7 @@ _load(ImlibImage * im, int load_data)
       QUIT_WITH_RC(LOAD_FAIL);
 
    jpeg_create_decompress(&jds);
-   jpeg_mem_src(&jds, fdata, im->fsize);
+   jpeg_mem_src(&jds, fdata, im->fi->fsize);
    jpeg_save_markers(&jds, JPEG_APP0 + 1, 256);
    jpeg_read_header(&jds, TRUE);
 
@@ -251,7 +252,7 @@ _load(ImlibImage * im, int load_data)
  quit:
    jpeg_destroy_decompress(&jds);
    free(jdata.data);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
@@ -277,7 +278,7 @@ _save(ImlibImage * im)
 
    rc = LOAD_FAIL;
 
-   f = fopen(im->real_file, "wb");
+   f = fopen(im->fi->name, "wb");
    if (!f)
       goto quit;
 

@@ -21,15 +21,16 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   if (im->fsize < 12)
+   if (im->fi->fsize < 12)
       return rc;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
    webp_data.bytes = fdata;
-   webp_data.size = im->fsize;
+   webp_data.size = im->fi->fsize;
 
    /* Init (includes signature check) */
    demux = WebPDemux(&webp_data);
@@ -101,7 +102,7 @@ _load(ImlibImage * im, int load_data)
  quit:
    if (demux)
       WebPDemuxDelete(demux);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
@@ -116,7 +117,7 @@ _save(ImlibImage * im)
    uint8_t            *fdata;
    size_t              encoded_size;
 
-   f = fopen(im->real_file, "wb");
+   f = fopen(im->fi->name, "wb");
    if (!f)
       return LOAD_FAIL;
 

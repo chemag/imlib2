@@ -108,7 +108,8 @@ _load(ImlibImage * im, int load_data)
    OPJ_INT32          *pa, *pr, *pg, *pb;
    unsigned char       a, r, g, b;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
@@ -118,7 +119,7 @@ _load(ImlibImage * im, int load_data)
    jimage = NULL;
 
    /* Signature check */
-   if (im->fsize < 12)
+   if (im->fi->fsize < 12)
       goto quit;
 
    if (memcmp(fdata, JP2_MAGIC, 4) == 0 ||
@@ -155,8 +156,7 @@ _load(ImlibImage * im, int load_data)
 
    if (getenv("JP2_USE_FILE"))
      {
-        jstream =
-           opj_stream_create_default_file_stream(im->real_file, OPJ_TRUE);
+        jstream = opj_stream_create_default_file_stream(im->fi->name, OPJ_TRUE);
      }
    else
      {
@@ -164,9 +164,9 @@ _load(ImlibImage * im, int load_data)
         if (!jstream)
            goto quit;
 
-        mm_init(fdata, im->fsize);
+        mm_init(fdata, im->fi->fsize);
         opj_stream_set_user_data(jstream, &mdata, NULL);
-        opj_stream_set_user_data_length(jstream, im->fsize);
+        opj_stream_set_user_data_length(jstream, im->fi->fsize);
         opj_stream_set_read_function(jstream, mm_read);
         opj_stream_set_skip_function(jstream, mm_seek_cur);
         opj_stream_set_seek_function(jstream, mm_seek_set);
@@ -275,7 +275,7 @@ _load(ImlibImage * im, int load_data)
       opj_stream_destroy(jstream);
    if (jcodec)
       opj_destroy_codec(jcodec);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

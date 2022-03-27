@@ -114,6 +114,13 @@ unsigned int        __imlib_time_us(void);
 #define LOAD_BADIMAGE   -3      /* Image is corrupt                    */
 #define LOAD_BADFRAME   -4      /* Requested frame not found           */
 
+typedef struct _ImlibImageFileInfo {
+   struct _ImlibImageFileInfo *next;
+   char               *name;
+   FILE               *fp;
+   off_t               fsize;
+} ImlibImageFileInfo;
+
 typedef struct _imlibldctx ImlibLdCtx;
 
 typedef struct _ImlibImageTag {
@@ -125,10 +132,7 @@ typedef struct _ImlibImageTag {
 } ImlibImageTag;
 
 struct _ImlibImage {
-   char               *real_file;
-   FILE               *fp;
-   off_t               fsize;
-
+   ImlibImageFileInfo *fi;
    ImlibLdCtx         *lc;
 
    int                 w, h;

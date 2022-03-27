@@ -36,15 +36,16 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_FAIL;
 
    /* input data needs to be atleast 12 bytes */
-   if (im->fsize < HEIF_BYTES_TO_CHECK)
+   if (im->fi->fsize < HEIF_BYTES_TO_CHECK)
       return rc;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
    /* check signature */
-   switch (heif_check_filetype(fdata, im->fsize))
+   switch (heif_check_filetype(fdata, im->fi->fsize))
      {
      case heif_filetype_no:
      case heif_filetype_yes_unsupported:
@@ -62,7 +63,7 @@ _load(ImlibImage * im, int load_data)
       goto quit;
 
    error = heif_context_read_from_memory_without_copy(ctx, fdata,
-                                                      im->fsize, NULL);
+                                                      im->fi->fsize, NULL);
    if (error.code != heif_error_Ok)
       goto quit;
 
@@ -155,7 +156,7 @@ _load(ImlibImage * im, int load_data)
    heif_context_free(ctx);
    heif_decoding_options_free(decode_opts);
 
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

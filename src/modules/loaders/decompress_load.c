@@ -17,7 +17,7 @@ decompress_load(ImlibImage * im, int load_data, const char *const *pext,
 
    /* make sure this file ends in a known name and that there's another ext
     * (e.g. "foo.png.bz2") */
-   for (p = s = im->real_file, q = NULL; *s; s++)
+   for (p = s = im->fi->name, q = NULL; *s; s++)
      {
         if (*s != '.' && *s != '/')
            continue;
@@ -47,14 +47,15 @@ decompress_load(ImlibImage * im, int load_data, const char *const *pext,
    if (!loader)
       return rc;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
    if ((dest = mkstemp(tmp)) < 0)
       QUIT_WITH_RC(LOAD_OOM);
 
-   res = fdec(fdata, im->fsize, dest);
+   res = fdec(fdata, im->fi->fsize, dest);
 
    close(dest);
 
@@ -64,7 +65,7 @@ decompress_load(ImlibImage * im, int load_data, const char *const *pext,
    unlink(tmp);
 
  quit:
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

@@ -7,8 +7,6 @@
 
 #include "types.h"
 
-typedef struct _imlibldctx ImlibLdCtx;
-
 typedef void        (*ImlibDataDestructorFunction)(ImlibImage * im, void *data);
 typedef void       *(*ImlibImageDataMemoryFunction)(void *, size_t size);
 
@@ -28,6 +26,18 @@ typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
 #define FF_FRAME_DISPOSE_CLEAR  (1 << 2)        /* Clear before rendering next frame  */
 #define FF_FRAME_DISPOSE_PREV   (1 << 3)        /* Revert before rendering next frame */
 
+typedef struct _ImlibImageFileInfo {
+   struct _ImlibImageFileInfo *next;
+   char               *name;
+   FILE               *fp;
+   off_t               fsize;
+   /* vvv Private vvv */
+   char                keep_fp;
+   /* ^^^ Private ^^^ */
+} ImlibImageFileInfo;
+
+typedef struct _imlibldctx ImlibLdCtx;
+
 typedef struct {
    int                 left, right, top, bottom;
 } ImlibBorder;
@@ -41,10 +51,7 @@ typedef struct _ImlibImageTag {
 } ImlibImageTag;
 
 struct _ImlibImage {
-   char               *real_file;
-   FILE               *fp;
-   off_t               fsize;
-
+   ImlibImageFileInfo *fi;
    ImlibLdCtx         *lc;
 
    int                 w, h;

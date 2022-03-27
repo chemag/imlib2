@@ -174,16 +174,17 @@ _load(ImlibImage * im, int load_data)
    line = NULL;
    cmap = NULL;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
-   if (!memmem(fdata, im->fsize <= 256 ? im->fsize : 256, " XPM */", 7))
+   if (!memmem(fdata, im->fi->fsize <= 256 ? im->fi->fsize : 256, " XPM */", 7))
       goto quit;
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
-   mm_init(fdata, im->fsize);
+   mm_init(fdata, im->fi->fsize);
 
    j = 0;
    w = 10;
@@ -472,7 +473,7 @@ _load(ImlibImage * im, int load_data)
 
    xpm_parse_done();
 
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

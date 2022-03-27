@@ -129,11 +129,12 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
-   mm_init(fdata, im->fsize);
+   mm_init(fdata, im->fi->fsize);
 
    /* read the header info */
 
@@ -464,7 +465,7 @@ _load(ImlibImage * im, int load_data)
  quit:
    free(idata);
    free(data);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
@@ -478,7 +479,7 @@ _save(ImlibImage * im)
    uint32_t           *ptr;
    int                 x, y;
 
-   f = fopen(im->real_file, "wb");
+   f = fopen(im->fi->name, "wb");
    if (!f)
       return LOAD_FAIL;
 

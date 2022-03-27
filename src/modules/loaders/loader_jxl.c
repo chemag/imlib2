@@ -55,7 +55,8 @@ _load(ImlibImage * im, int load_data)
    JxlParallelRunner  *runner = NULL;
 #endif
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
@@ -100,7 +101,7 @@ _load(ImlibImage * im, int load_data)
    if (jst != JXL_DEC_SUCCESS)
       goto quit;
 
-   jst = JxlDecoderSetInput(dec, fdata, im->fsize);
+   jst = JxlDecoderSetInput(dec, fdata, im->fi->fsize);
    if (jst != JXL_DEC_SUCCESS)
       goto quit;
 
@@ -213,7 +214,7 @@ _load(ImlibImage * im, int load_data)
 #endif
    if (dec)
       JxlDecoderDestroy(dec);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

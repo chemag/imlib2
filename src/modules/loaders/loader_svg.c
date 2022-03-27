@@ -81,7 +81,8 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
@@ -91,10 +92,10 @@ _load(ImlibImage * im, int load_data)
    cr = NULL;
 
    /* Signature check */
-   if (_sig_check(fdata, im->fsize))
+   if (_sig_check(fdata, im->fi->fsize))
       goto quit;
 
-   rsvg = rsvg_handle_new_from_data(fdata, im->fsize, &error);
+   rsvg = rsvg_handle_new_from_data(fdata, im->fi->fsize, &error);
    if (!rsvg)
       goto quit;
 
@@ -241,7 +242,7 @@ _load(ImlibImage * im, int load_data)
       cairo_destroy(cr);
    if (rsvg)
       g_object_unref(rsvg);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

@@ -451,7 +451,8 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
@@ -462,7 +463,7 @@ _load(ImlibImage * im, int load_data)
    * Load the chunk(s) we're interested in. If load_data is not true, then we only
    * want the image size and format.
    *----------*/
-   if (!loadchunks(fdata, im->fsize, &ilbm, load_data))
+   if (!loadchunks(fdata, im->fi->fsize, &ilbm, load_data))
       goto quit;
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
@@ -568,7 +569,7 @@ _load(ImlibImage * im, int load_data)
 
    freeilbm(&ilbm);
 
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

@@ -24,7 +24,8 @@ _load(ImlibImage * im, int load_data)
    uint32_t           *dst;
    int                 i, j;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
@@ -41,7 +42,7 @@ _load(ImlibImage * im, int load_data)
    if (!spdoc)
       goto quit;
 
-   spectre_document_load(spdoc, im->real_file);
+   spectre_document_load(spdoc, im->fi->name);
    spst = spectre_document_status(spdoc);
    if (spst != SPECTRE_STATUS_SUCCESS)
      {
@@ -137,7 +138,7 @@ _load(ImlibImage * im, int load_data)
       spectre_page_free(sppage);
    if (spdoc)
       spectre_document_free(spdoc);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

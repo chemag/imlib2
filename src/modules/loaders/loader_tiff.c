@@ -349,10 +349,11 @@ _load(ImlibImage * im, int load_data)
    /* Do initial signature check */
 #define TIFF_BYTES_TO_CHECK sizeof(magic_number)
 
-   if (im->fsize < (int)TIFF_BYTES_TO_CHECK)
+   if (im->fi->fsize < (int)TIFF_BYTES_TO_CHECK)
       return rc;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
@@ -361,9 +362,9 @@ _load(ImlibImage * im, int load_data)
    if (magic_number != TIFF_BIGENDIAN && magic_number != TIFF_LITTLEENDIAN)
       return rc;
 
-   mm_init(fdata, im->fsize);
+   mm_init(fdata, im->fi->fsize);
 
-   tif = TIFFClientOpen(im->real_file, "r", NULL, _tiff_read, _tiff_write,
+   tif = TIFFClientOpen(im->fi->name, "r", NULL, _tiff_read, _tiff_write,
                         _tiff_seek, _tiff_close, _tiff_size,
                         _tiff_map, _tiff_unmap);
    if (!tif)
@@ -449,7 +450,7 @@ _load(ImlibImage * im, int load_data)
       TIFFRGBAImageEnd((TIFFRGBAImage *) & rgba_image);
    if (tif)
       TIFFClose(tif);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
@@ -472,7 +473,7 @@ _save(ImlibImage * im)
    int                 i;
    ImlibImageTag      *tag;
 
-   tif = TIFFOpen(im->real_file, "w");
+   tif = TIFFOpen(im->fi->name, "w");
    if (!tif)
       return LOAD_FAIL;
 

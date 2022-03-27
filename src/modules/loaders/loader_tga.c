@@ -86,20 +86,21 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   if (im->fsize < (int)(sizeof(tga_header)) ||
-       (uintmax_t) im->fsize > SIZE_MAX)
+   if (im->fi->fsize < (int)(sizeof(tga_header)) ||
+       (uintmax_t) im->fi->fsize > SIZE_MAX)
       return rc;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
    fptr = fdata;
    header = fdata;
 
-   if (im->fsize > (int)(sizeof(tga_footer)))
+   if (im->fi->fsize > (int)(sizeof(tga_footer)))
      {
-        footer = (tga_footer *) (fptr + im->fsize - sizeof(tga_footer));
+        footer = (tga_footer *) (fptr + im->fi->fsize - sizeof(tga_footer));
 
         /* check the footer to see if we have a v2.0 TGA file */
         footer_present = memcmp(footer->signature, TGA_SIGNATURE,
@@ -110,7 +111,7 @@ _load(ImlibImage * im, int load_data)
         footer_present = 0;
      }
 
-   if ((size_t)im->fsize < sizeof(tga_header) + header->idLength +
+   if ((size_t)im->fi->fsize < sizeof(tga_header) + header->idLength +
        (footer_present ? sizeof(tga_footer) : 0))
       goto quit;
 
@@ -197,7 +198,7 @@ _load(ImlibImage * im, int load_data)
    /* find out how much data must be read from the file */
    /* (this is NOT simply width*height*4, due to compression) */
 
-   datasize = im->fsize - sizeof(tga_header) - header->idLength -
+   datasize = im->fi->fsize - sizeof(tga_header) - header->idLength -
       (footer_present ? sizeof(tga_footer) : 0);
 
    palette = NULL;
@@ -465,7 +466,7 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
@@ -510,7 +511,7 @@ _save(ImlibImage * im)
    int                 y;
    tga_header          header;
 
-   f = fopen(im->real_file, "wb");
+   f = fopen(im->fi->name, "wb");
    if (!f)
       return LOAD_FAIL;
 

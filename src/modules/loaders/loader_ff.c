@@ -6,7 +6,7 @@
 
 static const char  *const _formats[] = { "ff" };
 
-#define mm_check(p) ((const char *)(p) <= (const char *)fdata + im->fsize)
+#define mm_check(p) ((const char *)(p) <= (const char *)fdata + im->fi->fsize)
 
 typedef struct {
    unsigned char       magic[8];
@@ -25,10 +25,11 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   if (im->fsize < (long)sizeof(ff_hdr_t))
+   if (im->fi->fsize < (long)sizeof(ff_hdr_t))
       return rc;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
@@ -82,7 +83,7 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
@@ -97,7 +98,7 @@ _save(ImlibImage * im)
    uint16_t           *row;
    uint8_t            *dat;
 
-   f = fopen(im->real_file, "wb");
+   f = fopen(im->fi->name, "wb");
    if (!f)
       return LOAD_FAIL;
 

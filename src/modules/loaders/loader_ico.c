@@ -402,11 +402,12 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
-   mm_init(fdata, im->fsize);
+   mm_init(fdata, im->fi->fsize);
 
    ico.ie = NULL;
    if (mm_read(&ico.idir, sizeof(ico.idir)))
@@ -424,7 +425,7 @@ _load(ImlibImage * im, int load_data)
    if (!ico.ie)
       QUIT_WITH_RC(LOAD_OOM);
 
-   D("Loading '%s' Nicons = %d\n", im->real_file, ico.idir.icons);
+   D("Loading '%s' Nicons = %d\n", im->fi->name, ico.idir.icons);
 
    for (i = 0; i < ico.idir.icons; i++)
      {
@@ -443,7 +444,8 @@ _load(ImlibImage * im, int load_data)
 
  quit:
    ico_delete(&ico);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
+
    return rc;
 }
 

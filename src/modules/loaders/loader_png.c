@@ -305,10 +305,11 @@ _load(ImlibImage * im, int load_data)
    /* read header */
    rc = LOAD_FAIL;
 
-   if (im->fsize < _PNG_MIN_SIZE)
+   if (im->fi->fsize < _PNG_MIN_SIZE)
       return rc;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
@@ -354,7 +355,7 @@ _load(ImlibImage * im, int load_data)
         len = htonl(chunk->hdr.len);
         D("Scan %3d: %06lx: %6d: %.4s: ", ic,
           fptr - (unsigned char *)fdata, len, chunk->hdr.name);
-        if (fptr + len - (unsigned char *)fdata > im->fsize)
+        if (fptr + len - (unsigned char *)fdata > im->fi->fsize)
            break;
 
         switch (chunk->hdr.type)
@@ -424,7 +425,7 @@ _load(ImlibImage * im, int load_data)
         len = htonl(chunk->hdr.len);
         D("Chunk %3d: %06lx: %6d: %.4s: ", ic,
           fptr - (unsigned char *)fdata, len, chunk->hdr.name);
-        if (fptr + len - (unsigned char *)fdata > im->fsize)
+        if (fptr + len - (unsigned char *)fdata > im->fi->fsize)
            break;
 
         switch (chunk->hdr.type)
@@ -566,7 +567,7 @@ _load(ImlibImage * im, int load_data)
 
  quit:
    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
@@ -587,7 +588,7 @@ _save(ImlibImage * im)
    int                 pass, n_passes = 1;
    int                 has_alpha;
 
-   f = fopen(im->real_file, "wb");
+   f = fopen(im->fi->name, "wb");
    if (!f)
       return LOAD_FAIL;
 

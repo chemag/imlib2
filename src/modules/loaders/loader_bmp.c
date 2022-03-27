@@ -179,12 +179,13 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
    fptr = fdata;
-   mm_init(fdata, im->fsize);
+   mm_init(fdata, im->fi->fsize);
 
    /* Load header */
 
@@ -194,7 +195,7 @@ _load(ImlibImage * im, int load_data)
    if (bfh.header[0] != 'B' || bfh.header[1] != 'M')
       goto quit;
 
-   size = im->fsize;
+   size = im->fi->fsize;
 #define WORD_LE_32(p8) (((p8)[3] << 24) | ((p8)[2] << 16) | ((p8)[1] << 8) | (p8)[0])
    bfh_offset = WORD_LE_32(bfh.offs);
 
@@ -759,7 +760,7 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
@@ -772,7 +773,7 @@ _save(ImlibImage * im)
    int                 i, j, pad;
    uint32_t            pixel;
 
-   f = fopen(im->real_file, "wb");
+   f = fopen(im->fi->name, "wb");
    if (!f)
       return LOAD_FAIL;
 

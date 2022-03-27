@@ -287,8 +287,8 @@ get_options(lopt * opt, const ImlibImage * im)
      }
    if (handle)
       ctx = context_get(handle);
-   else if (!(ctx = context_get_by_name(im->real_file)) &&
-            !(ctx = context_create(im->real_file, im->fp)))
+   else if (!(ctx = context_get_by_name(im->fi->name)) &&
+            !(ctx = context_create(im->fi->name, im->fi->fp)))
       return 0;
 
    if (!index)
@@ -481,8 +481,8 @@ write_tags(ImlibImage * im, lopt * opt)
             <= id3_tag_get_numframes(opt->ctx->tag)
             && (opt->index + opt->traverse) > 0)
           {
-             buf = (char *)malloc((strlen(im->real_file) + 50) * sizeof(char));
-             sprintf(buf, "%s:index=%d,traverse=%d", im->real_file,
+             buf = (char *)malloc((strlen(im->fi->name) + 50) * sizeof(char));
+             sprintf(buf, "%s:index=%d,traverse=%d", im->fi->name,
                      opt->index + opt->traverse, opt->traverse);
           }
         __imlib_AttachTag(im, "next", 0, buf, destructor_data);

@@ -94,21 +94,22 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   if (im->fsize < 64)
+   if (im->fi->fsize < 64)
       return rc;                /* Not XBM */
 
-   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   fdata =
+      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
    /* Signature check ("#define") allow longish initial comment */
    s = fdata;
    nlen = s[0] == '/' && s[1] == '*' ? 4096 : 256;
-   nlen = im->fsize > nlen ? nlen : im->fsize;
+   nlen = im->fi->fsize > nlen ? nlen : im->fi->fsize;
    if (!memmem(s, nlen, "#define", 7))
       goto quit;
 
-   mm_init(fdata, im->fsize);
+   mm_init(fdata, im->fi->fsize);
 
    ptr = NULL;
    x = y = 0;
@@ -211,7 +212,7 @@ _load(ImlibImage * im, int load_data)
       rc = LOAD_SUCCESS;
 
  quit:
-   munmap(fdata, im->fsize);
+   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
@@ -226,13 +227,13 @@ _save(ImlibImage * im)
    int                 i, k, x, y, bits, nval, val;
    uint32_t           *ptr;
 
-   f = fopen(im->real_file, "wb");
+   f = fopen(im->fi->name, "wb");
    if (!f)
       return LOAD_FAIL;
 
    rc = LOAD_SUCCESS;
 
-   name = im->real_file;
+   name = im->fi->name;
    if ((s = strrchr(name, '/')) != 0)
       name = s + 1;
 
