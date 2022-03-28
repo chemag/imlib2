@@ -78,6 +78,7 @@ test_load(void)
    FILE               *fp;
    int                 fd;
    int                 err;
+   uint32_t           *data;
 
    snprintf(filei, sizeof(filei), "%s/%s", IMG_SRC, FILE_REF);
    D("Load '%s'\n", filei);
@@ -91,15 +92,27 @@ test_load(void)
      {
         // Load files of all types
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
-        D("Load '%s'\n", fileo);
+
+        D("Load '%s' (deferred)\n", fileo);
+        im = imlib_load_image(fileo);
+        EXPECT_TRUE(im);
+        if (im)
+          {
+             imlib_context_set_image(im);
+             data = imlib_image_get_data();
+             EXPECT_TRUE(data);
+             image_free(im);
+          }
+        imlib_flush_loaders();
+
+        D("Load '%s' (immediate)\n", fileo);
         im = imlib_load_image_with_errno_return(fileo, &err);
         EXPECT_TRUE(im);
         EXPECT_EQ(err, 0);
-        if (!im || lerr)
+        if (!im || err)
            D("Error %d im=%p loading '%s'\n", lerr, im, fileo);
         if (im)
            image_free(im);
-
         imlib_flush_loaders();
 
         if (strchr(pfxs[i], '.') == 0)
