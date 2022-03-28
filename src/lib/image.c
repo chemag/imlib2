@@ -367,38 +367,6 @@ __imlib_LoadCtxInit(ImlibImage * im, ImlibLdCtx * lc,
    lc->n_pass = 1;
 }
 
-__EXPORT__ int
-__imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
-                     int load_data)
-{
-   int                 rc;
-   struct stat         st;
-   char               *file_save;
-   FILE               *fp_save;
-   off_t               fsize_save;
-
-   if (!l || !im)
-      return 0;
-
-   /* remember the original filename */
-   file_save = im->real_file;
-   im->real_file = strdup(file);
-   fp_save = im->fp;
-   im->fp = NULL;
-   fsize_save = im->fsize;
-   __imlib_FileStat(file, &st);
-   im->fsize = st.st_size;
-
-   rc = __imlib_LoadImageWrapper(l, im, load_data);
-
-   im->fp = fp_save;
-   free(im->real_file);
-   im->real_file = file_save;
-   im->fsize = fsize_save;
-
-   return rc;
-}
-
 static int
 __imlib_LoadErrorToErrno(int loader_ret, int save)
 {
@@ -646,6 +614,38 @@ __imlib_LoadImageData(ImlibImage * im)
    err = __imlib_LoadImageWrapper(im->loader, im, 1);
 
    return __imlib_LoadErrorToErrno(err, 0);
+}
+
+__EXPORT__ int
+__imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
+                     int load_data)
+{
+   int                 rc;
+   struct stat         st;
+   char               *file_save;
+   FILE               *fp_save;
+   off_t               fsize_save;
+
+   if (!l || !im)
+      return 0;
+
+   /* remember the original filename */
+   file_save = im->real_file;
+   im->real_file = strdup(file);
+   fp_save = im->fp;
+   im->fp = NULL;
+   fsize_save = im->fsize;
+   __imlib_FileStat(file, &st);
+   im->fsize = st.st_size;
+
+   rc = __imlib_LoadImageWrapper(l, im, load_data);
+
+   im->fp = fp_save;
+   free(im->real_file);
+   im->real_file = file_save;
+   im->fsize = fsize_save;
+
+   return rc;
 }
 
 __EXPORT__ void
