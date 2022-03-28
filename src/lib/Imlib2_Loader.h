@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/mman.h>
 
 /* types.h */
 
@@ -118,6 +117,7 @@ typedef struct _ImlibImageFileInfo {
    struct _ImlibImageFileInfo *next;
    char               *name;
    FILE               *fp;
+   const void         *fdata;
    off_t               fsize;
 } ImlibImageFileInfo;
 

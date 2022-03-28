@@ -72,7 +72,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    RsvgHandle         *rsvg;
    GError             *error;
    gboolean            ok;
@@ -80,22 +79,16 @@ _load(ImlibImage * im, int load_data)
    cairo_t            *cr;
 
    rc = LOAD_FAIL;
-
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
    error = NULL;
    rsvg = NULL;
    surface = NULL;
    cr = NULL;
 
    /* Signature check */
-   if (_sig_check(fdata, im->fi->fsize))
+   if (_sig_check(im->fi->fdata, im->fi->fsize))
       goto quit;
 
-   rsvg = rsvg_handle_new_from_data(fdata, im->fi->fsize, &error);
+   rsvg = rsvg_handle_new_from_data(im->fi->fdata, im->fi->fsize, &error);
    if (!rsvg)
       goto quit;
 
@@ -242,7 +235,6 @@ _load(ImlibImage * im, int load_data)
       cairo_destroy(cr);
    if (rsvg)
       g_object_unref(rsvg);
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

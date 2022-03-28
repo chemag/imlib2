@@ -96,7 +96,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    int                 ok;
    opj_dparameters_t   jparam;
    opj_codec_t        *jcodec;
@@ -108,11 +107,6 @@ _load(ImlibImage * im, int load_data)
    OPJ_INT32          *pa, *pr, *pg, *pb;
    unsigned char       a, r, g, b;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
    rc = LOAD_FAIL;
    jcodec = NULL;
    jstream = NULL;
@@ -122,10 +116,10 @@ _load(ImlibImage * im, int load_data)
    if (im->fi->fsize < 12)
       goto quit;
 
-   if (memcmp(fdata, JP2_MAGIC, 4) == 0 ||
-       memcmp(fdata, JP2_RFC3745_MAGIC, 12) == 0)
+   if (memcmp(im->fi->fdata, JP2_MAGIC, 4) == 0 ||
+       memcmp(im->fi->fdata, JP2_RFC3745_MAGIC, 12) == 0)
       jfmt = OPJ_CODEC_JP2;
-   else if (memcmp(fdata, J2K_CODESTREAM_MAGIC, 4) == 0)
+   else if (memcmp(im->fi->fdata, J2K_CODESTREAM_MAGIC, 4) == 0)
       jfmt = OPJ_CODEC_J2K;
    else
       goto quit;
@@ -164,7 +158,7 @@ _load(ImlibImage * im, int load_data)
         if (!jstream)
            goto quit;
 
-        mm_init(fdata, im->fi->fsize);
+        mm_init(im->fi->fdata, im->fi->fsize);
         opj_stream_set_user_data(jstream, &mdata, NULL);
         opj_stream_set_user_data_length(jstream, im->fi->fsize);
         opj_stream_set_read_function(jstream, mm_read);
@@ -275,7 +269,6 @@ _load(ImlibImage * im, int load_data)
       opj_stream_destroy(jstream);
    if (jcodec)
       opj_destroy_codec(jcodec);
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

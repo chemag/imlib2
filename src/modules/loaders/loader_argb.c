@@ -37,7 +37,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    int                 alpha;
    uint32_t           *ptr;
    int                 y;
@@ -50,16 +49,11 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
-   mm_init(fdata, im->fi->fsize);
+   mm_init(im->fi->fdata, im->fi->fsize);
 
    /* header */
 
-   fptr = fdata;
+   fptr = im->fi->fdata;
    size = im->fi->fsize > 31 ? 31 : im->fi->fsize;      /* Look for \n in at most 31 byte */
    row = memchr(fptr, '\n', size);
    if (!row)
@@ -108,8 +102,6 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   munmap(fdata, im->fi->fsize);
-
    return rc;
 }
 

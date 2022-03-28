@@ -158,7 +158,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    const unsigned char *fptr;
    bfh_t               bfh;
    unsigned int        bfh_offset;
@@ -179,13 +178,8 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
-   fptr = fdata;
-   mm_init(fdata, im->fi->fsize);
+   fptr = im->fi->fdata;
+   mm_init(im->fi->fdata, im->fi->fsize);
 
    /* Load header */
 
@@ -760,8 +754,6 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   munmap(fdata, im->fi->fsize);
-
    return rc;
 }
 

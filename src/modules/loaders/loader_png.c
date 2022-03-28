@@ -29,6 +29,8 @@ static const char  *const _formats[] = { "png" };
 #define APNG_BLEND_OP_SOURCE	0
 #define APNG_BLEND_OP_OVER	1
 
+#define mm_check(p) ((const char *)(p) <= (const char *)im->fi->fdata + im->fi->fsize)
+
 typedef struct {
    uint32_t            len;
    union {
@@ -290,7 +292,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    png_structp         png_ptr = NULL;
    png_infop           info_ptr = NULL;
    ctx_t               ctx = { 0 };
@@ -308,13 +309,8 @@ _load(ImlibImage * im, int load_data)
    if (im->fi->fsize < _PNG_MIN_SIZE)
       return rc;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
    /* Signature check */
-   if (png_sig_cmp(fdata, 0, _PNG_SIG_SIZE))
+   if (png_sig_cmp(im->fi->fdata, 0, _PNG_SIG_SIZE))
       goto quit;
 
    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL,
@@ -347,15 +343,16 @@ _load(ImlibImage * im, int load_data)
 
    frame = 0;                   /* Frame number */
    ctx.pch_fctl = NULL;         /* Ponter to requested frame fcTL chunk */
-   fptr = (unsigned char *)fdata + _PNG_SIG_SIZE;
+   fptr = (unsigned char *)im->fi->fdata;
+   fptr += _PNG_SIG_SIZE;
 
    for (ic = 0;; ic++, fptr += 8 + len + 4)
      {
         chunk = (const png_chunk_t *)fptr;
         len = htonl(chunk->hdr.len);
         D("Scan %3d: %06lx: %6d: %.4s: ", ic,
-          fptr - (unsigned char *)fdata, len, chunk->hdr.name);
-        if (fptr + len - (unsigned char *)fdata > im->fi->fsize)
+          fptr - (unsigned char *)im->fi->fdata, len, chunk->hdr.name);
+        if (!mm_check(fptr + len))
            break;
 
         switch (chunk->hdr.type)
@@ -414,18 +411,18 @@ _load(ImlibImage * im, int load_data)
    save_fdat = 0;
 
    /* At this point we start "progressive" PNG data processing */
-   fptr = fdata;
+   fptr = (unsigned char *)im->fi->fdata;
    png_process_data(png_ptr, info_ptr, fptr, _PNG_SIG_SIZE);
 
-   fptr = (unsigned char *)fdata + _PNG_SIG_SIZE;
+   fptr += _PNG_SIG_SIZE;
 
    for (ic = 0;; ic++, fptr += 8 + len + 4)
      {
         chunk = (const png_chunk_t *)fptr;
         len = htonl(chunk->hdr.len);
         D("Chunk %3d: %06lx: %6d: %.4s: ", ic,
-          fptr - (unsigned char *)fdata, len, chunk->hdr.name);
-        if (fptr + len - (unsigned char *)fdata > im->fi->fsize)
+          fptr - (unsigned char *)im->fi->fdata, len, chunk->hdr.name);
+        if (!mm_check(fptr + len))
            break;
 
         switch (chunk->hdr.type)
@@ -567,7 +564,6 @@ _load(ImlibImage * im, int load_data)
 
  quit:
    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

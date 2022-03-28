@@ -6,7 +6,7 @@
 
 static const char  *const _formats[] = { "ff" };
 
-#define mm_check(p) ((const char *)(p) <= (const char *)fdata + im->fi->fsize)
+#define mm_check(p) ((const char *)(p) <= (const char *)im->fi->fdata + im->fi->fsize)
 
 typedef struct {
    unsigned char       magic[8];
@@ -17,7 +17,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    int                 rowlen, i, j;
    const ff_hdr_t     *hdr;
    const uint16_t     *row;
@@ -28,13 +27,8 @@ _load(ImlibImage * im, int load_data)
    if (im->fi->fsize < (long)sizeof(ff_hdr_t))
       return rc;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
    /* read and check the header */
-   hdr = fdata;
+   hdr = im->fi->fdata;
    if (memcmp("farbfeld", hdr->magic, sizeof(hdr->magic)))
       goto quit;
 
@@ -83,8 +77,6 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   munmap(fdata, im->fi->fsize);
-
    return rc;
 }
 

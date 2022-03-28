@@ -13,7 +13,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    WebPData            webp_data;
    WebPDemuxer        *demux;
    WebPIterator        iter;
@@ -24,12 +23,7 @@ _load(ImlibImage * im, int load_data)
    if (im->fi->fsize < 12)
       return rc;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
-   webp_data.bytes = fdata;
+   webp_data.bytes = im->fi->fdata;
    webp_data.size = im->fi->fsize;
 
    /* Init (includes signature check) */
@@ -102,7 +96,6 @@ _load(ImlibImage * im, int load_data)
  quit:
    if (demux)
       WebPDemuxDelete(demux);
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

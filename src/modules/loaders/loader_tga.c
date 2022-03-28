@@ -71,7 +71,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    const unsigned char *fptr;
    const tga_header   *header;
    const tga_footer   *footer;
@@ -90,13 +89,8 @@ _load(ImlibImage * im, int load_data)
        (uintmax_t) im->fi->fsize > SIZE_MAX)
       return rc;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
-   fptr = fdata;
-   header = fdata;
+   fptr = im->fi->fdata;
+   header = im->fi->fdata;
 
    if (im->fi->fsize > (int)(sizeof(tga_footer)))
      {
@@ -466,8 +460,6 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   munmap(fdata, im->fi->fsize);
-
    return rc;
 }
 

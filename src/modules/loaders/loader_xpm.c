@@ -157,7 +157,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    uint32_t           *ptr;
    int                 pc, c, i, j, k, w, h, ncolors, cpp;
    int                 comment, transp, quote, context, len, done, backslash;
@@ -174,17 +173,13 @@ _load(ImlibImage * im, int load_data)
    line = NULL;
    cmap = NULL;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
-   if (!memmem(fdata, im->fi->fsize <= 256 ? im->fi->fsize : 256, " XPM */", 7))
+   if (!memmem(im->fi->fdata,
+               im->fi->fsize <= 256 ? im->fi->fsize : 256, " XPM */", 7))
       goto quit;
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
-   mm_init(fdata, im->fi->fsize);
+   mm_init(im->fi->fdata, im->fi->fsize);
 
    j = 0;
    w = 10;
@@ -472,8 +467,6 @@ _load(ImlibImage * im, int load_data)
    free(line);
 
    xpm_parse_done();
-
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

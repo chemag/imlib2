@@ -68,7 +68,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 w, h, rc;
-   void               *fdata;
    struct jpeg_decompress_struct jds;
    ImLib_JPEG_data     jdata;
    uint8_t            *ptr, *line[16];
@@ -78,18 +77,13 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return rc;
-
    /* set up error handling */
    jds.err = _jdata_init(&jdata);
    if (sigsetjmp(jdata.setjmp_buffer, 1))
       QUIT_WITH_RC(LOAD_FAIL);
 
    jpeg_create_decompress(&jds);
-   jpeg_mem_src(&jds, fdata, im->fi->fsize);
+   jpeg_mem_src(&jds, im->fi->fdata, im->fi->fsize);
    jpeg_save_markers(&jds, JPEG_APP0 + 1, 256);
    jpeg_read_header(&jds, TRUE);
 
@@ -252,7 +246,6 @@ _load(ImlibImage * im, int load_data)
  quit:
    jpeg_destroy_decompress(&jds);
    free(jdata.data);
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

@@ -500,6 +500,9 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_FAIL;
    opt.ctx = NULL;
 
+   if (!im->fi->fp)
+      return rc;
+
    if (!get_options(&opt, im))
       goto quit;
 

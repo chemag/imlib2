@@ -118,7 +118,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    int                 c, p;
    int                 w, h, v, numbers, count;
    uint8_t            *data = NULL;     /* for the binary versions */
@@ -129,12 +128,7 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_FAIL;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
-   mm_init(fdata, im->fi->fsize);
+   mm_init(im->fi->fdata, im->fi->fsize);
 
    /* read the header info */
 
@@ -465,7 +459,6 @@ _load(ImlibImage * im, int load_data)
  quit:
    free(idata);
    free(data);
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

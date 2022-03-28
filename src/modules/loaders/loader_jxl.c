@@ -43,7 +43,6 @@ _load(ImlibImage * im, int load_data)
    };
 
    int                 rc;
-   void               *fdata;
    JxlDecoderStatus    jst;
    JxlDecoder         *dec;
    JxlBasicInfo        info;
@@ -55,15 +54,10 @@ _load(ImlibImage * im, int load_data)
    JxlParallelRunner  *runner = NULL;
 #endif
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
    rc = LOAD_FAIL;
    dec = NULL;
 
-   switch (JxlSignatureCheck(fdata, 128))
+   switch (JxlSignatureCheck(im->fi->fdata, 128))
      {
      default:
 //   case JXL_SIG_NOT_ENOUGH_BYTES:
@@ -101,7 +95,7 @@ _load(ImlibImage * im, int load_data)
    if (jst != JXL_DEC_SUCCESS)
       goto quit;
 
-   jst = JxlDecoderSetInput(dec, fdata, im->fi->fsize);
+   jst = JxlDecoderSetInput(dec, im->fi->fdata, im->fi->fsize);
    if (jst != JXL_DEC_SUCCESS)
       goto quit;
 
@@ -214,7 +208,6 @@ _load(ImlibImage * im, int load_data)
 #endif
    if (dec)
       JxlDecoderDestroy(dec);
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

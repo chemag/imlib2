@@ -85,7 +85,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    char                buf[4096], tok1[1024], tok2[1024];
    uint32_t           *ptr, pixel;
    int                 i, x, y, bit, nl;
@@ -97,19 +96,14 @@ _load(ImlibImage * im, int load_data)
    if (im->fi->fsize < 64)
       return rc;                /* Not XBM */
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
    /* Signature check ("#define") allow longish initial comment */
-   s = fdata;
+   s = im->fi->fdata;
    nlen = s[0] == '/' && s[1] == '*' ? 4096 : 256;
    nlen = im->fi->fsize > nlen ? nlen : im->fi->fsize;
    if (!memmem(s, nlen, "#define", 7))
       goto quit;
 
-   mm_init(fdata, im->fi->fsize);
+   mm_init(im->fi->fdata, im->fi->fsize);
 
    ptr = NULL;
    x = y = 0;
@@ -212,8 +206,6 @@ _load(ImlibImage * im, int load_data)
       rc = LOAD_SUCCESS;
 
  quit:
-   munmap(fdata, im->fi->fsize);
-
    return rc;
 }
 

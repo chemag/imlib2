@@ -336,7 +336,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    TIFF               *tif = NULL;
    uint16_t            magic_number;
    TIFFRGBAImage_Extra rgba_image;
@@ -352,17 +351,12 @@ _load(ImlibImage * im, int load_data)
    if (im->fi->fsize < (int)TIFF_BYTES_TO_CHECK)
       return rc;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
-   magic_number = *(uint16_t *) fdata;
+   magic_number = *(const uint16_t *)im->fi->fdata;
 
    if (magic_number != TIFF_BIGENDIAN && magic_number != TIFF_LITTLEENDIAN)
       return rc;
 
-   mm_init(fdata, im->fi->fsize);
+   mm_init(im->fi->fdata, im->fi->fsize);
 
    tif = TIFFClientOpen(im->fi->name, "r", NULL, _tiff_read, _tiff_write,
                         _tiff_seek, _tiff_close, _tiff_size,
@@ -450,7 +444,6 @@ _load(ImlibImage * im, int load_data)
       TIFFRGBAImageEnd((TIFFRGBAImage *) & rgba_image);
    if (tif)
       TIFFClose(tif);
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

@@ -11,7 +11,6 @@ decompress_load(ImlibImage * im, int load_data, const char *const *pext,
    const char         *s, *p, *q;
    char                tmp[] = "/tmp/imlib2_loader_dec-XXXXXX";
    char               *real_ext;
-   void               *fdata;
 
    rc = LOAD_FAIL;
 
@@ -47,15 +46,10 @@ decompress_load(ImlibImage * im, int load_data, const char *const *pext,
    if (!loader)
       return rc;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
    if ((dest = mkstemp(tmp)) < 0)
       QUIT_WITH_RC(LOAD_OOM);
 
-   res = fdec(fdata, im->fi->fsize, dest);
+   res = fdec(im->fi->fdata, im->fi->fsize, dest);
 
    close(dest);
 
@@ -65,7 +59,6 @@ decompress_load(ImlibImage * im, int load_data, const char *const *pext,
    unlink(tmp);
 
  quit:
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

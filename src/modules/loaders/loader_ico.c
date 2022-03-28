@@ -396,18 +396,12 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    ico_t               ico;
    unsigned int        i;
 
    rc = LOAD_FAIL;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
-   mm_init(fdata, im->fi->fsize);
+   mm_init(im->fi->fdata, im->fi->fsize);
 
    ico.ie = NULL;
    if (mm_read(&ico.idir, sizeof(ico.idir)))
@@ -444,7 +438,6 @@ _load(ImlibImage * im, int load_data)
 
  quit:
    ico_delete(&ico);
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

@@ -443,18 +443,12 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    char               *env;
    int                 i, n, y, z;
    unsigned char      *plane[40];
    ILBM                ilbm;
 
    rc = LOAD_FAIL;
-
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
 
    plane[0] = NULL;
    memset(&ilbm, 0, sizeof(ilbm));
@@ -463,7 +457,7 @@ _load(ImlibImage * im, int load_data)
    * Load the chunk(s) we're interested in. If load_data is not true, then we only
    * want the image size and format.
    *----------*/
-   if (!loadchunks(fdata, im->fi->fsize, &ilbm, load_data))
+   if (!loadchunks(im->fi->fdata, im->fi->fsize, &ilbm, load_data))
       goto quit;
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
@@ -568,8 +562,6 @@ _load(ImlibImage * im, int load_data)
    free(plane[0]);
 
    freeilbm(&ilbm);
-
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -78,6 +79,7 @@ static int
 __imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp, off_t fsize)
 {
    struct stat         st;
+   void               *fdata;
 
    if (fp)
      {
@@ -101,6 +103,12 @@ __imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp, off_t fsize)
         fi->fsize = fsize;
      }
 
+   fdata = mmap(NULL, fi->fsize, PROT_READ, MAP_SHARED, fileno(fi->fp), 0);
+   if (fdata == MAP_FAILED)
+      return -1;
+
+   fi->fdata = fdata;
+
    return 0;
 }
 
@@ -109,6 +117,11 @@ __imlib_FileContextClose(ImlibImageFileInfo * fi)
 {
    if (!fi->keep_fp)
      {
+        if (fi->fdata)
+          {
+             munmap((void *)fi->fdata, fi->fsize);
+             fi->fdata = NULL;
+          }
         if (fi->fp)
           {
              fclose(fi->fp);

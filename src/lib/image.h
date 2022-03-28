@@ -30,6 +30,7 @@ typedef struct _ImlibImageFileInfo {
    struct _ImlibImageFileInfo *next;
    char               *name;
    FILE               *fp;
+   const void         *fdata;
    off_t               fsize;
    /* vvv Private vvv */
    char                keep_fp;

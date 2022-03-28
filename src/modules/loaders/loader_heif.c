@@ -20,7 +20,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *fdata;
    int                 img_has_alpha;
    int                 stride = 0;
    int                 bytes_per_px;
@@ -39,13 +38,8 @@ _load(ImlibImage * im, int load_data)
    if (im->fi->fsize < HEIF_BYTES_TO_CHECK)
       return rc;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
    /* check signature */
-   switch (heif_check_filetype(fdata, im->fi->fsize))
+   switch (heif_check_filetype(im->fi->fdata, im->fi->fsize))
      {
      case heif_filetype_no:
      case heif_filetype_yes_unsupported:
@@ -62,7 +56,7 @@ _load(ImlibImage * im, int load_data)
    if (!ctx)
       goto quit;
 
-   error = heif_context_read_from_memory_without_copy(ctx, fdata,
+   error = heif_context_read_from_memory_without_copy(ctx, im->fi->fdata,
                                                       im->fi->fsize, NULL);
    if (error.code != heif_error_Ok)
       goto quit;
@@ -155,8 +149,6 @@ _load(ImlibImage * im, int load_data)
    heif_image_handle_release(img_handle);
    heif_context_free(ctx);
    heif_decoding_options_free(decode_opts);
-
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }

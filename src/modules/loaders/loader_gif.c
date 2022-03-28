@@ -57,7 +57,6 @@ static int
 _load(ImlibImage * im, int load_data)
 {
    int                 rc, err;
-   void               *fdata;
    uint32_t           *ptr;
    GifFileType        *gif;
    GifRowType         *rows;
@@ -68,15 +67,10 @@ _load(ImlibImage * im, int load_data)
    uint32_t            colormap[256];
    int                 fcount, frame, multiframe;
 
-   fdata =
-      mmap(NULL, im->fi->fsize, PROT_READ, MAP_SHARED, fileno(im->fi->fp), 0);
-   if (fdata == MAP_FAILED)
-      return LOAD_BADFILE;
-
    rc = LOAD_FAIL;
    rows = NULL;
 
-   mm_init(fdata, im->fi->fsize);
+   mm_init(im->fi->fdata, im->fi->fsize);
 
 #if GIFLIB_MAJOR >= 5
    gif = DGifOpen(NULL, mm_read, &err);
@@ -301,8 +295,6 @@ _load(ImlibImage * im, int load_data)
 #else
    DGifCloseFile(gif);
 #endif
-
-   munmap(fdata, im->fi->fsize);
 
    return rc;
 }
