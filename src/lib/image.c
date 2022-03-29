@@ -302,6 +302,8 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
              if (!im->fp)
                 return 0;
           }
+        free(im->format);
+        im->format = strdup(l->formats[0]);
         rc = l->load2(im, load_data);
 
         if (fp)
@@ -327,12 +329,7 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
         /* Failed - clean up */
         DP("%s: Failed (rc=%d)\n", __func__, rc);
 
-        if (im->w != 0 || im->h != 0)
-          {
-             DP("%s: Loader %s: Didn't clear w/h=%d/%d\n", __func__,
-                l->formats[0], im->w, im->h);
-             im->w = im->h = 0;
-          }
+        im->w = im->h = 0;
         if (im->data)
           {
              DP("%s: Loader %s: Free im->data\n", __func__, l->formats[0]);
@@ -340,15 +337,9 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
           }
         if (im->format)
           {
-             DP("%s: Loader %s: Free im->format\n", __func__, l->formats[0]);
              free(im->format);
              im->format = NULL;
           }
-     }
-   else
-     {
-        if (!im->format && l->formats && l->formats[0])
-           im->format = strdup(l->formats[0]);
      }
 
    return rc;
