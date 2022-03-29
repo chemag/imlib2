@@ -191,8 +191,6 @@ load2(ImlibImage * im, int load_data)
       cairo_surface_destroy(surface);
    if (cr)
       cairo_destroy(cr);
-   if (rc <= 0)
-      __imlib_FreeData(im);
    if (rsvg)
       g_object_unref(rsvg);
    munmap(fdata, im->fsize);

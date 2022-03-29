@@ -298,8 +298,6 @@ load2(ImlibImage * im, int load_data)
    DGifCloseFile(gif);
 #endif
 
-   if (rc <= 0)
-      __imlib_FreeData(im);
    munmap(fdata, im->fsize);
 
    return rc;

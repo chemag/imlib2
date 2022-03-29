@@ -346,8 +346,6 @@ load2(ImlibImage * im, int load_data)
  quit:
    if (rast)
       _TIFFfree(rast);
-   if (rc <= 0)
-      __imlib_FreeData(im);
    if (rgba_image.image)
       TIFFRGBAImageEnd((TIFFRGBAImage *) & rgba_image);
    if (tif)

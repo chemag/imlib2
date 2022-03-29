@@ -243,8 +243,6 @@ load2(ImlibImage * im, int load_data)
  quit:
    jpeg_destroy_decompress(&jds);
    free(jdata.data);
-   if (rc <= 0)
-      __imlib_FreeData(im);
 
    return rc;
 }

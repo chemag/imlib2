@@ -440,8 +440,6 @@ load2(ImlibImage * im, int load_data)
 
  quit:
    ico_delete(&ico);
-   if (rc <= 0)
-      __imlib_FreeData(im);
    munmap(fdata, im->fsize);
    return rc;
 }

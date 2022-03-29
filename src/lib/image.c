@@ -55,29 +55,21 @@ __imlib_AllocateData(ImlibImage * im)
 __EXPORT__ void
 __imlib_FreeData(ImlibImage * im)
 {
-   if (im->data)
-     {
-        if (im->data_memory_func)
-           im->data_memory_func(im->data, im->w * im->h * sizeof(uint32_t));
-        else
-           free(im->data);
+   if (!im->data)
+      return;
 
-        im->data = NULL;
-     }
-   im->w = 0;
-   im->h = 0;
+   if (im->data_memory_func)
+      im->data_memory_func(im->data, im->w * im->h * sizeof(uint32_t));
+   else
+      free(im->data);
+
+   im->data = NULL;
 }
 
 __EXPORT__ void
 __imlib_ReplaceData(ImlibImage * im, unsigned int *new_data)
 {
-   if (im->data)
-     {
-        if (im->data_memory_func)
-           im->data_memory_func(im->data, im->w * im->h * sizeof(uint32_t));
-        else
-           free(im->data);
-     }
+   __imlib_FreeData(im);
    im->data = new_data;
    im->data_memory_func = NULL;
 }
@@ -330,16 +322,9 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
         DP("%s: Failed (rc=%d)\n", __func__, rc);
 
         im->w = im->h = 0;
-        if (im->data)
-          {
-             DP("%s: Loader %s: Free im->data\n", __func__, l->formats[0]);
-             __imlib_FreeData(im);
-          }
-        if (im->format)
-          {
-             free(im->format);
-             im->format = NULL;
-          }
+        __imlib_FreeData(im);
+        free(im->format);
+        im->format = NULL;
      }
 
    return rc;

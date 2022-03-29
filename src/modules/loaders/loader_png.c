@@ -563,8 +563,6 @@ load2(ImlibImage * im, int load_data)
 
  quit:
    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-   if (rc <= 0)
-      __imlib_FreeData(im);
    munmap(fdata, im->fsize);
 
    return rc;

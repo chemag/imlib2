@@ -104,8 +104,6 @@ load2(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   if (rc <= 0)
-      __imlib_FreeData(im);
    munmap(fdata, im->fsize);
 
    return rc;

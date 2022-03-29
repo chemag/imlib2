@@ -142,9 +142,6 @@ load2(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   if (rc <= 0)
-      __imlib_FreeData(im);
-
    /* Free memory if it is still allocated.
     * Working this way means explicitly setting pointers to NULL if they were
     * freed beforehand to avoid freeing twice. */

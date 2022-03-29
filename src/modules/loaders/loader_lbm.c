@@ -561,9 +561,6 @@ load2(ImlibImage * im, int load_data)
    * We either had a successful decode, the user cancelled, or we couldn't get
    * the memory for im->data or plane[0].
    *----------*/
-   if (rc <= 0)
-      __imlib_FreeData(im);
-
    free(plane[0]);
 
    freeilbm(&ilbm);

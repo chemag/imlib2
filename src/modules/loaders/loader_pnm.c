@@ -463,9 +463,6 @@ load2(ImlibImage * im, int load_data)
    free(data);
    munmap(fdata, im->fsize);
 
-   if (rc == 0)
-      __imlib_FreeData(im);
-
    return rc;
 }
 
