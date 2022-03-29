@@ -18,7 +18,7 @@ static struct {
 } mdata;
 
 static void
-mm_init(void *src, unsigned int size)
+mm_init(const void *src, unsigned int size)
 {
    mdata.data = mdata.dptr = src;
    mdata.size = size;

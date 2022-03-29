@@ -16,8 +16,7 @@ int
 load2(ImlibImage * im, int load_data)
 {
    int                 rc;
-   void               *address;
-   uint8_t            *encoded_data;
+   void               *fdata;
    int                 img_has_alpha;
    int                 stride = 0;
    int                 bytes_per_px;
@@ -36,15 +35,12 @@ load2(ImlibImage * im, int load_data)
    if (im->fsize < HEIF_BYTES_TO_CHECK)
       return rc;
 
-   address = mmap(0, im->fsize, PROT_READ, MAP_PRIVATE, fileno(im->fp), 0);
-   if (address == MAP_FAILED)
+   fdata = mmap(NULL, im->fsize, PROT_READ, MAP_SHARED, fileno(im->fp), 0);
+   if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
-   /* Convert address to array of uint8_t. */
-   encoded_data = (uint8_t *) address;
-
    /* check signature */
-   switch (heif_check_filetype(encoded_data, im->fsize))
+   switch (heif_check_filetype(fdata, im->fsize))
      {
      case heif_filetype_no:
      case heif_filetype_yes_unsupported:
@@ -61,9 +57,8 @@ load2(ImlibImage * im, int load_data)
    if (!ctx)
       goto quit;
 
-   error =
-      heif_context_read_from_memory_without_copy(ctx, encoded_data,
-                                                 im->fsize, NULL);
+   error = heif_context_read_from_memory_without_copy(ctx, fdata,
+                                                      im->fsize, NULL);
    if (error.code != heif_error_Ok)
       goto quit;
 
@@ -159,7 +154,7 @@ load2(ImlibImage * im, int load_data)
    heif_context_free(ctx);
    heif_decoding_options_free(decode_opts);
 
-   munmap(address, im->fsize);
+   munmap(fdata, im->fsize);
 
    return rc;
 }
