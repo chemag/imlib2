@@ -94,6 +94,7 @@ main(int argc, char **argv)
    Imlib_Image         im;
    int                 err;
    unsigned int        t0;
+   double              dt;
    char                nbuf[4096];
    int                 frame;
    int                 verbose;
@@ -164,6 +165,8 @@ main(int argc, char **argv)
         imlib_context_set_progress_granularity(10);
      }
 
+   if (load_cnt < 0)
+      load_cnt = 1;
    t0 = 0;
 
    for (; argc > 0; argc--, argv++)
@@ -217,7 +220,11 @@ main(int argc, char **argv)
           }
 
         if (show_time)
-           printf("Elapsed time: %.3f ms\n", 1e-3 * (time_us() - t0));
+          {
+             dt = 1e-3 * (time_us() - t0);
+             printf("Elapsed time: %.3f ms (%.3f ms per load)\n",
+                    dt, dt / load_cnt);
+          }
 
         if (check_progress && !progress_called)
           {
