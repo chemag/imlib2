@@ -7,6 +7,8 @@
 
 #define DPI 96
 
+#if LIBRSVG_CHECK_VERSION(2, 46, 0)
+
 static double
 u2pix(double x, int unit)
 {
@@ -31,6 +33,8 @@ u2pix(double x, int unit)
      }
 }
 
+#endif /* LIBRSVG need 2.46 */
+
 static void
 _handle_error(GError * error)
 {
@@ -48,7 +52,6 @@ load2(ImlibImage * im, int load_data)
    gboolean            ok;
    cairo_surface_t    *surface;
    cairo_t            *cr;
-   RsvgRectangle       cvb;
 
    rc = LOAD_FAIL;
 
@@ -66,6 +69,7 @@ load2(ImlibImage * im, int load_data)
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
+#if LIBRSVG_CHECK_VERSION(2, 46, 0)
    {
       gboolean            out_has_width, out_has_height, out_has_viewbox;
       RsvgLength          out_width = { }, out_height = { };
@@ -104,6 +108,7 @@ load2(ImlibImage * im, int load_data)
 #endif
         }
    }
+#endif /* LIBRSVG need 2.46 */
 
 #if 0
 #if LIBRSVG_CHECK_VERSION(2, 52, 0)
@@ -123,8 +128,9 @@ load2(ImlibImage * im, int load_data)
         }
    }
 #endif
-#endif
+#endif /* LIBRSVG need 2.52 */
 
+#if LIBRSVG_CHECK_VERSION(2, 46, 0)
    {
       RsvgRectangle       out_ink_rect = { }, out_logical_rect = { };
 
@@ -145,6 +151,7 @@ load2(ImlibImage * im, int load_data)
 #endif
         }
    }
+#endif /* LIBRSVG need 2.46 */
 
 #if !IMLIB2_DEBUG
  got_size:
@@ -174,10 +181,16 @@ load2(ImlibImage * im, int load_data)
    if (!cr)
       QUIT_WITH_RC(LOAD_OOM);
 
-   cvb.x = cvb.y = 0;
-   cvb.width = im->w;
-   cvb.height = im->h;
-   rsvg_handle_render_document(rsvg, cr, &cvb, &error);
+#if LIBRSVG_CHECK_VERSION(2, 46, 0)
+   {
+      RsvgRectangle       cvb;
+
+      cvb.x = cvb.y = 0;
+      cvb.width = im->w;
+      cvb.height = im->h;
+      rsvg_handle_render_document(rsvg, cr, &cvb, &error);
+   }
+#endif /* LIBRSVG need 2.46 */
 
    if (im->lc)
       __imlib_LoadProgress(im, im->frame_x, im->frame_y, im->w, im->h);

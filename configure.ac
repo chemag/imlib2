@@ -197,7 +197,7 @@ EC_LOADER_CHECK(GIF,  auto, , loader_check_gif)
 EC_LOADER_CHECK(HEIF, auto, libheif)
 EC_LOADER_CHECK(JPEG, auto, libjpeg)
 EC_LOADER_CHECK(PNG,  auto, libpng)
-EC_LOADER_CHECK(SVG,  auto, librsvg-2.0)
+EC_LOADER_CHECK(SVG,  auto, librsvg-2.0 >= 2.46)
 EC_LOADER_CHECK(TIFF, auto, libtiff-4)
 EC_LOADER_CHECK(WEBP, auto, libwebpdemux)
 
