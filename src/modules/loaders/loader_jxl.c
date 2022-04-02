@@ -44,6 +44,8 @@ load2(ImlibImage * im, int load_data)
    JxlDecoderStatus    jst;
    JxlDecoder         *dec;
    JxlBasicInfo        info;
+   JxlFrameHeader      fhdr;
+   int                 delay_unit;
 
 #if MAX_RUNNERS > 0
    size_t              n_runners;
@@ -89,7 +91,9 @@ load2(ImlibImage * im, int load_data)
 #endif /* MAX_RUNNERS */
 
    jst =
-      JxlDecoderSubscribeEvents(dec, JXL_DEC_BASIC_INFO | JXL_DEC_FULL_IMAGE);
+      JxlDecoderSubscribeEvents(dec,
+                                JXL_DEC_BASIC_INFO | JXL_DEC_FRAME |
+                                JXL_DEC_FULL_IMAGE);
    if (jst != JXL_DEC_SUCCESS)
       goto quit;
 
@@ -97,9 +101,12 @@ load2(ImlibImage * im, int load_data)
    if (jst != JXL_DEC_SUCCESS)
       goto quit;
 
+   delay_unit = 0;
+
    for (;;)
      {
         jst = JxlDecoderProcessInput(dec);
+        DL("Event 0x%04x\n", jst);
         switch (jst)
           {
           default:
@@ -119,6 +126,9 @@ load2(ImlibImage * im, int load_data)
                   D("anim=%d loops=%u tps_num/den=%u/%u\n", info.have_animation,
                     info.animation.num_loops, info.animation.tps_numerator,
                     info.animation.tps_denominator);
+                  delay_unit = info.animation.tps_denominator * 1000;
+                  if (info.animation.tps_numerator > 0)
+                     delay_unit /= info.animation.tps_numerator;
                }
 
              if (!IMAGE_DIMENSIONS_OK(info.xsize, info.ysize))
@@ -128,8 +138,39 @@ load2(ImlibImage * im, int load_data)
              im->h = info.ysize;
              IM_FLAG_UPDATE(im, F_HAS_ALPHA, info.alpha_bits > 0);
 
+             int                 frame;
+
+             frame = 1;
+             if (im->frame_num > 0)
+               {
+                  frame = im->frame_num;
+                  if (info.have_animation)
+                    {
+                       if (info.animation.num_loops > 0)
+                          im->frame_count = info.animation.num_loops;
+                       else
+                          im->frame_count = 1234567890; // FIXME - Hack
+                       im->frame_flags |= FF_IMAGE_ANIMATED;
+                       im->canvas_w = info.xsize;
+                       im->canvas_h = info.ysize;
+                    }
+
+                  D("Canvas WxH=%dx%d frames=%d\n",
+                    im->canvas_w, im->canvas_h, im->frame_count);
+
+                  if (frame > 1 && im->frame_count > 0
+                      && frame > im->frame_count)
+                     QUIT_WITH_RC(LOAD_BADFRAME);
+               }
+
              if (!load_data)
                 QUIT_WITH_RC(LOAD_SUCCESS);
+
+             if (frame > 1)
+               {
+                  /* Fast forward to desired frame */
+                  JxlDecoderSkipFrames(dec, frame - 1);
+               }
              break;
 
           case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
@@ -140,6 +181,15 @@ load2(ImlibImage * im, int load_data)
                                                  _scanline_cb, im);
              if (jst != JXL_DEC_SUCCESS)
                 goto quit;
+             break;
+
+          case JXL_DEC_FRAME:
+             JxlDecoderGetFrameHeader(dec, &fhdr);
+             if (fhdr.is_last)
+                im->frame_count = im->frame_num;
+             im->frame_delay = fhdr.duration * delay_unit;
+             D("Frame duration=%d tc=%08x nl=%d last=%d\n",
+               im->frame_delay, fhdr.timecode, fhdr.name_length, fhdr.is_last);
              break;
 
           case JXL_DEC_FULL_IMAGE:
