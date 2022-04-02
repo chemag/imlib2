@@ -25,7 +25,7 @@ __attribute__((constructor))
       return;
 
    p1 = p2 = 0;
-   sscanf(s, "%d:%d", &p1, &p2);
+   sscanf(s, "%i:%i", &p1, &p2);
 
    __imlib_debug = p1;
    opt_fout = (p2) ? stderr : stdout;
