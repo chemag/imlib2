@@ -39,6 +39,9 @@ static tii_t        tii[] = {
    { "icon-64.ilbm",		1153555547 },
    { "icon-64.jpg",		4132154843 },
    { "icon-64.jpg.mp3",		4132154843 },
+#ifdef BUILD_JXL_LOADER
+   { "icon-64.jxl",		 712907299 },
+#endif
    { "icon-64.png",		1153555547 },
    { "icon-64.ppm",		1153555547 },
    { "icon-64.pgm",		 140949526 },

@@ -25,6 +25,9 @@ static const char  *const pfxs[] = {
    "ico",
    "jpg.mp3",                   // id3
    "jpg",
+#ifdef BUILD_JXL_LOADER
+   "jxl",
+#endif
    "ilbm",                      // lbm
    "png",
    "ppm",                       // pnm

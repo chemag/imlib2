@@ -8,6 +8,7 @@
  TYPES += gif
  TYPES += ico
  TYPES += jpg
+ TYPES += jxl
 #TYPES += lbm
  TYPES += ilbm
 #TYPES += png
@@ -53,6 +54,9 @@ imgs_64:  $(ALL_64)
 
 %.jpg: %.png
 	convert $< $@
+
+%.jxl: %.png
+	cjxl $< $@
 
 %.ilbm: %.png
 	convert $< $@
