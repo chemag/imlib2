@@ -2824,10 +2824,10 @@ EAPI const char    *imlib_strerror(int err);
 
 /* Old data types, no longer used by imlib2, likely to be removed */
 #ifndef DATA64
-#define DATA64 uint64_t IMLIB2_DEPRECATED
-#define DATA32 uint32_t IMLIB2_DEPRECATED
-#define DATA16 uint16_t IMLIB2_DEPRECATED
-#define DATA8  uint8_t  IMLIB2_DEPRECATED
+#define DATA64 uint64_t
+#define DATA32 uint32_t
+#define DATA16 uint16_t
+#define DATA8  uint8_t
 #endif
 
 /* *INDENT-OFF* */
