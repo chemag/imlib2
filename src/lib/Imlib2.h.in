@@ -1,7 +1,8 @@
 #ifndef __IMLIB_API_H
 #define __IMLIB_API_H 1
-/** @file */
-
+/** @file
+ * Imlib2 library API
+ */
 #define IMLIB2_VERSION_MAJOR @VERSION_MAJOR@
 #define IMLIB2_VERSION_MINOR @VERSION_MINOR@
 #define IMLIB2_VERSION_MICRO @VERSION_MICRO@
@@ -782,9 +783,9 @@ EAPI Imlib_Image    imlib_load_image_immediately_without_cache(const char
  *
  * On error @p error_return is set to the detail of the error.
  * error values:
- *     0: Success
- *   > 0: Regular errnos
- *   < 0: IMLIB_ERR_... values, see above
+ *          0: Success,
+ *   positive: Regular errnos,
+ *   negative: IMLIB_ERR_... values, see above
  *
  * @param file          File name
  * @param error_return  The returned error
@@ -1212,6 +1213,12 @@ EAPI Imlib_Image    imlib_create_cropped_image(int x, int y, int width,
                                                int height);
 
 /**
+ * Create cropped and scaled image
+ *
+ * Works the same as imlib_create_cropped_image() but will scale the
+ * new image to the new destination @p destination_width and
+ * @p destination_height whilst cropping.
+ *
  * @param source_x      The top left x coordinate of the source rectangle
  * @param source_y      The top left y coordinate of the source rectangle
  * @param source_width  The width of the source rectangle
@@ -1220,10 +1227,6 @@ EAPI Imlib_Image    imlib_create_cropped_image(int x, int y, int width,
  * @param destination_height The height of the destination image
  *
  * @return Image handle (NULL on failure)
- *
- * Works the same as imlib_create_cropped_image() but will scale the
- * new image to the new destination @p destination_width and
- * @p destination_height whilst cropping.
  */
 EAPI Imlib_Image    imlib_create_cropped_scaled_image(int source_x,
                                                       int source_y,
@@ -1409,11 +1412,15 @@ EAPI char           imlib_copy_drawable_to_image(Pixmap mask, int x, int y,
                                                  char need_to_grab_x);
 
 /**
+ * Return the current number of cached XImages
+ *
  * @return The current number of cached XImages
  */
 EAPI int            imlib_get_ximage_cache_count_used(void);
 
 /**
+ * Return the maximum number of XImages to cache
+ *
  * @return The current XImage cache max count
  */
 EAPI int            imlib_get_ximage_cache_count_max(void);
@@ -1432,11 +1439,15 @@ EAPI int            imlib_get_ximage_cache_count_max(void);
 EAPI void           imlib_set_ximage_cache_count_max(int count);
 
 /**
+ * Return the current XImage cache memory usage
+ *
  * @return The current XImage cache memory usage
  */
 EAPI int            imlib_get_ximage_cache_size_used(void);
 
 /**
+ * Return the XImage cache maximum size
+ *
  * @return The current XImage cache max size
  */
 EAPI int            imlib_get_ximage_cache_size_max(void);
@@ -2524,9 +2535,9 @@ EAPI void           imlib_save_image(const char *filename);
  * Works the same way imlib_save_image() works, but will set the
  * @p error_return to an error value if the save fails.
  * error values:
- *     0: Success
- *   > 0: Regular errnos
- *   < 0: IMLIB_ERR_... values, see above
+ *          0: Success,
+ *   positive: Regular errnos,
+ *   negative: IMLIB_ERR_... values, see above
  *
  * @param filename      The file name
  * @param error_return  The returned error
@@ -2556,8 +2567,6 @@ EAPI Imlib_Image    imlib_create_rotated_image(double angle);
  *
  * @param source_image  The source image
  * @param angle         An angle in radians
- *
- * @return Image handle (NULL on failure)
  */
 EAPI void           imlib_rotate_image_from_buffer(double angle,
                                                    Imlib_Image source_image);
@@ -2863,6 +2872,8 @@ typedef enum {
  * @param error_return  The returned error
  *
  * @return Image handle (NULL on failure)
+ *
+ * @deprecated Use imlib_load_image_with_errno_return()
  */
 /* IMLIB2_DEPRECATED */
 EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
@@ -2877,17 +2888,21 @@ EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
  *
  * @param filename      The file name
  * @param error_return  The returned error
+ *
+ * @deprecated Use imlib_save_image_with_errno_return()
  */
 /* IMLIB2_DEPRECATED */
 EAPI void           imlib_save_image_with_error_return(const char *filename,
                                                        Imlib_Load_Error *
                                                        error_return);
 
-/** Deprecated function - hasn't done anything useful ever */
+/** Deprecated function - hasn't done anything useful ever
+ * @deprecated Useless - don't use */
 IMLIB2_DEPRECATED
 EAPI void           imlib_image_set_irrelevant_border(char irrelevant);
 
-/** Deprecated function - hasn't done anything useful ever */
+/** Deprecated function - hasn't done anything useful ever
+ * @deprecated Useless - don't use */
 IMLIB2_DEPRECATED
 EAPI void           imlib_image_set_irrelevant_alpha(char irrelevant);
 
@@ -2900,11 +2915,13 @@ typedef enum {
    IMLIB_TTF_ENCODING_ISO_8859_5
 } Imlib_TTF_Encoding;
 
-/** Deprecated function - hasn't done anything useful in ~20 years */
+/** Deprecated function - hasn't done anything useful in ~20 years
+ * @deprecated Useless - don't use */
 IMLIB2_DEPRECATED
 EAPI void           imlib_context_set_TTF_encoding(Imlib_TTF_Encoding encoding);
 
-/** Deprecated function - hasn't done anything useful in ~20 years */
+/** Deprecated function - hasn't done anything useful in ~20 years
+ * @deprecated Useless - don't use */
 IMLIB2_DEPRECATED
 EAPI Imlib_TTF_Encoding imlib_context_get_TTF_encoding(void);
 
