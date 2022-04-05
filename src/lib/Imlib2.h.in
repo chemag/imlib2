@@ -2864,7 +2864,7 @@ typedef enum {
  *
  * @return Image handle (NULL on failure)
  */
-IMLIB2_DEPRECATED
+/* IMLIB2_DEPRECATED */
 EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
                                                        Imlib_Load_Error *
                                                        error_return);
@@ -2878,7 +2878,7 @@ EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
  * @param filename      The file name
  * @param error_return  The returned error
  */
-IMLIB2_DEPRECATED
+/* IMLIB2_DEPRECATED */
 EAPI void           imlib_save_image_with_error_return(const char *filename,
                                                        Imlib_Load_Error *
                                                        error_return);
