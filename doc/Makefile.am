@@ -1,3 +1,1 @@
-EXTRA_DIST = imlib2.gif \
-             blank.gif \
-	     index.html
+EXTRA_DIST = Doxyfile.in imlib2_intro.dox.in imlib2_logo.png

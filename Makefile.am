@@ -17,8 +17,7 @@ MAINTAINERCLEANFILES = aclocal.m4 compile \
 		       Makefile.in */Makefile.in */*/Makefile.in */*/*/Makefile.in \
 		       imlib2_docs.tar.gz
 
-EXTRA_DIST = AUTHORS COPYING COPYING-PLAIN gendoc \
-             Doxyfile \
+EXTRA_DIST = AUTHORS COPYING COPYING-PLAIN \
 	     README.in README \
 	     $(PACKAGE).pc.in \
 	     $(PACKAGE).spec.in
