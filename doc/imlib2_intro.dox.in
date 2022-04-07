@@ -1,19 +1,10 @@
-/** 
-@file
-@brief Imlib2 library
- 
-Brief of imlib2 library
-*/
+/** @file
+ * Imlib2 library introduction
+ */
 /**
-
 @mainpage Imlib2 Library Documentation
-@image html  imlib2.png
-@version 1.1.1
 @author Carsten Haitzler <raster@rasterman.com>
-@date 1999-2004
-
 @section intro What is Imlib2 ?
-
 
 Imlib 2 is the successor to Imlib. It is NOT a newer version - it is a completely new library. Imlib 2 can be installed alongside Imlib 1.x without any problems since they are effectively different libraries - BUT they Have very similar functionality.
 
@@ -61,7 +52,10 @@ the loaders directory with the others and all Imlib2 programs will
 automatically be able to use it - without a restart).
 
 @code
-/* main program */
+#include <stdlib.h>
+#include <string.h>
+#include <Imlib2.h>
+
 int main(int argc, char **argv)
 {
   /* an image handle */
@@ -97,7 +91,6 @@ cc imlib2_convert.c -o imlib2_convert `pkg-config --cflags --libs imlib2`
 You now have a program that if used as follows:
 
 @verbatim
-cc imlib2_con
 ./imlib2_convert image1.jpg image2.png
 @endverbatim
 
@@ -174,15 +167,16 @@ Sometimes loading images can take a while. Often it is a good idea to provide fe
 
 @section second_ex A more advanced Example
 
-This is a more comprehensive example that should show off a fair number of features of imlib2. The code this was based off can be found in Imlib2's test directory. This covers a lot of the core of Imlib2's API so you should have a pretty good idea on how it works if you understand this code snippet.
+This is a more comprehensive example that should show off a fair number of features of imlib2.
+It covers a lot of the core of Imlib2's API so you should have a pretty good idea on how it works if you understand this code snippet.
+@note
+This program should work when run at the top of the imlib2 source tree. If run elsewhere paths to fonts and images may have to be adjusted.
 
 @code
-/* include X11 stuff */
-#include <X11/Xlib.h>
-/* include Imlib2 stuff */
-#include <Imlib2.h>
-/* sprintf include */
 #include <stdio.h>
+#include <stdlib.h>
+#include <X11/Xlib.h>
+#include <Imlib2.h>
 
 /* some globals for our window & X display */
 Display *disp;
@@ -227,9 +221,9 @@ int main(int argc, char **argv)
    imlib_set_cache_size(2048 * 1024);
    /* set the font cache to 512Kb - again to avoid re-loading */
    imlib_set_font_cache_size(512 * 1024);
-   /* add the ./ttfonts dir to our font path - you'll want a notepad.ttf */
+   /* add the ./data/fonts dir to our font path - you'll want a notepad.ttf */
    /* in that dir for the text to display */
-   imlib_add_path_to_font_path("./ttfonts");
+   imlib_add_path_to_font_path("./data/fonts");
    /* set the maximum number of colors to allocate for 8bpp and less to 128 */
    imlib_set_color_usage(128);
    /* dither for depths < 24bpp */
@@ -269,7 +263,7 @@ int main(int argc, char **argv)
                case MotionNotify:
                   /* if the mouse moves - note it */
                   /* add a rectangle update for the new mouse position */
-                  image = imlib_load_image("./test_images/mush.png");
+                  image = imlib_load_image("./data/images/mush.png");
                   imlib_context_set_image(image);
                   w = imlib_image_get_width();
                   h = imlib_image_get_height();
@@ -342,8 +336,8 @@ int main(int argc, char **argv)
              
              /* fill the window background */
              /* load the background image - you'll need to have some images */
-             /* in ./test_images lying around for this to actually work */
-             image = imlib_load_image("./test_images/bg.png");
+             /* in ./data/images lying around for this to actually work */
+             image = imlib_load_image("./data/images/bg.png");
              /* we're working with this image now */
              imlib_context_set_image(image);
              /* get its size */
@@ -365,7 +359,7 @@ int main(int argc, char **argv)
                }
              
              /* draw an icon centered around the mouse position */
-             image = imlib_load_image("./test_images/mush.png");
+             image = imlib_load_image("./data/images/mush.png");
              imlib_context_set_image(image);
              w = imlib_image_get_width();
              h = imlib_image_get_height();
@@ -437,6 +431,12 @@ int main(int argc, char **argv)
    return 0;
 }
 @endcode
+
+Compile and run with:
+@verbatim
+cc imlib2_demo.c -o imlib2_demo `pkg-config --cflags --libs imlib2` -lX11
+./imlib2_demo
+@endverbatim
 
 @section filters Imlib2 filters
 
@@ -539,9 +539,5 @@ for( ptr = params; ptr != NULL; ptr = ptr->next )
 If the value "red" is not passed to the filter then it will remain at 50, but it a value is passed, it will be assign to r.
 
 return type - Imlib_Image, this is the result of filter. 
-
-@todo line code doesn't draw nice liens when clipping - fix
-@todo filled polygons can break fill bounds on corner cases - fix
-@todo go thru TODOs and FIXMEs 
 
 */
