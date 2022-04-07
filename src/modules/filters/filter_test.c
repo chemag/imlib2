@@ -53,14 +53,14 @@ exec(char *filter, void *im, IFunctionParam * params)
 
         for (ptr = params; ptr; ptr = ptr->next)
           {
-             ASSIGN_uint8_t("red", r);
-             ASSIGN_uint8_t("blue", b);
-             ASSIGN_uint8_t("green", g);
+             ASSIGN_DATA8("red", r);
+             ASSIGN_DATA8("blue", b);
+             ASSIGN_DATA8("green", g);
              ASSIGN_INT("x", x);
              ASSIGN_INT("y", y);
              ASSIGN_INT("w", w);
              ASSIGN_INT("h", h);
-             ASSIGN_uint8_t("alpha", a);
+             ASSIGN_DATA8("alpha", a);
           }
 /*
       printf( "Using values red=%d,blue=%d,green=%d,x=%d,y=%d,height=%d,width=%d,alpha=%d\n", r,b,g,x,y,w,h,a );
