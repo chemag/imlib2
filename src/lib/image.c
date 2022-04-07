@@ -284,6 +284,9 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
    unsigned int        t0 = __imlib_time_us();
 #endif
 
+   if (!im->format)
+      im->format = strdup(l->formats[0]);
+
    if (l->load2)
      {
         FILE               *fp = NULL;
@@ -294,8 +297,6 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
              if (!im->fp)
                 return 0;
           }
-        free(im->format);
-        im->format = strdup(l->formats[0]);
         rc = l->load2(im, load_data);
 
         if (fp)
