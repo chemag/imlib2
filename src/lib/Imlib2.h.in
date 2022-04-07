@@ -85,12 +85,16 @@ typedef struct {
    int                 alpha, red, green, blue;
 } Imlib_Color;
 
-/* Progressive loading callbacks */
+/* Progressive loading callback */
 typedef int         (*Imlib_Progress_Function)(Imlib_Image im, char percent,
                                                int update_x, int update_y,
                                                int update_w, int update_h);
+
+/* Custom attached data destructor callback */
 typedef void        (*Imlib_Data_Destructor_Function)(Imlib_Image im,
                                                       void *data);
+
+/* Custom image data memory management function */
 typedef void       *(*Imlib_Image_Data_Memory_Function)(void *, size_t size);
 
 /* *INDENT-OFF* */
@@ -99,7 +103,7 @@ extern "C" {
 #endif
 /* *INDENT-ON* */
 
-/* Imlib2 version */
+/** Return Imlib2 version */
 EAPI int            imlib_version(void);
 
 /*--------------------------------
@@ -2775,7 +2779,16 @@ EAPI void           imlib_filter_divisors(int a, int r, int g, int b);
 
 EAPI void           imlib_apply_filter(const char *script, ...);
 
+/**
+ * Clear current image
+ *
+ * Set all pixels values to 0.
+ */
 EAPI void           imlib_image_clear(void);
+
+/**
+ * Set all current image pixels to given color
+ */
 EAPI void           imlib_image_clear_color(int r, int g, int b, int a);
 
 /*--------------------------------
@@ -2813,6 +2826,11 @@ typedef struct {
  */
 EAPI Imlib_Image    imlib_load_image_frame(const char *file, int frame);
 
+/**
+ * Get information about current image frame
+ *
+ * @param info		Imlib_Frame_Info struct returning the information
+ */
 EAPI void           imlib_image_get_frame_info(Imlib_Frame_Info * info);
 
 /**
