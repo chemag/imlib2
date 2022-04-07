@@ -280,6 +280,12 @@ __imlib_LookupKnownLoader(const char *format)
    return l;
 }
 
+static int
+_loader_ok_for(const ImlibLoader * l, int for_save)
+{
+   return (for_save && l->save) || (!for_save && (l->load2 || l->load));
+}
+
 static ImlibLoader *
 __imlib_LookupLoadedLoader(const char *format, int for_save)
 {
@@ -310,8 +316,7 @@ __imlib_LookupLoadedLoader(const char *format, int for_save)
              if (strcasecmp(l->formats[i], format) == 0)
                {
                   /* does it provide the function we need? */
-                  if ((for_save && l->save) ||
-                      (!for_save && (l->load2 || l->load)))
+                  if (_loader_ok_for(l, for_save))
                      goto done;
                }
           }
@@ -344,7 +349,7 @@ __imlib_FindBestLoader(const char *file, const char *format, int for_save)
      }
 
    l = __imlib_LookupKnownLoader(format);
-   if (l)
+   if (l && _loader_ok_for(l, for_save))
       goto done;
 
    __imlib_LoadAllLoaders();
