@@ -41,7 +41,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
 }
 
 static void
-test_save(const char *file, int prog)
+test_save_1(const char *file, const char *ext, int prog)
 {
    char                filei[256];
    char                fileo[256];
@@ -56,15 +56,10 @@ test_save(const char *file, int prog)
         imlib_context_set_progress_granularity(10);
      }
 
-   snprintf(filei, sizeof(filei), "%s/%s.png", IMG_SRC, file);
+   snprintf(filei, sizeof(filei), "%s/%s.%s", IMG_SRC, file, ext);
    D("Load '%s'\n", filei);
    im = imlib_load_image(filei);
    ASSERT_TRUE(im);
-   if (!im)
-     {
-        printf("Error loading '%s'\n", filei);
-        exit(0);
-     }
 
    imlib_context_set_image(im);
    w = imlib_image_get_width();
@@ -136,28 +131,109 @@ test_save(const char *file, int prog)
    imlib_free_image_and_decache();
    imlib_context_set_image(im3);
    imlib_free_image_and_decache();
-}
 
-TEST(SAVE, save_1_rgb)
-{
    imlib_context_set_progress_function(NULL);
-
-   test_save(FILE_REF1, 0);
 }
 
-TEST(SAVE, save_2_rgb)
+TEST(SAVE, save_1n_rgb)
 {
-   test_save(FILE_REF1, 1);
+   test_save_1(FILE_REF1, "png", 0);
 }
 
-TEST(SAVE, save_1_argb)
+TEST(SAVE, save_1p_rgb)
 {
-   imlib_context_set_progress_function(NULL);
-
-   test_save(FILE_REF2, 0);
+   test_save_1(FILE_REF1, "png", 1);
 }
 
-TEST(SAVE, save_2_argb)
+TEST(SAVE, save_1n_argb)
 {
-   test_save(FILE_REF2, 1);
+   test_save_1(FILE_REF2, "png", 0);
+}
+
+TEST(SAVE, save_1p_argb)
+{
+   test_save_1(FILE_REF2, "png", 1);
+}
+
+static void
+test_save_2(const char *file, const char *ext, const char *fmt,
+            bool load_imm, bool sok)
+{
+   char                filei[256];
+   char                fileo[256];
+   int                 err;
+   Imlib_Image         im;
+
+   imlib_flush_loaders();
+
+   snprintf(filei, sizeof(filei), "%s/%s.%s", IMG_SRC, file, ext);
+
+   D("Load '%s'\n", filei);
+   err = 0;
+   if (load_imm)
+      im = imlib_load_image_with_errno_return(filei, &err);
+   else
+      im = imlib_load_image(filei);
+   ASSERT_TRUE(im);
+   ASSERT_EQ(err, 0);
+
+   imlib_context_set_image(im);
+
+   snprintf(fileo, sizeof(fileo), "%s/save-%s-%s.%s", IMG_GEN, file, ext, fmt);
+
+   D("Save '%s'\n", fileo);
+   imlib_image_set_format(fmt);
+   imlib_save_image_with_errno_return(fileo, &err);
+   if (sok)
+     {
+        EXPECT_EQ(err, 0);
+        if (err)
+           D("Error %d saving '%s'\n", err, fileo);
+     }
+   else
+     {
+        EXPECT_EQ(err, IMLIB_ERR_NO_SAVER);
+        if (err != IMLIB_ERR_NO_SAVER)
+           D("Error %d saving '%s'\n", err, fileo);
+     }
+
+   imlib_free_image_and_decache();
+}
+
+// png and ppm(pnm) have savers
+TEST(SAVE, save_2a_immed)
+{
+   bool                immed = true;
+
+   test_save_2(FILE_REF1, "png", "png", immed, true);
+   test_save_2(FILE_REF1, "png", "ppm", immed, true);
+   test_save_2(FILE_REF1, "ppm", "ppm", immed, true);
+   test_save_2(FILE_REF1, "ppm", "png", immed, true);
+}
+
+TEST(SAVE, save_2a_defer)
+{
+   bool                immed = false;
+
+   test_save_2(FILE_REF1, "png", "png", immed, true);
+   test_save_2(FILE_REF1, "png", "ppm", immed, true);
+   test_save_2(FILE_REF1, "ppm", "ppm", immed, true);
+   test_save_2(FILE_REF1, "ppm", "png", immed, true);
+}
+
+// No gif saver
+TEST(SAVE, save_2b_immed)
+{
+   bool                immed = true;
+
+   test_save_2(FILE_REF1, "gif", "svg", immed, false);
+   test_save_2(FILE_REF1, "gif", "png", immed, true);
+}
+
+TEST(SAVE, save_2b_defer)
+{
+   bool                immed = false;
+
+   test_save_2(FILE_REF1, "gif", "svg", immed, false);
+   test_save_2(FILE_REF1, "gif", "png", immed, true);
 }
