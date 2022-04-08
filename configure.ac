@@ -196,6 +196,7 @@ loader_check_gif() {
 EC_LOADER_CHECK(GIF,  auto, , loader_check_gif)
 EC_LOADER_CHECK(HEIF, auto, libheif)
 EC_LOADER_CHECK(JPEG, auto, libjpeg)
+EC_LOADER_CHECK(J2K,  auto, libopenjp2)
 EC_LOADER_CHECK(JXL,  auto, libjxl libjxl_threads)
 EC_LOADER_CHECK(PNG,  auto, libpng)
 EC_LOADER_CHECK(SVG,  auto, librsvg-2.0 >= 2.46)
@@ -284,6 +285,7 @@ echo " Regular image loaders"
 echo "  GIF.....................: $gif_ok"
 echo "  HEIF....................: $heif_ok"
 echo "  JPEG....................: $jpeg_ok"
+echo "  J2K.....................: $j2k_ok"
 echo "  JXL.....................: $jxl_ok"
 echo "  PNG.....................: $png_ok"
 echo "  SVG.....................: $svg_ok"

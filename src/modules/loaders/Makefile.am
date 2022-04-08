@@ -23,6 +23,9 @@ endif
 if BUILD_JPEG_LOADER
 pkg_LTLIBRARIES += jpeg.la
 endif
+if BUILD_J2K_LOADER
+pkg_LTLIBRARIES += j2k.la
+endif
 if BUILD_JXL_LOADER
 pkg_LTLIBRARIES += jxl.la
 endif
@@ -91,6 +94,12 @@ jpeg_la_CPPFLAGS     = $(JPEG_CFLAGS) $(AM_CPPFLAGS)
 jpeg_la_LDFLAGS      = -module -avoid-version
 jpeg_la_LIBADD       = $(JPEG_LIBS) $(top_builddir)/src/lib/libImlib2.la
 jpeg_la_LIBTOOLFLAGS = --tag=disable-static
+
+j2k_la_SOURCES       = loader_j2k.c
+j2k_la_CPPFLAGS      = $(J2K_CFLAGS) $(AM_CPPFLAGS)
+j2k_la_LDFLAGS       = -module -avoid-version
+j2k_la_LIBADD        = $(J2K_LIBS) $(top_builddir)/src/lib/libImlib2.la
+j2k_la_LIBTOOLFLAGS  = --tag=disable-static
 
 jxl_la_SOURCES       = loader_jxl.c
 jxl_la_CPPFLAGS      = $(JXL_CFLAGS) $(AM_CPPFLAGS)

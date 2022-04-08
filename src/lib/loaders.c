@@ -36,6 +36,9 @@ static const char  *const ext_ico[] = { "ico", NULL };
 #ifdef BUILD_JPEG_LOADER
 static const char  *const ext_jpeg[] = { "jpg", "jpeg", "jfif", "jfi", NULL };
 #endif
+#ifdef BUILD_J2K_LOADER
+static const char  *const ext_j2k[] = { "jp2", "j2k", NULL };
+#endif
 #ifdef BUILD_JXL_LOADER
 static const char  *const ext_jxl[] = { "jxl", NULL };
 #endif
@@ -85,6 +88,9 @@ static const KnownLoader loaders_known[] = {
    {"ico", ext_ico},
 #ifdef BUILD_JPEG_LOADER
    {"jpeg", ext_jpeg},
+#endif
+#ifdef BUILD_J2K_LOADER
+   {"j2k", ext_j2k},
 #endif
 #ifdef BUILD_JXL_LOADER
    {"jxl", ext_jxl},
