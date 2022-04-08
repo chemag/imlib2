@@ -37,17 +37,17 @@ static const char  *const ext_ico[] = { "ico", NULL };
 static const char  *const ext_jpeg[] = { "jpg", "jpeg", "jfif", "jfi", NULL };
 #endif
 #ifdef BUILD_JXL_LOADER
-static const char  *const ext_jxl[] = { "uxl", NULL };
+static const char  *const ext_jxl[] = { "jxl", NULL };
 #endif
 static const char  *const ext_lbm[] = { "iff", "ilbm", "lbm", NULL };
 #ifdef BUILD_PNG_LOADER
 static const char  *const ext_png[] = { "png", NULL };
 #endif
+static const char  *const ext_pnm[] =
+   { "pnm", "ppm", "pgm", "pbm", "pam", NULL };
 #ifdef BUILD_SVG_LOADER
 static const char  *const ext_svg[] = { "svg", NULL };
 #endif
-static const char  *const ext_pnm[] =
-   { "pnm", "ppm", "pgm", "pbm", "pam", NULL };
 static const char  *const ext_tga[] = { "tga", NULL };
 #ifdef BUILD_TIFF_LOADER
 static const char  *const ext_tiff[] = { "tiff", "tif", NULL };
