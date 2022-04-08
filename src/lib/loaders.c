@@ -48,6 +48,9 @@ static const char  *const ext_png[] = { "png", NULL };
 #endif
 static const char  *const ext_pnm[] =
    { "pnm", "ppm", "pgm", "pbm", "pam", NULL };
+#ifdef BUILD_PS_LOADER
+static const char  *const ext_ps[] = { "ps", "eps", NULL };
+#endif
 #ifdef BUILD_SVG_LOADER
 static const char  *const ext_svg[] = { "svg", NULL };
 #endif
@@ -98,6 +101,9 @@ static const KnownLoader loaders_known[] = {
    {"lbm", ext_lbm},
 #ifdef BUILD_PNG_LOADER
    {"png", ext_png},
+#endif
+#ifdef BUILD_PS_LOADER
+   {"ps", ext_ps},
 #endif
    {"pnm", ext_pnm},
 #ifdef BUILD_SVG_LOADER
