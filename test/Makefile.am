@@ -1,5 +1,7 @@
 # Unit test makefile
 #
+.NOTPARALLEL:
+
 noinst_PROGRAMS = $(GTESTS)
 
 CLEANFILES = file.c img_save-*.*

@@ -39,8 +39,9 @@ $(top_builddir)/$(PACKAGE).spec: FORCE
 	sed "s/\@PACKAGE\@/@PACKAGE@/;s/\@VERSION\@/@VERSION@/;s/\@RPM_RELEASE\@/$(RPM_RELEASE)/" \
 		$(top_srcdir)/$(PACKAGE).spec.in > $@
 
-.PHONY: doc test
-doc test:
+.PHONY: doc src test
+doc src test:
 	$(MAKE) -C $@
+test: src
 
 FORCE:
