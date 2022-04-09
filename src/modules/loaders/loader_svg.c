@@ -1,3 +1,4 @@
+#define _GNU_SOURCE             /* memmem() */
 #include "loader_common.h"
 
 #include <math.h>
@@ -6,6 +7,24 @@
 #define DBG_PFX "LDR-svg"
 
 #define DPI 96
+
+#define MATCHSTR(ptr, len, str) (len >= sizeof(str) && memcmp(ptr, str, sizeof(str) - 1) == 0)
+#define FINDSTR(ptr, len, str) (memmem(ptr, len, str, sizeof(str) - 1) != 0)
+
+static int
+_sig_check(const unsigned char *buf, unsigned int len)
+{
+   /* May also be compressed? - forget for now */
+
+   if (len > 4096)
+      len = 4096;
+   if (MATCHSTR(buf, len, "<svg"))
+      return 0;
+   if (!MATCHSTR(buf, len, "<?xml version=") &&
+       !MATCHSTR(buf, len, "<!--") && !MATCHSTR(buf, len, "<!DOCTYPE svg"))
+      return 1;
+   return FINDSTR(buf, len, "<svg") ? 0 : 1;
+}
 
 #if LIBRSVG_CHECK_VERSION(2, 46, 0)
 
@@ -59,10 +78,15 @@ load2(ImlibImage * im, int load_data)
    if (fdata == MAP_FAILED)
       return LOAD_BADFILE;
 
+   error = NULL;
+   rsvg = NULL;
    surface = NULL;
    cr = NULL;
 
-   error = NULL;
+   /* Signature check */
+   if (_sig_check(fdata, im->fsize))
+      goto quit;
+
    rsvg = rsvg_handle_new_from_data(fdata, im->fsize, &error);
    if (!rsvg)
       goto quit;
