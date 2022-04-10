@@ -39,10 +39,21 @@ static tii_t        tii[] = {
    { "icon-64.ilbm",		1153555547 },
    { "icon-64.jpg",		4132154843 },
    { "icon-64.jpg.mp3",		4132154843 },
+#ifdef BUILD_J2K_LOADER
+   { "icon-64.jp2",		 451428725 },
+   { "icon-64.j2k",		 451428725 },
+   { "xeyes.jp2",		2937827957 },
+   { "xeyes.j2k",		2937827957 },
+   { "icon-64-gray.jp2",	2437152898 },
+   { "icon-64-gray.j2k",	2437152898 },
+   { "xeyes-gray.jp2",		3377113384 },
+   { "xeyes-gray.j2k",		3377113384 },
+#endif
 #ifdef BUILD_JXL_LOADER
    { "icon-64.jxl",		 712907299 },
 #endif
    { "icon-64.png",		1153555547 },
+   { "xeyes-gray.png",		3493264608 },
    { "icon-64.ppm",		1153555547 },
    { "icon-64.pgm",		 140949526 },
    { "icon-64.pbm",		2153856013 },
