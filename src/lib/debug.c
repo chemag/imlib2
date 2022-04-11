@@ -37,7 +37,7 @@ __attribute__((constructor))
 #include <sys/time.h>
 #endif
 
-unsigned int
+__EXPORT__ unsigned int
 __imlib_time_us(void)
 {
 #if USE_MONOTONIC_CLOCK
