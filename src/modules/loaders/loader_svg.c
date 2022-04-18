@@ -38,6 +38,7 @@ u2pix(double x, int unit)
      {
      default:
      case RSVG_UNIT_PERCENT:   /* 0  percentage values where 1.0 means 100% */
+        return 0;               /* Size should be determined otherwise */
      case RSVG_UNIT_PX:        /* 1  pixels */
      case RSVG_UNIT_EM:        /* 2  em, or the current font size */
      case RSVG_UNIT_EX:        /* 3  x-height of the current font */
@@ -125,10 +126,10 @@ load2(ImlibImage * im, int load_data)
 #endif
         }
 
-      if (out_has_viewbox && (im->w <= 0 || im->w <= 0))
+      if (out_has_viewbox && (im->w <= 0 || im->h <= 0))
         {
-           im->w = ceil(out_viewbox.width);
-           im->h = ceil(out_viewbox.height);
+           im->w = lrint(out_viewbox.width);
+           im->h = lrint(out_viewbox.height);
            D("Choose rsvg_handle_get_intrinsic_dimensions viewbox\n");
 #if !IMLIB2_DEBUG
            goto got_size;
@@ -146,8 +147,8 @@ load2(ImlibImage * im, int load_data)
       D("ok=%d WxH=%.1fx%.1f\n", ok, dw, dh);
       if (ok && (im->w <= 0 || im->w <= 0))
         {
-           im->w = ceil(dw);
-           im->h = ceil(dh);
+           im->w = lrint(dw);
+           im->h = lrint(dh);
            D("Choose rsvg_handle_get_intrinsic_size_in_pixels width/height\n");
 #if !IMLIB2_DEBUG
            goto got_size;
@@ -170,8 +171,8 @@ load2(ImlibImage * im, int load_data)
         out_logical_rect.height);
       if (ok && (im->w <= 0 || im->w <= 0))
         {
-           im->w = ceil(out_ink_rect.width);
-           im->h = ceil(out_ink_rect.height);
+           im->w = lrint(out_ink_rect.width);
+           im->h = lrint(out_ink_rect.height);
            D("Choose rsvg_handle_get_geometry_for_element ink rect width/height\n");
 #if !IMLIB2_DEBUG
            goto got_size;
