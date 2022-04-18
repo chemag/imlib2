@@ -2,7 +2,10 @@
 #include "loader_common.h"
 
 #include <math.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcomment"
 #include <librsvg/rsvg.h>
+#pragma GCC diagnostic pop
 
 #define DBG_PFX "LDR-svg"
 
