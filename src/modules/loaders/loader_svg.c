@@ -122,7 +122,8 @@ load2(ImlibImage * im, int load_data)
            im->h = lrint(u2pix(out_height.length, out_height.unit));
            D("Choose rsvg_handle_get_intrinsic_dimensions width/height\n");
 #if !IMLIB2_DEBUG
-           goto got_size;
+           if (im->w > 0 && im->h > 0)
+              goto got_size;
 #endif
         }
 
@@ -132,7 +133,8 @@ load2(ImlibImage * im, int load_data)
            im->h = lrint(out_viewbox.height);
            D("Choose rsvg_handle_get_intrinsic_dimensions viewbox\n");
 #if !IMLIB2_DEBUG
-           goto got_size;
+           if (im->w > 0 && im->h > 0)
+              goto got_size;
 #endif
         }
    }
@@ -151,7 +153,8 @@ load2(ImlibImage * im, int load_data)
            im->h = lrint(dh);
            D("Choose rsvg_handle_get_intrinsic_size_in_pixels width/height\n");
 #if !IMLIB2_DEBUG
-           goto got_size;
+           if (im->w > 0 && im->h > 0)
+              goto got_size;
 #endif
         }
    }
@@ -175,7 +178,8 @@ load2(ImlibImage * im, int load_data)
            im->h = lrint(out_ink_rect.height);
            D("Choose rsvg_handle_get_geometry_for_element ink rect width/height\n");
 #if !IMLIB2_DEBUG
-           goto got_size;
+           if (im->w > 0 && im->h > 0)
+              goto got_size;
 #endif
         }
    }
