@@ -178,12 +178,13 @@ test_load(void)
         fd = open(fileo, O_RDONLY);
         D("Load fd %d '%s'\n", fd, fileo);
         snprintf(fileo, sizeof(fileo), ".%s", pfxs[i]);
-        im = imlib_load_image_fd(fd, pfxs[i]);
+        im = imlib_load_image_fde(pfxs[i], &err, fd);
         EXPECT_TRUE(im);
         if (im)
            image_free(im);
+        EXPECT_EQ(err, 0);
         err = close(fd);
-        EXPECT_TRUE(err != 0);
+        EXPECT_NE(err, 0);
      }
 }
 
