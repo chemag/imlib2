@@ -70,6 +70,22 @@ __imlib_BestVisual(Display * d, int screen, int *depth_return)
    return v;
 }
 
+static void
+_free_colors(Display * d, Colormap cmap, uint8_t * lut, int num)
+{
+   unsigned long       pixels[256];
+   int                 i;
+
+   if (num > 0)
+     {
+        for (i = 0; i < num; i++)
+           pixels[i] = (unsigned long)lut[i];
+        XFreeColors(d, cmap, pixels, num, 0);
+     }
+
+   free(lut);
+}
+
 static uint8_t     *
 __imlib_AllocColors332(Display * d, Colormap cmap, Visual * v)
 {
@@ -103,21 +119,12 @@ __imlib_AllocColors332(Display * d, Colormap cmap, Visual * v)
                   xcl.blue = (unsigned short)((val << 8) | (val));
                   xcl_in = xcl;
                   ret = XAllocColor(d, cmap, &xcl);
-                  if ((ret == Success) ||
+                  if ((ret == 0) ||
                       ((xcl_in.red & sig_mask) != (xcl.red & sig_mask)) ||
                       ((xcl_in.green & sig_mask) != (xcl.green & sig_mask)) ||
                       ((xcl_in.blue & sig_mask) != (xcl.blue & sig_mask)))
                     {
-                       unsigned long       pixels[256];
-                       int                 j;
-
-                       if (i > 0)
-                         {
-                            for (j = 0; j < i; j++)
-                               pixels[j] = (unsigned long)color_lut[j];
-                            XFreeColors(d, cmap, pixels, i, 0);
-                         }
-                       free(color_lut);
+                       _free_colors(d, cmap, color_lut, i);
                        return NULL;
                     }
                   color_lut[i] = xcl.pixel;
@@ -161,21 +168,12 @@ __imlib_AllocColors666(Display * d, Colormap cmap, Visual * v)
                   xcl.blue = (unsigned short)(val);
                   xcl_in = xcl;
                   ret = XAllocColor(d, cmap, &xcl);
-                  if ((ret == Success) ||
+                  if ((ret == 0) ||
                       ((xcl_in.red & sig_mask) != (xcl.red & sig_mask)) ||
                       ((xcl_in.green & sig_mask) != (xcl.green & sig_mask)) ||
                       ((xcl_in.blue & sig_mask) != (xcl.blue & sig_mask)))
                     {
-                       unsigned long       pixels[256];
-                       int                 j;
-
-                       if (i > 0)
-                         {
-                            for (j = 0; j < i; j++)
-                               pixels[j] = (unsigned long)color_lut[j];
-                            XFreeColors(d, cmap, pixels, i, 0);
-                         }
-                       free(color_lut);
+                       _free_colors(d, cmap, color_lut, i);
                        return NULL;
                     }
                   color_lut[i] = xcl.pixel;
@@ -219,21 +217,12 @@ __imlib_AllocColors232(Display * d, Colormap cmap, Visual * v)
                   xcl.blue = (unsigned short)((val << 8) | (val));
                   xcl_in = xcl;
                   ret = XAllocColor(d, cmap, &xcl);
-                  if ((ret == Success) ||
+                  if ((ret == 0) ||
                       ((xcl_in.red & sig_mask) != (xcl.red & sig_mask)) ||
                       ((xcl_in.green & sig_mask) != (xcl.green & sig_mask)) ||
                       ((xcl_in.blue & sig_mask) != (xcl.blue & sig_mask)))
                     {
-                       unsigned long       pixels[256];
-                       int                 j;
-
-                       if (i > 0)
-                         {
-                            for (j = 0; j < i; j++)
-                               pixels[j] = (unsigned long)color_lut[j];
-                            XFreeColors(d, cmap, pixels, i, 0);
-                         }
-                       free(color_lut);
+                       _free_colors(d, cmap, color_lut, i);
                        return NULL;
                     }
                   color_lut[i] = xcl.pixel;
@@ -277,21 +266,12 @@ __imlib_AllocColors222(Display * d, Colormap cmap, Visual * v)
                   xcl.blue = (unsigned short)((val << 8) | (val));
                   xcl_in = xcl;
                   ret = XAllocColor(d, cmap, &xcl);
-                  if ((ret == Success) ||
+                  if ((ret == 0) ||
                       ((xcl_in.red & sig_mask) != (xcl.red & sig_mask)) ||
                       ((xcl_in.green & sig_mask) != (xcl.green & sig_mask)) ||
                       ((xcl_in.blue & sig_mask) != (xcl.blue & sig_mask)))
                     {
-                       unsigned long       pixels[256];
-                       int                 j;
-
-                       if (i > 0)
-                         {
-                            for (j = 0; j < i; j++)
-                               pixels[j] = (unsigned long)color_lut[j];
-                            XFreeColors(d, cmap, pixels, i, 0);
-                         }
-                       free(color_lut);
+                       _free_colors(d, cmap, color_lut, i);
                        return NULL;
                     }
                   color_lut[i] = xcl.pixel;
@@ -336,21 +316,12 @@ __imlib_AllocColors221(Display * d, Colormap cmap, Visual * v)
                   xcl.blue = (unsigned short)((val << 8) | (val));
                   xcl_in = xcl;
                   ret = XAllocColor(d, cmap, &xcl);
-                  if ((ret == Success) ||
+                  if ((ret == 0) ||
                       ((xcl_in.red & sig_mask) != (xcl.red & sig_mask)) ||
                       ((xcl_in.green & sig_mask) != (xcl.green & sig_mask)) ||
                       ((xcl_in.blue & sig_mask) != (xcl.blue & sig_mask)))
                     {
-                       unsigned long       pixels[256];
-                       int                 j;
-
-                       if (i > 0)
-                         {
-                            for (j = 0; j < i; j++)
-                               pixels[j] = (unsigned long)color_lut[j];
-                            XFreeColors(d, cmap, pixels, i, 0);
-                         }
-                       free(color_lut);
+                       _free_colors(d, cmap, color_lut, i);
                        return NULL;
                     }
                   color_lut[i] = xcl.pixel;
@@ -396,21 +367,12 @@ __imlib_AllocColors121(Display * d, Colormap cmap, Visual * v)
                   xcl.blue = (unsigned short)((val << 8) | (val));
                   xcl_in = xcl;
                   ret = XAllocColor(d, cmap, &xcl);
-                  if ((ret == Success) ||
+                  if ((ret == 0) ||
                       ((xcl_in.red & sig_mask) != (xcl.red & sig_mask)) ||
                       ((xcl_in.green & sig_mask) != (xcl.green & sig_mask)) ||
                       ((xcl_in.blue & sig_mask) != (xcl.blue & sig_mask)))
                     {
-                       unsigned long       pixels[256];
-                       int                 j;
-
-                       if (i > 0)
-                         {
-                            for (j = 0; j < i; j++)
-                               pixels[j] = (unsigned long)color_lut[j];
-                            XFreeColors(d, cmap, pixels, i, 0);
-                         }
-                       free(color_lut);
+                       _free_colors(d, cmap, color_lut, i);
                        return NULL;
                     }
                   color_lut[i] = xcl.pixel;
@@ -457,21 +419,12 @@ __imlib_AllocColors111(Display * d, Colormap cmap, Visual * v)
                   xcl.blue = (unsigned short)((val << 8) | (val));
                   xcl_in = xcl;
                   ret = XAllocColor(d, cmap, &xcl);
-                  if ((ret == Success) ||
+                  if ((ret == 0) ||
                       ((xcl_in.red & sig_mask) != (xcl.red & sig_mask)) ||
                       ((xcl_in.green & sig_mask) != (xcl.green & sig_mask)) ||
                       ((xcl_in.blue & sig_mask) != (xcl.blue & sig_mask)))
                     {
-                       unsigned long       pixels[256];
-                       int                 j;
-
-                       if (i > 0)
-                         {
-                            for (j = 0; j < i; j++)
-                               pixels[j] = (unsigned long)color_lut[j];
-                            XFreeColors(d, cmap, pixels, i, 0);
-                         }
-                       free(color_lut);
+                       _free_colors(d, cmap, color_lut, i);
                        return NULL;
                     }
                   color_lut[i] = xcl.pixel;
@@ -487,29 +440,32 @@ __imlib_AllocColors1(Display * d, Colormap cmap, Visual * v)
 {
    XColor              xcl;
    uint8_t            *color_lut;
+   int                 i;
 
    color_lut = malloc(2 * sizeof(uint8_t));
    if (!color_lut)
       return NULL;
+
+   i = 0;
    xcl.red = (unsigned short)(0x0000);
    xcl.green = (unsigned short)(0x0000);
    xcl.blue = (unsigned short)(0x0000);
    if (!XAllocColor(d, cmap, &xcl))
-     {
-        free(color_lut);
-        return NULL;
-     }
-   color_lut[0] = xcl.pixel;
+      goto bail;
+   color_lut[i++] = xcl.pixel;
+
    xcl.red = (unsigned short)(0xffff);
    xcl.green = (unsigned short)(0xffff);
    xcl.blue = (unsigned short)(0xffff);
    if (!XAllocColor(d, cmap, &xcl))
-     {
-        free(color_lut);
-        return NULL;
-     }
-   color_lut[1] = xcl.pixel;
+      goto bail;
+   color_lut[i] = xcl.pixel;
+
    return color_lut;
+
+ bail:
+   _free_colors(d, cmap, color_lut, i);
+   return NULL;
 }
 
 uint8_t            *
