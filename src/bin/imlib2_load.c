@@ -4,6 +4,7 @@
 #endif
 #include <Imlib2.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -15,6 +16,8 @@
 #else
 #include <sys/time.h>
 #endif
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #define PROG_NAME "imlib2_load"
 
@@ -22,6 +25,7 @@
 #define LOAD_NODATA	1
 #define LOAD_IMMED	2
 #define LOAD_FROM_FD	3
+#define LOAD_FROM_MEM	4
 
 static char         progress_called;
 static FILE        *fout;
@@ -37,6 +41,7 @@ static FILE        *fout;
    "  -f  : Load with imlib_load_image_fd()\n" \
    "  -i  : Load image immediately (don't defer data loading)\n" \
    "  -j  : Load image header only\n" \
+   "  -m  : Load with imlib_load_image_mem()\n" \
    "  -n N: Repeat load N times\n" \
    "  -p  : Check that progress is called\n" \
    "  -v  : Increase verbosity\n" \
@@ -85,6 +90,49 @@ image_load_fd(const char *file, int *perr)
    return im;
 }
 
+static Imlib_Image *
+image_load_mem(const char *file, int *perr)
+{
+   Imlib_Image        *im;
+   int                 fd, err;
+   const char         *ext;
+   struct stat         st;
+   void               *fdata;
+
+   ext = strchr(file, '.');
+   if (ext)
+      ext += 1;
+   else
+      ext = file;
+
+   err = stat(file, &st);
+   if (err)
+      goto bail;
+
+   im = NULL;
+   fd = -1;
+   fdata = MAP_FAILED;
+
+   fd = open(file, O_RDONLY);
+   if (fd < 0)
+      goto bail;
+
+   fdata = mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+   close(fd);
+   if (fdata == MAP_FAILED)
+      goto bail;
+
+   im = imlib_load_image_mem(ext, &err, fdata, st.st_size);
+
+ quit:
+   if (fdata != MAP_FAILED)
+      munmap(fdata, st.st_size);
+   return im;
+ bail:
+   *perr = errno;
+   goto quit;
+}
+
 static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
@@ -118,7 +166,7 @@ main(int argc, char **argv)
    load_cnt = 1;
    load_mode = LOAD_DEFER;
 
-   while ((opt = getopt(argc, argv, "efijn:pvx")) != -1)
+   while ((opt = getopt(argc, argv, "efijmn:pvx")) != -1)
      {
         switch (opt)
           {
@@ -133,6 +181,9 @@ main(int argc, char **argv)
              break;
           case 'j':
              load_mode = LOAD_NODATA;
+             break;
+          case 'm':
+             load_mode = LOAD_FROM_MEM;
              break;
           case 'n':
              load_cnt = atoi(optarg);
@@ -192,6 +243,9 @@ main(int argc, char **argv)
                   break;
                case LOAD_FROM_FD:
                   im = image_load_fd(argv[0], &err);
+                  break;
+               case LOAD_FROM_MEM:
+                  im = image_load_mem(argv[0], &err);
                   break;
                case LOAD_DEFER:
                case LOAD_NODATA:
