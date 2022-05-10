@@ -16,6 +16,13 @@
 #include <sys/time.h>
 #endif
 
+#define PROG_NAME "imlib2_load"
+
+#define LOAD_DEFER	0
+#define LOAD_NODATA	1
+#define LOAD_IMMED	2
+#define LOAD_FROM_FD	3
+
 static char         progress_called;
 static FILE        *fout;
 
@@ -29,6 +36,7 @@ static FILE        *fout;
    "  -e  : Break on error\n" \
    "  -f  : Load with imlib_load_image_fd()\n" \
    "  -i  : Load image immediately (don't defer data loading)\n" \
+   "  -j  : Load image header only\n" \
    "  -n N: Repeat load N times\n" \
    "  -p  : Check that progress is called\n" \
    "  -v  : Increase verbosity\n" \
@@ -59,7 +67,7 @@ time_us(void)
 }
 
 static Imlib_Image *
-image_load_fd(const char *file)
+image_load_fd(const char *file, int *perr)
 {
    Imlib_Image        *im;
    int                 fd;
@@ -72,7 +80,7 @@ image_load_fd(const char *file)
       ext = file;
 
    fd = open(file, O_RDONLY);
-   im = imlib_load_image_fd(fd, ext);
+   im = imlib_load_image_fde(ext, perr, fd);
 
    return im;
 }
@@ -100,9 +108,7 @@ main(int argc, char **argv)
    int                 break_on_error;
    bool                show_time;
    int                 load_cnt, cnt;
-   bool                load_fd;
-   bool                load_now;
-   bool                load_nodata;
+   int                 load_mode;
 
    fout = stdout;
    verbose = 0;
@@ -110,9 +116,7 @@ main(int argc, char **argv)
    break_on_error = 0;
    show_time = false;
    load_cnt = 1;
-   load_fd = false;
-   load_now = false;
-   load_nodata = false;
+   load_mode = LOAD_DEFER;
 
    while ((opt = getopt(argc, argv, "efijn:pvx")) != -1)
      {
@@ -122,13 +126,13 @@ main(int argc, char **argv)
              break_on_error += 1;
              break;
           case 'f':
-             load_fd = true;
+             load_mode = LOAD_FROM_FD;
              break;
           case 'i':
-             load_now = true;
+             load_mode = LOAD_IMMED;
              break;
           case 'j':
-             load_nodata = true;
+             load_mode = LOAD_NODATA;
              break;
           case 'n':
              load_cnt = atoi(optarg);
@@ -137,6 +141,7 @@ main(int argc, char **argv)
              break;
           case 'p':
              check_progress = true;
+             load_mode = LOAD_IMMED;
              verbose = 1;
              break;
           case 'v':
@@ -180,12 +185,17 @@ main(int argc, char **argv)
           {
              err = -1000;
 
-             if (load_now || check_progress)
-                im = imlib_load_image_with_errno_return(argv[0], &err);
-             else if (load_fd)
-                im = image_load_fd(argv[0]);
-             else
+             switch (load_mode)
                {
+               case LOAD_IMMED:
+                  im = imlib_load_image_with_errno_return(argv[0], &err);
+                  break;
+               case LOAD_FROM_FD:
+                  im = image_load_fd(argv[0], &err);
+                  break;
+               case LOAD_DEFER:
+               case LOAD_NODATA:
+               default:
                   frame = -1;
                   sscanf(argv[0], "%[^%]%%%d", nbuf, &frame);
 
@@ -193,6 +203,7 @@ main(int argc, char **argv)
                      im = imlib_load_image_frame(nbuf, frame);
                   else
                      im = imlib_load_image(argv[0]);
+                  break;
                }
 
              if (!im)
@@ -202,6 +213,7 @@ main(int argc, char **argv)
                              err, imlib_strerror(err), argv[0]);
                   else
                      fprintf(fout, "*** Failed to load image: '%s'\n", argv[0]);
+
                   if (break_on_error & 2)
                      goto quit;
                   goto next;
@@ -211,7 +223,7 @@ main(int argc, char **argv)
              V2printf("- Image: fmt=%s WxH=%dx%d\n", imlib_image_format(),
                       imlib_image_get_width(), imlib_image_get_height());
 
-             if (!check_progress && !load_now && !load_nodata)
+             if (load_mode == LOAD_DEFER)
                 imlib_image_get_data();
 
              imlib_free_image_and_decache();
