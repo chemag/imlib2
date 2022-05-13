@@ -81,7 +81,7 @@ _file_is_module(const char *name)
 }
 
 char              **
-__imlib_ListModules(const char *path, int *num_ret)
+__imlib_ModulesList(const char *path, int *num_ret)
 {
    char              **list = NULL, **l;
    char                file[1024], *p;
@@ -112,4 +112,14 @@ __imlib_ListModules(const char *path, int *num_ret)
    *num_ret = ntot;
 
    return list;
+}
+
+char               *
+__imlib_ModuleFind(const char *path, const char *name)
+{
+   char                nbuf[4096];
+
+   snprintf(nbuf, sizeof(nbuf), "%s/%s.so", path, name);
+
+   return strdup(nbuf);
 }
