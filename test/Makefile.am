@@ -8,7 +8,8 @@ CLEANFILES = file.c img_save-*.*
 
  GTEST_LIBS = -lgtest -lstdc++
 
- GTESTS  = test_file
+ GTESTS  = test_string
+ GTESTS += test_file
  GTESTS += test_context
  GTESTS += test_load
  GTESTS += test_load_2
@@ -37,6 +38,10 @@ endif
 	ln -s $< $@
 
  TEST_COMMON = test.cpp test.h
+
+test_string_SOURCES = $(TEST_COMMON) test_string.cpp
+nodist_test_string_SOURCES = strutils.c
+test_string_LDADD = $(LIBS)
 
 test_file_SOURCES = $(TEST_COMMON) test_file.cpp
 nodist_test_file_SOURCES = file.c
