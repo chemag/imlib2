@@ -61,59 +61,34 @@ __imlib_PathToLoaders(void)
    return path;
 }
 
-static char       **
-__imlib_TrimLoaderList(char **list, int *num)
+static bool
+_file_is_module(const char *name)
 {
-   int                 i, n, size = 0;
+   const char         *ext;
 
-   if (!list)
-      return NULL;
+   ext = strrchr(name, '.');
+   if (!ext)
+      return false;
 
-   n = *num;
-
-   for (i = 0; i < n; i++)
-     {
-        char               *ext;
-
-        if (!list[i])
-           continue;
-        ext = strrchr(list[i], '.');
-        if ((ext) && (
+   if (
 #ifdef __CYGWIN__
-                        (!strcasecmp(ext, ".dll")) ||
+         strcasecmp(ext, ".dll") != 0 &&
 #endif
-                        (!strcasecmp(ext, ".so"))))
-          {
-             /* Don't add the same loader multiple times... */
-             if (!__imlib_ItemInList(list, size, list[i]))
-               {
-                  list[size++] = list[i];
-                  continue;
-               }
-          }
-        free(list[i]);
-     }
-   if (!size)
-     {
-        free(list);
-        list = NULL;
-     }
-   else
-     {
-        list = realloc(list, size * sizeof(char *));
-     }
-   *num = size;
-   return list;
+         strcasecmp(ext, ".so") != 0)
+      return false;
+
+   return true;
 }
 
 char              **
 __imlib_ListModules(const char *path, int *num_ret)
 {
    char              **list = NULL, **l;
-   char                file[1024];
-   int                 num, i;
+   char                file[1024], *p;
+   int                 num, i, ntot;
 
    *num_ret = 0;
+   ntot = 0;
 
    l = __imlib_FileDir(path, &num);
    if (num <= 0)
@@ -124,18 +99,17 @@ __imlib_ListModules(const char *path, int *num_ret)
      {
         for (i = 0; i < num; i++)
           {
+             if (!_file_is_module(l[i]))
+                continue;
              snprintf(file, sizeof(file), "%s/%s", path, l[i]);
-             list[i] = strdup(file);
+             p = strdup(file);
+             if (p)
+                list[ntot++] = p;
           }
-        *num_ret = num;
      }
    __imlib_FileFreeDirList(l, num);
 
-   /* List currently contains *everything in there* we need to weed out
-    * the .so, .la, .a versions of the same loader or whatever else.
-    * dlopen can take an extension-less name and do the Right Thing
-    * with it, so that's what we'll give it. */
-   list = __imlib_TrimLoaderList(list, num_ret);
+   *num_ret = ntot;
 
    return list;
 }
