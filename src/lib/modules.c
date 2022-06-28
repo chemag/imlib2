@@ -159,6 +159,7 @@ __imlib_ModulesList(char **ppath, int *num_ret)
 char               *
 __imlib_ModuleFind(char **ppath, const char *name)
 {
+   int                 n;
    char              **pp;
    char                nbuf[4096];
 
@@ -167,9 +168,9 @@ __imlib_ModuleFind(char **ppath, const char *name)
 
    for (pp = ppath; *pp; pp++)
      {
-        snprintf(nbuf, sizeof(nbuf), "%s/%s.so", *pp, name);
+        n = snprintf(nbuf, sizeof(nbuf), "%s/%s.so", *pp, name);
 
-        if (!__imlib_FileIsFile(nbuf))
+        if (n < 0 || n >= sizeof(nbuf) || !__imlib_FileIsFile(nbuf))
            continue;
 
         return strdup(nbuf);
