@@ -13,18 +13,64 @@
 #include <string.h>
 #include <unistd.h>
 
+#define DEBUG 0
+#if DEBUG
+#define Dprintf(fmt...)  printf(fmt)
+#else
+#define Dprintf(fmt...)
+#endif
+
 #define HELP \
    "Usage:\n" \
    "  imlib2_conv [OPTIONS] [ input-file output-file[.fmt] ]\n" \
    "    <fmt> defaults to jpg if not provided.\n" \
    "\n" \
    "OPTIONS:\n" \
-   "  -h  : Show this help\n"
+   "  -h            : Show this help\n" \
+   "  -i key=value  : Attach tag with integer value for saver\n" \
+   "  -j key=string : Attach tag with string value for saver\n"
 
 static void
 usage(void)
 {
    printf(HELP);
+}
+
+static void
+data_free_cb(void *im, void *data)
+{
+   Dprintf("%s: im=%p data=%p\n", __func__, im, data);
+   free(data);
+}
+
+/*
+ * Attach tag = key/value pair to current image
+ */
+static void
+data_attach(int type, char *arg)
+{
+   char               *p;
+
+   p = strchr(arg, '=');
+   if (!p)
+      return;                   /* No value - just ignore */
+
+   *p++ = '\0';
+
+   switch (type)
+     {
+     default:
+        break;                  /* Should not be possible - ignore */
+     case 'i':                 /* Integer parameter */
+        Dprintf("%s: Set '%s' = %d\n", __func__, arg, atoi(p));
+        imlib_image_attach_data_value(arg, NULL, atoi(p), NULL);
+        break;
+     case 'j':                 /* String parameter */
+        p = strdup(p);
+        Dprintf("%s: Set '%s' = '%s' (%p)\n", __func__, arg, p, p);
+        imlib_image_attach_data_value(arg, p, 0, data_free_cb);
+        break;
+     }
 }
 
 int
@@ -35,7 +81,7 @@ main(int argc, char **argv)
    char               *dot;
    Imlib_Image         im;
 
-   while ((opt = getopt(argc, argv, "h")) != -1)
+   while ((opt = getopt(argc, argv, "hi:j:")) != -1)
      {
         switch (opt)
           {
@@ -43,6 +89,9 @@ main(int argc, char **argv)
           case 'h':
              usage();
              exit(0);
+          case 'i':
+          case 'j':
+             break;             /* Ignore this time around */
           }
      }
 
@@ -63,8 +112,23 @@ main(int argc, char **argv)
         return 1;
      }
 
-   /* we only care what format the export format is. */
+   Dprintf("%s: im=%p\n", __func__, im);
    imlib_context_set_image(im);
+
+   /* Re-parse options to attach parameters to be used by savers */
+   optind = 1;
+   while ((opt = getopt(argc, argv, "hi:j:")) != -1)
+     {
+        switch (opt)
+          {
+          default:
+             break;
+          case 'i':            /* Attach integer parameter */
+          case 'j':            /* Attach string parameter */
+             data_attach(opt, optarg);
+             break;
+          }
+     }
 
    /* hopefully the last one will be the one we want.. */
    dot = strrchr(fout, '.');
@@ -79,6 +143,10 @@ main(int argc, char **argv)
    if (err)
       fprintf(stderr, "*** Error %d:'%s' saving image: '%s'\n",
               err, imlib_strerror(err), fout);
+
+#if DEBUG
+   imlib_free_image_and_decache();
+#endif
 
    return err;
 }
