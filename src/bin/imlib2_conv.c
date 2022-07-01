@@ -8,7 +8,6 @@
 #endif
 #include <Imlib2.h>
 
-#include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -33,7 +32,7 @@ main(int argc, char **argv)
 {
    int                 opt, err;
    const char         *fin, *fout;
-   char               *dot, *colon;
+   char               *dot;
    Imlib_Image         im;
 
    while ((opt = getopt(argc, argv, "h")) != -1)
@@ -72,33 +71,7 @@ main(int argc, char **argv)
 
    /* if there's a format, snarf it and set the format. */
    if (dot && *(dot + 1))
-     {
-        colon = strrchr(++dot, ':');
-        /* if a db file with a key, export it to a db. */
-        if (colon && *(colon + 1))
-          {
-             *colon = 0;
-             /* beats having to look for strcasecmp() */
-             if (!strncmp(dot, "db", 2) || !strncmp(dot, "dB", 2) ||
-                 !strncmp(dot, "DB", 2) || !strncmp(dot, "Db", 2))
-               {
-                  imlib_image_set_format("db");
-               }
-             *colon = ':';
-          }
-        else
-          {
-             char               *p, *q;
-
-             /* max length of 8 for format name. seems reasonable. */
-             p = strndup(dot, 8);
-             /* Imlib2 only recognizes lowercase formats. convert it. */
-             for (q = p; *q; q++)
-                *q = tolower(*q);
-             imlib_image_set_format(p);
-             free(p);
-          }
-     }
+      imlib_image_set_format(dot + 1);
    else
       imlib_image_set_format("jpg");
 
