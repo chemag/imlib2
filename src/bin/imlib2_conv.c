@@ -12,36 +12,64 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
-#define PROG_NAME "imlib2_conv"
+#define HELP \
+   "Usage:\n" \
+   "  imlib2_conv [OPTIONS] [ input-file output-file[.fmt] ]\n" \
+   "    <fmt> defaults to jpg if not provided.\n" \
+   "\n" \
+   "OPTIONS:\n" \
+   "  -h  : Show this help\n"
 
-static void         usage(int exit_status);
+static void
+usage(void)
+{
+   printf(HELP);
+}
 
 int
 main(int argc, char **argv)
 {
-   char               *dot, *colon, *n, *oldn;
+   int                 opt, err;
+   const char         *fin, *fout;
+   char               *dot, *colon;
    Imlib_Image         im;
-   int                 err;
 
-   /* I'm just plain being lazy here.. get our basename. */
-   for (oldn = n = argv[0]; n; oldn = n)
-      n = strchr(++oldn, '/');
-   if (argc < 3 || !strcmp(argv[1], "-h"))
-      usage(-1);
+   while ((opt = getopt(argc, argv, "h")) != -1)
+     {
+        switch (opt)
+          {
+          default:
+          case 'h':
+             usage();
+             exit(0);
+          }
+     }
 
-   im = imlib_load_image_with_errno_return(argv[1], &err);
+   if (argc - optind < 2)
+     {
+        usage();
+        exit(1);
+     }
+
+   fin = argv[optind];
+   fout = argv[optind + 1];
+
+   im = imlib_load_image_with_errno_return(fin, &err);
    if (!im)
      {
-        fprintf(stderr, PROG_NAME ": Error %d:'%s' loading image: '%s'\n",
-                err, imlib_strerror(err), argv[1]);
+        fprintf(stderr, "*** Error %d:'%s' loading image: '%s'\n",
+                err, imlib_strerror(err), fin);
         return 1;
      }
 
    /* we only care what format the export format is. */
    imlib_context_set_image(im);
+
    /* hopefully the last one will be the one we want.. */
-   dot = strrchr(argv[2], '.');
+   dot = strrchr(fout, '.');
+
    /* if there's a format, snarf it and set the format. */
    if (dot && *(dot + 1))
      {
@@ -74,25 +102,10 @@ main(int argc, char **argv)
    else
       imlib_image_set_format("jpg");
 
-   imlib_save_image_with_errno_return(argv[2], &err);
+   imlib_save_image_with_errno_return(fout, &err);
    if (err)
-      fprintf(stderr, PROG_NAME ": Error %d:'%s' saving image: '%s'\n",
-              err, imlib_strerror(err), argv[2]);
+      fprintf(stderr, "*** Error %d:'%s' saving image: '%s'\n",
+              err, imlib_strerror(err), fout);
 
    return err;
-}
-
-static void
-usage(int exit_status)
-{
-   fprintf(exit_status ? stderr : stdout,
-           PROG_NAME ": Convert images between formats (part of the "
-           "Imlib2 package)\n\n"
-           "Usage: " PROG_NAME " [ -h | <image1> <image2[.fmt]> ]\n"
-           "  <fmt> defaults to jpg if not provided; images in "
-           "edb files are supported via\n"
-           "        the file.db:/key/name convention.\n"
-           "  -h shows this help.\n\n");
-
-   exit(exit_status);
 }
