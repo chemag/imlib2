@@ -379,39 +379,42 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    if (!file || file[0] == '\0')
       return NULL;
 
-   /* see if we already have the image cached */
-   im = __imlib_FindCachedImage(file, ila->frame);
-
-   /* if we found a cached image and we should always check that it is */
-   /* accurate to the disk conents if they changed since we last loaded */
-   /* and that it is still a valid image */
-   if (im && !IM_FLAG_ISSET(im, F_INVALID))
+   if (!ila->nocache)
      {
-        if (IM_FLAG_ISSET(im, F_ALWAYS_CHECK_DISK))
-          {
-             time_t              current_modified_time;
+        /* see if we already have the image cached */
+        im = __imlib_FindCachedImage(file, ila->frame);
 
-             current_modified_time = ila->fp ?
-                __imlib_FileModDateFd(fileno(ila->fp)) :
-                __imlib_FileModDate(im->real_file);
-             /* if the file on disk is newer than the cached one */
-             if (current_modified_time != im->moddate)
+        /* if we found a cached image and we should always check that it is */
+        /* accurate to the disk conents if they changed since we last loaded */
+        /* and that it is still a valid image */
+        if (im && !IM_FLAG_ISSET(im, F_INVALID))
+          {
+             if (IM_FLAG_ISSET(im, F_ALWAYS_CHECK_DISK))
                {
-                  /* invalidate image */
-                  IM_FLAG_SET(im, F_INVALID);
+                  time_t              current_modified_time;
+
+                  current_modified_time = ila->fp ?
+                     __imlib_FileModDateFd(fileno(ila->fp)) :
+                     __imlib_FileModDate(im->real_file);
+                  /* if the file on disk is newer than the cached one */
+                  if (current_modified_time != im->moddate)
+                    {
+                       /* invalidate image */
+                       IM_FLAG_SET(im, F_INVALID);
+                    }
+                  else
+                    {
+                       /* image is ok to re-use - program is just being stupid loading */
+                       /* the same data twice */
+                       im->references++;
+                       return im;
+                    }
                }
              else
                {
-                  /* image is ok to re-use - program is just being stupid loading */
-                  /* the same data twice */
                   im->references++;
                   return im;
                }
-          }
-        else
-          {
-             im->references++;
-             return im;
           }
      }
 
