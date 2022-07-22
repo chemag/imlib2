@@ -44,7 +44,6 @@ main(int argc, char **argv)
    struct timeval      timev;
    double              sec;
    const char         *file = NULL;
-   const char         *fon = NULL, *str = NULL;
 
    int                 root = 0;
    int                 scale = 0;
@@ -72,11 +71,15 @@ main(int argc, char **argv)
 #endif
    Imlib_Color_Modifier colormod = 0;
    ImlibPolygon        poly, poly2, poly3;
+
+#if ENABLE_TEXT
+   const char         *fon = NULL, *str = NULL;
    int                 textdir = IMLIB_TEXT_TO_RIGHT;
-   int                 xfdtest = 0;
    int                 xfdcachetest = 0;
    char               *xfdfname = NULL;
    int                 xfdloop = 1;
+   int                 xfdtest = 0;
+#endif
 
    /* now we'll set the locale */
    setlocale(LC_ALL, "");
@@ -115,11 +118,13 @@ main(int argc, char **argv)
            ("-font\t\tLoads a font. The parameter must follow the police_name/size format. Example: loading the grunge font at size 18 is : grunge/18.\n\t\tThe XFD font also can be specified. Ex. 'notepad/32,-*--24-*'.\n");
         printf("-poly\t\tPerforms a poly test\n");
         printf("The following options requires a file to work properly.\n");
+#if ENABLE_TEXT
         printf("-textdir\t\tText Direction. 0: L to R, 1: R to L\n");
         printf("                            2: U to D, 3: D to U, 4: angle\n");
         printf("-xfdtest\t\tXFD Font queue test.\n");
         printf
            ("-xfdcachetest <f> [<l>]\t\tXFD tFont cache test.\n\t\tThe file f is drawn l times\n");
+#endif
         printf("-blast\t\tDisplays the file.\n");
         printf("-loop\t\tScales down the image.\n");
         printf("-blendtest\tPerforms a blending test on the file.\n");
@@ -206,6 +211,7 @@ main(int argc, char **argv)
              i++;
              imlib_set_color_usage(atoi(argv[i]));
           }
+#if ENABLE_TEXT
         else if (!strcmp(argv[i], "-font"))
           {
              i++;
@@ -232,6 +238,7 @@ main(int argc, char **argv)
              i++;
              textdir = atoi(argv[i]);
           }
+#endif
         else if (!strcmp(argv[i], "-rotate"))
            rotate = 1;
 #if ENABLE_FILTERS
@@ -787,6 +794,8 @@ main(int argc, char **argv)
         int                 x, y;
         XEvent              ev;
         KeySym              keysym;
+
+#if ENABLE_TEXT
         Imlib_Font          fn = NULL;
         struct font_hdr {
            int                 type;
@@ -919,6 +928,7 @@ main(int argc, char **argv)
              if (!fn)
                 fon = NULL;
           }
+#endif /* ENABLE_TEXT */
 
         imlib_context_set_progress_function(NULL);
         imlib_context_set_progress_granularity(0);
@@ -960,11 +970,13 @@ main(int argc, char **argv)
                           goto quit;
                        break;
                     case ButtonRelease:
+#if ENABLE_TEXT
                        if (fon)
                          {
                             imlib_context_set_font(fn);
                             imlib_free_font();
                          }
+#endif
                        goto quit;
                     case MotionNotify:
                        x = ev.xmotion.x;
@@ -1167,6 +1179,7 @@ main(int argc, char **argv)
                 imlib_context_set_operation(IMLIB_OP_COPY);
              }
 
+#if ENABLE_TEXT
              if (xfdcachetest)
                {
                   int                 l;
@@ -1284,6 +1297,7 @@ main(int argc, char **argv)
                               cx2, cy2, cw2, ch2);
                     }
                }
+#endif /* ENABLE_TEXT */
              imlib_context_set_blend(1);
              if ((px != x) || (py != y))
                {

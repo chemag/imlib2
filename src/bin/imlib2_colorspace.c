@@ -12,12 +12,16 @@ Window              win;
 int
 main(int argc, char **argv)
 {
-   int                 w, h, tw, th;
+   int                 w, h;
    Imlib_Image         im_bg = NULL;
    XEvent              ev;
    KeySym              keysym;
-   Imlib_Font          font;
    Imlib_Color_Range   range;
+
+#if ENABLE_TEXT
+   Imlib_Font          font;
+   int                 tw, th;
+#endif
 
    /**
     * First tests to determine which rendering task to perform
@@ -38,8 +42,10 @@ main(int argc, char **argv)
    /**
     * Start rendering
     */
+#if ENABLE_TEXT
    imlib_set_font_cache_size(512 * 1024);
    imlib_add_path_to_font_path(PACKAGE_DATA_DIR "/data/fonts");
+#endif
    imlib_context_set_display(disp);
    imlib_context_set_visual(DefaultVisual(disp, DefaultScreen(disp)));
    imlib_context_set_colormap(DefaultColormap(disp, DefaultScreen(disp)));
@@ -86,6 +92,7 @@ main(int argc, char **argv)
         imlib_context_set_color(0, 0, 0, 255);
         imlib_image_draw_rectangle(20, 20, 560, 140);
         imlib_image_draw_rectangle(20, 220, 560, 140);
+#if ENABLE_TEXT
         font = imlib_load_font("notepad/15");
         if (font)
           {
@@ -101,6 +108,7 @@ main(int argc, char **argv)
              imlib_text_draw(300 - tw / 2, 380 - th / 2, text);
              imlib_free_font();
           }
+#endif
 
         /* Draw rectangle w/ RGBA gradient */
         range = imlib_create_color_range();

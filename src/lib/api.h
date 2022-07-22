@@ -46,11 +46,6 @@ typedef struct {
    char                blend;
    Imlib_Color_Modifier color_modifier;
    ImlibOp             operation;
-#if ENABLE_TEXT
-   Imlib_Font          font;
-#endif
-   Imlib_Text_Direction direction;
-   double              angle;
    Imlib_Color         color;
    uint32_t            pixel;
    Imlib_Color_Range   color_range;
@@ -65,6 +60,11 @@ typedef struct {
    char                dirty;
 #if ENABLE_FILTERS
    Imlib_Filter        filter;
+#endif
+#if ENABLE_TEXT
+   Imlib_Font          font;
+   Imlib_Text_Direction direction;
+   double              angle;
 #endif
 } ImlibContext;
 

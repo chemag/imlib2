@@ -24,9 +24,6 @@ main(int argc, char **argv)
    /* our virtual framebuffer image we draw into */
    Imlib_Image         buffer;
 
-   /* a font */
-   Imlib_Font          font;
-
    /* our color range */
    Imlib_Color_Range   range;
 
@@ -54,11 +51,13 @@ main(int argc, char **argv)
    /* set our cache to 2 Mb so it doesn't have to go hit the disk as long as */
    /* the images we use use less than 2Mb of RAM (that is uncompressed) */
    imlib_set_cache_size(2048 * 1024);
+#if ENABLE_TEXT
    /* set the font cache to 512Kb - again to avoid re-loading */
    imlib_set_font_cache_size(512 * 1024);
    /* add the ./ttfonts dir to our font path - you'll want a notepad.ttf */
    /* in that dir for the text to display */
    imlib_add_path_to_font_path(PACKAGE_DATA_DIR "/data/fonts");
+#endif
    /* set the maximum number of colors to allocate for 8bpp and less to 128 */
    imlib_set_color_usage(128);
    /* dither for depths < 24bpp */
@@ -68,6 +67,7 @@ main(int argc, char **argv)
    imlib_context_set_visual(DefaultVisual(disp, DefaultScreen(disp)));
    imlib_context_set_colormap(DefaultColormap(disp, DefaultScreen(disp)));
    imlib_context_set_drawable(win);
+
    /* infinite event loop */
    for (;;)
      {
@@ -75,7 +75,13 @@ main(int argc, char **argv)
         Imlib_Image         image;
 
         /* width and height values */
-        int                 w, h, text_w, text_h;
+        int                 w, h;
+
+#if ENABLE_TEXT
+        /* a font */
+        Imlib_Font          font;
+        int                 text_w, text_h;
+#endif
 
         /* init our updates to empty */
         updates = imlib_updates_init();
@@ -116,6 +122,7 @@ main(int argc, char **argv)
                   updates = imlib_update_append_rect(updates,
                                                      mouse_x - (w / 2),
                                                      mouse_y - (h / 2), w, h);
+#if ENABLE_TEXT
                   font = imlib_load_font("notepad/30");
                   if (font)
                     {
@@ -151,6 +158,8 @@ main(int argc, char **argv)
                                                           240 - (text_h / 2),
                                                           text_w, text_h);
                     }
+#endif /* ENABLE_TEXT */
+                  break;
                default:
                   /* any other events - do nothing */
                   break;
@@ -239,6 +248,7 @@ main(int argc, char **argv)
              /* free it */
              imlib_free_color_range();
 
+#if ENABLE_TEXT
              /* draw text - centered with the current mouse x, y */
              font = imlib_load_font("notepad/30");
              if (font)
@@ -261,6 +271,7 @@ main(int argc, char **argv)
                   /* free the font */
                   imlib_free_font();
                }
+#endif /* ENABLE_TEXT */
 
              /* dont blend the image onto the drawable - slower */
              imlib_context_set_blend(0);

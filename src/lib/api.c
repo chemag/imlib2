@@ -35,19 +35,26 @@ typedef struct _ImlibContextItem {
    struct _ImlibContextItem *below;
 } ImlibContextItem;
 
+#if ENABLE_TEXT
+#define DefaultContext_Text \
+   .direction = IMLIB_TEXT_TO_RIGHT,		\
+   .angle = 0.0,
+#else
+#define DefaultContext_Text
+#endif
+
 #define DefaultContext { \
    .anti_alias = 1,				\
    .dither = 0,					\
    .blend = 1,					\
    .operation = (ImlibOp) IMLIB_OP_COPY,	\
-   .direction = IMLIB_TEXT_TO_RIGHT,		\
-   .angle = 0.0,				\
    .color.alpha = 255,				\
    .color.red = 255,				\
    .color.green = 255,				\
    .color.blue = 255,				\
    .pixel = 0xffffffff,				\
    .mask_alpha_threshold = 128,			\
+   DefaultContext_Text				\
 }
 
 /* A default context, only used for initialization */
@@ -131,11 +138,13 @@ __imlib_free_context(ImlibContext * context)
         imlib_free_image();
         ctx->image = NULL;
      }
+#if ENABLE_TEXT
    if (ctx->font)
      {
         imlib_free_font();
         ctx->font = NULL;
      }
+#endif
    if (ctx->color_modifier)
      {
         imlib_free_color_modifier();

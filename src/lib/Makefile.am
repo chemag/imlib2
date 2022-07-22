@@ -16,7 +16,6 @@ libImlib2_la_LIBADD  =
 libImlib2_la_SOURCES = \
 api.c 		api.h		\
 api_obsolete.c	\
-api_text.c	\
 asm.h \
 asm_c.c		asm_c.h		\
 blend.c		blend.h		\
@@ -29,11 +28,6 @@ draw_line.c \
 draw_polygon.c \
 draw_rectangle.c \
 file.c		file.h		\
-font.h \
-font_draw.c \
-font_load.c \
-font_main.c \
-font_query.c \
 grad.c		grad.h		\
 image.c		image.h		\
 image_tags.c \
@@ -54,8 +48,16 @@ dynamic_filters.c	dynamic_filters.h	\
 filter.c	filter.h	\
 script.c	script.h
 endif
-
+if ENABLE_TEXT
+libImlib2_la_SOURCES += \
+api_text.c	\
+font.h \
+font_draw.c \
+font_load.c \
+font_main.c \
+font_query.c
 libImlib2_la_LIBADD += $(FREETYPE_LIBS)
+endif
 
 MMX_SRCS = \
 asm_blend.S \

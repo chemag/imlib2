@@ -233,6 +233,16 @@ if test "$enable_filters" = "yes"; then
 fi
 AM_CONDITIONAL(ENABLE_FILTERS, test "$enable_filters" = "yes")
 
+AC_ARG_ENABLE([text],
+  [AS_HELP_STRING([--enable-text], [Enable text (TrueType font functions) @<:@default=yes@:>@])],
+  enable_text="$enableval",
+  enable_text="yes"
+)
+if test "$enable_text" = "yes"; then
+  AC_DEFINE(ENABLE_TEXT, 1, [Enable text functions])
+fi
+AM_CONDITIONAL(ENABLE_TEXT, test "$enable_text" = "yes")
+
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [Enable debug features @<:@default=no@:>@])],
   [
@@ -317,6 +327,7 @@ echo "Use X86 MMX for speed.....: $mmx"
 echo "Use AMD64 for speed.......: $amd64"
 echo
 echo "Include filters...........: $enable_filters"
+echo "Include text functions....: $enable_text"
 echo "Use visibility hiding.....: $enable_visibility_hiding"
 echo
 echo "Installation path.........: $prefix"
