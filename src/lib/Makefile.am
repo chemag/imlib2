@@ -11,8 +11,11 @@ AM_CCASFLAGS = -I$(top_builddir)
 lib_LTLIBRARIES      = libImlib2.la
 include_HEADERS      = Imlib2.h Imlib2_Loader.h
 
+libImlib2_la_LIBADD  =
+
 libImlib2_la_SOURCES = \
-api.c 		api_obsolete.c	\
+api.c 		api.h		\
+api_obsolete.c	\
 asm.h \
 asm_c.c		asm_c.h		\
 blend.c		blend.h		\
@@ -47,6 +50,8 @@ strutils.c	strutils.h	\
 types.h	\
 updates.c	updates.h
 
+libImlib2_la_LIBADD += $(FREETYPE_LIBS)
+
 MMX_SRCS = \
 asm_blend.S \
 asm_blend_cmod.S \
@@ -60,9 +65,9 @@ amd64_blend_cmod.S
 
 EXTRA_DIST = $(MMX_SRCS) $(AMD64_SRCS) asm_loadimmq.S
 
-MY_LIBS = $(FREETYPE_LIBS) $(DLOPEN_LIBS) -lm
 if BUILD_X11
 libImlib2_la_SOURCES += \
+api_x11.c	\
 x11_color.c	x11_color.h	\
 x11_context.c	x11_context.h	\
 x11_grab.c	x11_grab.h	\
@@ -70,10 +75,10 @@ x11_pixmap.c	x11_pixmap.h	\
 x11_rend.c	x11_rend.h	\
 x11_rgba.c	x11_rgba.h	\
 x11_ximage.c	x11_ximage.h
-MY_LIBS += -lXext -lX11 @X_SHM_FD_LIBS@
+libImlib2_la_LIBADD += -lXext -lX11 $(X_SHM_FD_LIBS)
 endif
 if BUILD_DEBUG
-MY_LIBS += $(CLOCK_LIBS)
+libImlib2_la_LIBADD += $(CLOCK_LIBS)
 endif
 
 if BUILD_MMX
@@ -83,5 +88,5 @@ if BUILD_AMD64
 libImlib2_la_SOURCES += $(AMD64_SRCS)
 endif
 
-libImlib2_la_LIBADD  = $(MY_LIBS)
+libImlib2_la_LIBADD += $(DLOPEN_LIBS) -lm
 libImlib2_la_LDFLAGS = -version-info @lt_version@
