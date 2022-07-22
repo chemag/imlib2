@@ -58,11 +58,12 @@ typedef struct {
    char                progress_granularity;
    char                dither_mask;
    int                 mask_alpha_threshold;
-   Imlib_Filter        filter;
    Imlib_Rectangle     cliprect;
-
    int                 references;
    char                dirty;
+#if ENABLE_FILTERS
+   Imlib_Filter        filter;
+#endif
 } ImlibContext;
 
 extern ImlibContext *ctx;

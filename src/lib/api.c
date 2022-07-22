@@ -143,11 +143,13 @@ __imlib_free_context(ImlibContext * context)
         imlib_free_color_modifier();
         ctx->color_modifier = NULL;
      }
+#if ENABLE_FILTERS
    if (ctx->filter)
      {
         imlib_free_filter();
         ctx->filter = NULL;
      }
+#endif
 
    free(ctx);
    ctx = next->context;

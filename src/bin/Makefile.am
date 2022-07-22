@@ -5,7 +5,10 @@ AM_CPPFLAGS = \
 $(X_CFLAGS)
 
 if BUILD_X11
-X_BASED_PROGS = imlib2_show imlib2_test imlib2_bumpmap imlib2_poly imlib2_colorspace imlib2_view imlib2_grab
+X_BASED_PROGS = imlib2_show imlib2_test imlib2_poly imlib2_colorspace imlib2_view imlib2_grab
+if ENABLE_FILTERS
+X_BASED_PROGS += imlib2_bumpmap
+endif
 endif
 
 bin_PROGRAMS = \

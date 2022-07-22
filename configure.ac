@@ -223,6 +223,16 @@ EC_LOADER_CHECK(ID3,  auto, id3tag)
 
 AM_CONDITIONAL(BUILD_TEST, false)
 
+AC_ARG_ENABLE([filters],
+  [AS_HELP_STRING([--enable-filters], [Enable filters @<:@default=yes@:>@])],
+  enable_filters="$enableval",
+  enable_filters="yes"
+)
+if test "$enable_filters" = "yes"; then
+  AC_DEFINE(ENABLE_FILTERS, 1, [Enable filters])
+fi
+AM_CONDITIONAL(ENABLE_FILTERS, test "$enable_filters" = "yes")
+
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [Enable debug features @<:@default=no@:>@])],
   [
@@ -306,6 +316,7 @@ echo
 echo "Use X86 MMX for speed.....: $mmx"
 echo "Use AMD64 for speed.......: $amd64"
 echo
+echo "Include filters...........: $enable_filters"
 echo "Use visibility hiding.....: $enable_visibility_hiding"
 echo
 echo "Installation path.........: $prefix"

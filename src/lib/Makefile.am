@@ -15,7 +15,6 @@ libImlib2_la_LIBADD  =
 
 libImlib2_la_SOURCES = \
 api.c 		api.h		\
-api_filter.c	\
 api_obsolete.c	\
 asm.h \
 asm_c.c		asm_c.h		\
@@ -28,9 +27,7 @@ draw_ellipse.c \
 draw_line.c \
 draw_polygon.c \
 draw_rectangle.c \
-dynamic_filters.c	dynamic_filters.h \
 file.c		file.h		\
-filter.c	filter.h	\
 font.h \
 font_draw.c \
 font_load.c \
@@ -45,11 +42,17 @@ object.c	object.h	\
 rgbadraw.c	rgbadraw.h	\
 rotate.c	rotate.h	\
 scale.c		scale.h		\
-script.c	script.h	\
 span.c		span.h		\
 strutils.c	strutils.h	\
 types.h	\
 updates.c	updates.h
+if ENABLE_FILTERS
+libImlib2_la_SOURCES += \
+api_filter.c	\
+dynamic_filters.c	dynamic_filters.h	\
+filter.c	filter.h	\
+script.c	script.h
+endif
 
 libImlib2_la_LIBADD += $(FREETYPE_LIBS)
 

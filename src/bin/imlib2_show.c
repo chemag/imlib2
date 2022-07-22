@@ -56,7 +56,10 @@ main(int argc, char **argv)
    int                 blend = 1;
    int                 interactive = 1;
    int                 blendtest = 0;
+
+#if ENABLE_FILTERS
    int                 filter = 0;
+#endif
    int                 pol = 0;
    int                 rotate = 0;
    int                 rottest = 0;
@@ -121,9 +124,13 @@ main(int argc, char **argv)
         printf("-loop\t\tScales down the image.\n");
         printf("-blendtest\tPerforms a blending test on the file.\n");
         printf("-rotatetest\tPerforms a rotate test on the file.\n");
+#if ENABLE_FILTERS
         printf
            ("-filter\t\tPerforms filtering. Possible filters are,\n\t\t\t1:Blur filter, 2:Sharpen filter, 3:Color blur filter, \n\t\t\t4:Emboss filter, 5:Grayscale filter, 6:Saturation filter,\n\t\t\t7:Edge detection filter.\n");
+#endif
+#if 0
         printf("-bmp2pt\t\tPerformas Bump Mapping to a point\n");
+#endif
         return 0;
      }
 
@@ -227,11 +234,13 @@ main(int argc, char **argv)
           }
         else if (!strcmp(argv[i], "-rotate"))
            rotate = 1;
+#if ENABLE_FILTERS
         else if (!strcmp(argv[i], "-filter"))
           {
              filter = atoi(argv[++i]);
              interactive = 0;
           }
+#endif
         else if (!strcmp(argv[i], "-rotatetest"))
           {
              rottest = 1;
@@ -682,6 +691,7 @@ main(int argc, char **argv)
           }
         imlib_free_image();
      }
+#if ENABLE_FILTERS
    else if (filter)
      {
         imlib_context_set_filter(imlib_create_filter(0));
@@ -766,6 +776,7 @@ main(int argc, char **argv)
           }
         imlib_free_filter();
      }
+#endif /* ENABLE_FILTERS */
    else if (interactive)
      {
         int                 px, py, first = 1;
