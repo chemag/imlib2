@@ -46,7 +46,9 @@ typedef struct {
    char                blend;
    Imlib_Color_Modifier color_modifier;
    ImlibOp             operation;
+#if ENABLE_TEXT
    Imlib_Font          font;
+#endif
    Imlib_Text_Direction direction;
    double              angle;
    Imlib_Color         color;

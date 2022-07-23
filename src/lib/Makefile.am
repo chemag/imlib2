@@ -16,6 +16,7 @@ libImlib2_la_LIBADD  =
 libImlib2_la_SOURCES = \
 api.c 		api.h		\
 api_obsolete.c	\
+api_text.c	\
 asm.h \
 asm_c.c		asm_c.h		\
 blend.c		blend.h		\
