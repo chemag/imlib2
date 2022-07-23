@@ -686,6 +686,7 @@ EAPI int            imlib_get_cache_size(void);
  */
 EAPI void           imlib_set_cache_size(int bytes);
 
+#ifndef X_DISPLAY_MISSING
 /**
  * Get the maximum number of colors Imlib2 is allowed to allocate
  *
@@ -704,17 +705,6 @@ EAPI int            imlib_get_color_usage(void);
  */
 EAPI void           imlib_set_color_usage(int max);
 
-/**
- * Flush loader cache
- *
- * If you want Imlib2 to forcibly flush any cached loaders it has and
- * re-load them from disk (this is useful if the program just
- * installed a new loader and does not want to wait till Imlib2 deems
- * it an optimal time to rescan the loaders)
- */
-EAPI void           imlib_flush_loaders(void);
-
-#ifndef X_DISPLAY_MISSING
 /**
  * Convenience function that returns the depth of a visual
  *
@@ -737,6 +727,16 @@ EAPI int            imlib_get_visual_depth(Display * display, Visual * visual);
 EAPI Visual        *imlib_get_best_visual(Display * display, int screen,
                                           int *depth_return);
 #endif /* X_DISPLAY_MISSING */
+
+/**
+ * Flush loader cache
+ *
+ * If you want Imlib2 to forcibly flush any cached loaders it has and
+ * re-load them from disk (this is useful if the program just
+ * installed a new loader and does not want to wait till Imlib2 deems
+ * it an optimal time to rescan the loaders)
+ */
+EAPI void           imlib_flush_loaders(void);
 
 /**
  * Load an image from file (header only)
@@ -1511,7 +1511,8 @@ EAPI int            imlib_get_ximage_cache_size_max(void);
  * @param bytes         XImage cache max size in bytes
  */
 EAPI void           imlib_set_ximage_cache_size_max(int bytes);
-#endif
+
+#endif /* X_DISPLAY_MISSING */
 
 /*--------------------------------
  * Updates - lists of rectangles for storing required update draws

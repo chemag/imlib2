@@ -722,35 +722,23 @@ imlib_set_cache_size(int bytes)
    __imlib_SetCacheSize(bytes);
 }
 
+#ifdef BUILD_X11
 EAPI int
 imlib_get_color_usage(void)
 {
-#ifdef BUILD_X11
    return (int)_max_colors;
-#else
-   return 256;
-#endif
 }
 
 EAPI void
 imlib_set_color_usage(int max)
 {
-#ifdef BUILD_X11
    if (max < 2)
       max = 2;
    else if (max > 256)
       max = 256;
    _max_colors = max;
-#endif
 }
 
-EAPI void
-imlib_flush_loaders(void)
-{
-   __imlib_RemoveAllLoaders();
-}
-
-#ifdef BUILD_X11
 EAPI int
 imlib_get_visual_depth(Display * display, Visual * visual)
 {
@@ -767,6 +755,12 @@ imlib_get_best_visual(Display * display, int screen, int *depth_return)
    return __imlib_BestVisual(display, screen, depth_return);
 }
 #endif
+
+EAPI void
+imlib_flush_loaders(void)
+{
+   __imlib_RemoveAllLoaders();
+}
 
 EAPI                Imlib_Image
 imlib_load_image(const char *file)
