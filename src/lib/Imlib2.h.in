@@ -2870,6 +2870,25 @@ typedef struct {
 EAPI Imlib_Image    imlib_load_image_frame(const char *file, int frame);
 
 /**
+ * Load image frame form memory
+ *
+ * Loads the specified frame within the image from memory.
+ * The file name @p file is only used to guess the file format.
+ * On success an image handle is returned, otherwise NULL is returned
+ * (e.g. if the requested frame does not exist).
+ * The image is loaded immediately.
+ *
+ * @param file          File name
+ * @param frame         Frame number
+ * @param data          Image data
+ * @param size          Image data size
+ *
+ * @return Image handle (NULL on failure)
+ */
+EAPI Imlib_Image    imlib_load_image_frame_mem(const char *file, int frame,
+                                               const void *data, size_t size);
+
+/**
  * Get information about current image frame
  *
  * @param info		Imlib_Frame_Info struct returning the information
