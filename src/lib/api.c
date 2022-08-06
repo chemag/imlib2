@@ -903,7 +903,7 @@ imlib_load_image_mem(const char *file, int *err, const void *data, size_t size)
 
    im = __imlib_LoadImage(file, &ila);
 
-   return (Imlib_Image) im;
+   return im;
 }
 
 EAPI                Imlib_Image
