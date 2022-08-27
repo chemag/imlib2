@@ -177,10 +177,10 @@ _load(ImlibImage * im, int load_data)
 
    for (i = 0; i < (int)jimage->numcomps; i++)
      {
-        DL("%d: dx/y=%d/%d wxh=%d,%d prec=%d bpp=%d sgnd=%d fact=%d\n", i,
+        DL("%d: dx/y=%d/%d wxh=%d,%d prec=%d sgnd=%d fact=%d\n", i,
            jimage->comps[i].dx, jimage->comps[i].dy,
            jimage->comps[i].w, jimage->comps[i].h,
-           jimage->comps[i].prec, jimage->comps[i].bpp,
+           jimage->comps[i].prec,
            jimage->comps[i].sgnd, jimage->comps[i].factor);
         if (jimage->comps[0].dx != jimage->comps[i].dx ||
             jimage->comps[0].dy != jimage->comps[i].dy ||
