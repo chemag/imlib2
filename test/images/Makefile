@@ -1,6 +1,9 @@
 # Makefile for generation of the test images
 # Some images are not reproduced exactly so therefore they are committed to git.
 
+ CONVERT        = convert
+ CONVERT_BITMAP = $(CONVERT) -dither Floyd-Steinberg -colors 2
+
  TYPES += argb
  TYPES += bmp
  TYPES += ff
@@ -46,25 +49,25 @@ imgs_misc: $(ALL_MISC)
 	imlib2_conv $< $@
 
 %.bmp: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %.ff: %.png
 	imlib2_conv $< $@
 
 %.gif: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %.heif: %.png
 	heif-enc -o $@ $<
 
 %.ico: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %.jpg: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %-gray.png: %.png
-	convert -colorspace Gray $< $@
+	$(CONVERT) -colorspace Gray $< $@
 
 %.jp2: %.png
 	opj2_compress -i $< -o $@
@@ -76,16 +79,16 @@ imgs_misc: $(ALL_MISC)
 	cjxl $< $@
 
 %.ilbm: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %.ppm: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %.pgm: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %.pbm: %.png
-	convert -dither Floyd-Steinberg $< $@
+	$(CONVERT_BITMAP) $< $@
 
 %-P1.pbm: %.pbm
 	pnmtopnm -plain <$< >$@
@@ -100,20 +103,20 @@ imgs_misc: $(ALL_MISC)
 	pamtoxvmini <$< >$@
 
 %.tga: %.png
-#	convert $< $@
-	convert -flip $< $@	# Bug in convert?
+#	$(CONVERT) $< $@
+	$(CONVERT) -flip $< $@	# Bug in convert?
 
 %.tiff: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %.webp: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %.xbm: %.png
-	convert -dither Floyd-Steinberg $< $@
+	$(CONVERT_BITMAP) $< $@
 
 %.xpm: %.png
-	convert $< $@
+	$(CONVERT) $< $@
 
 %.bz2: %
 	bzip2 -c $< > $@

@@ -33,7 +33,7 @@ static tii_t        tii[] = {
 #endif
    { "icon-64.gif",		4016720483 },
 #ifdef BUILD_HEIF_LOADER
-   { "icon-64.heif",		 174609659 },
+   { "icon-64.heif",		1346959048 },
 #endif
    { "icon-64.ico",		1153555547 },
    { "icon-64.ilbm",		1153555547 },
@@ -50,20 +50,20 @@ static tii_t        tii[] = {
    { "xeyes-gray.j2k",		3377113384 },
 #endif
 #ifdef BUILD_JXL_LOADER
-   { "icon-64.jxl",		 712907299 },
+   { "icon-64.jxl",		2534597492 },
 #endif
    { "icon-64.png",		1153555547 },
    { "xeyes-gray.png",		3493264608 },
    { "icon-64.ppm",		1153555547 },
    { "icon-64.pgm",		 140949526 },
-   { "icon-64.pbm",		2153856013 },
+   { "icon-64.pbm",		3936773892 },
    { "icon-64-P3.ppm",		1153555547 },
    { "icon-64-P2.pgm",		 140949526 },
-   { "icon-64-P1.pbm",		2153856013 },
+   { "icon-64-P1.pbm",		3936773892 },
    { "icon-64.tga",		1153555547 },
    { "icon-64.tiff",		1153555547 },
    { "icon-64.webp",		1698406918 },
-   { "icon-64.xbm",		2153856013 },
+   { "icon-64.xbm",		3936773892 },
    { "icon-64.xpm",		4016720483 },
 
    { "icon-128.ico",		 218415319 },
