@@ -9,12 +9,10 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#include "props.h"
+#include "prog_x11.h"
 
 #define MIN(a, b) ((a < b) ? a : b)
 #define MAX(a, b) ((a > b) ? a : b)
-
-Display            *disp;
 
 typedef struct {
    int                 x, y;    /* Origin */
@@ -599,23 +597,9 @@ main(int argc, char **argv)
         return 1;
      }
 
-   disp = XOpenDisplay(NULL);
-   if (!disp)
-     {
-        fprintf(stderr, "Cannot open display\n");
-        return 1;
-     }
+   prog_x11_init();
 
-   win = XCreateSimpleWindow(disp, DefaultRootWindow(disp), 0, 0, 10, 10,
-                             0, 0, 0);
-   XSelectInput(disp, win, KeyPressMask | ButtonPressMask | ButtonReleaseMask |
-                ButtonMotionMask | PointerMotionMask);
-
-   props_win_set_proto_quit(win);
-
-   imlib_context_set_display(disp);
-   imlib_context_set_visual(DefaultVisual(disp, DefaultScreen(disp)));
-   imlib_context_set_colormap(DefaultColormap(disp, DefaultScreen(disp)));
+   win = prog_x11_create_window("imlib2_view", 10, 10);
 
    if (opt_progr)
      {
@@ -678,10 +662,7 @@ main(int argc, char **argv)
         switch (ev.type)
           {
           default:
-             break;
-
-          case ClientMessage:
-             if (props_clientmsg_check_quit(&ev.xclient))
+             if (prog_x11_event(&ev))
                 goto quit;
              break;
           case KeyPress:

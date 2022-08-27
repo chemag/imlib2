@@ -6,14 +6,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* some globals for our window & X display */
-Display            *disp;
-Window              win;
+#include "prog_x11.h"
 
-/* the program... */
 int
 main(int argc, char **argv)
 {
+   Window              win;
+
    /* events we get from X */
    XEvent              ev;
    KeySym              keysym;
@@ -30,27 +29,18 @@ main(int argc, char **argv)
    /* our mouse x, y coordinates */
    int                 mouse_x = 0, mouse_y = 0;
 
-   /* connect to X */
-   disp = XOpenDisplay(NULL);
-   if (!disp)
-     {
-        fprintf(stderr, "Cannot open display\n");
-        return 1;
-     }
+   prog_x11_init();
 
-   /* get default visual , colormap etc. you could ask imlib2 for what it */
-   /* thinks is the best, but this example is intended to be simple */
    /* create a window 640x480 */
-   win = XCreateSimpleWindow(disp, DefaultRootWindow(disp),
-                             0, 0, 640, 480, 0, 0, 0);
-   /* tell X what events we are interested in */
-   XSelectInput(disp, win, KeyPressMask | ButtonPressMask | ButtonReleaseMask |
-                PointerMotionMask | ExposureMask);
+   win = prog_x11_create_window("imlib2_test", 640, 480);
+
    /* show the window */
    XMapWindow(disp, win);
+
    /* set our cache to 2 Mb so it doesn't have to go hit the disk as long as */
    /* the images we use use less than 2Mb of RAM (that is uncompressed) */
    imlib_set_cache_size(2048 * 1024);
+
 #if ENABLE_TEXT
    /* set the font cache to 512Kb - again to avoid re-loading */
    imlib_set_font_cache_size(512 * 1024);
@@ -58,14 +48,14 @@ main(int argc, char **argv)
    /* in that dir for the text to display */
    imlib_add_path_to_font_path(PACKAGE_DATA_DIR "/data/fonts");
 #endif
+
    /* set the maximum number of colors to allocate for 8bpp and less to 128 */
    imlib_set_color_usage(128);
+
    /* dither for depths < 24bpp */
    imlib_context_set_dither(1);
-   /* set the display , visual, colormap and drawable we are using */
-   imlib_context_set_display(disp);
-   imlib_context_set_visual(DefaultVisual(disp, DefaultScreen(disp)));
-   imlib_context_set_colormap(DefaultColormap(disp, DefaultScreen(disp)));
+
+   /* set the drawable we are using */
    imlib_context_set_drawable(win);
 
    /* infinite event loop */
@@ -91,6 +81,10 @@ main(int argc, char **argv)
              XNextEvent(disp, &ev);
              switch (ev.type)
                {
+               default:
+                  if (prog_x11_event(&ev))
+                     goto quit;
+                  break;
                case Expose:
                   /* window rectangle was exposed - add it to the list of */
                   /* rectangles we need to re-render */
@@ -159,9 +153,6 @@ main(int argc, char **argv)
                                                           text_w, text_h);
                     }
 #endif /* ENABLE_TEXT */
-                  break;
-               default:
-                  /* any other events - do nothing */
                   break;
                }
           }
