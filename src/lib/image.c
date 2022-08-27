@@ -183,7 +183,7 @@ __imlib_ConsumeImage(ImlibImage * im)
 
    __imlib_FreeAllTags(im);
 
-   if (im->fi && im->fi->name && im->fi->name != im->file)
+   if (im->file && (!im->fi || im->fi->name != im->file))
       free(im->file);
    free(im->key);
    if (im->data && !IM_FLAG_ISSET(im, F_DONT_FREE_DATA))
