@@ -150,10 +150,18 @@ test_load(void)
         fp = fopen(fileo, "wb");
         fclose(fp);
         D("Load empty '%s'\n", fileo);
+
+        im = imlib_load_image(fileo);
+        err = imlib_get_error();
+        EXPECT_FALSE(im);
+        D("  err = %d\n", err);
+        EXPECT_EQ(err, IMLIB_ERR_BAD_IMAGE);
+
         im = imlib_load_image_with_errno_return(fileo, &err);
         D("  err = %d\n", err);
         EXPECT_FALSE(im);
         EXPECT_EQ(err, IMLIB_ERR_BAD_IMAGE);
+
         im = imlib_load_image_with_error_return(fileo, &lerr);
         D("  err = %d\n", lerr);
         EXPECT_FALSE(im);
@@ -164,10 +172,18 @@ test_load(void)
         unlink(fileo);
         symlink("non-existing", fileo);
         D("Load non-existing '%s'\n", fileo);
+
+        im = imlib_load_image(fileo);
+        EXPECT_FALSE(im);
+        err = imlib_get_error();
+        D("  err = %d\n", err);
+        EXPECT_EQ(err, ENOENT);
+
         im = imlib_load_image_with_errno_return(fileo, &err);
         D("  err = %d\n", err);
         EXPECT_FALSE(im);
         EXPECT_EQ(err, ENOENT);
+
         im = imlib_load_image_with_error_return(fileo, &lerr);
         D("  err = %d\n", lerr);
         EXPECT_FALSE(im);

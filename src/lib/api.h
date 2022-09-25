@@ -41,6 +41,7 @@ typedef struct {
    Drawable            drawable;
    Pixmap              mask;
 #endif
+   int                 error;
    char                anti_alias;
    char                dither;
    char                blend;

@@ -499,6 +499,12 @@ imlib_flush_loaders(void)
    __imlib_RemoveAllLoaders();
 }
 
+EAPI int
+imlib_get_error(void)
+{
+   return ctx->error;
+}
+
 EAPI                Imlib_Image
 imlib_load_image(const char *file)
 {
@@ -508,6 +514,7 @@ imlib_load_image(const char *file)
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
    im = __imlib_LoadImage(file, &ila);
+   ctx->error = ila.err;
 
    return im;
 }
@@ -521,7 +528,8 @@ _imlib_load_image_immediately(const char *file, int *err)
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
    im = __imlib_LoadImage(file, &ila);
-   *err = ila.err;
+   ctx->error = ila.err;
+   *err = ctx->error;
 
    return im;
 }
@@ -543,6 +551,7 @@ imlib_load_image_without_cache(const char *file)
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
    im = __imlib_LoadImage(file, &ila);
+   ctx->error = ila.err;
 
    return im;
 }
@@ -556,6 +565,7 @@ imlib_load_image_immediately_without_cache(const char *file)
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
    im = __imlib_LoadImage(file, &ila);
+   ctx->error = ila.err;
 
    return im;
 }
@@ -599,17 +609,18 @@ imlib_load_image_fde(const char *file, int *err, int fd)
    if (ila.fp)
      {
         im = __imlib_LoadImage(file, &ila);
+        ctx->error = ila.err;
         fclose(ila.fp);
-        if (err)
-           *err = ila.err;
      }
    else
      {
         im = NULL;
+        ctx->error = errno;
         close(fd);
-        if (err)
-           *err = errno;
      }
+
+   if (err)
+      *err = ctx->error;
 
    return im;
 }
@@ -633,6 +644,7 @@ imlib_load_image_mem(const char *file, int *err, const void *data, size_t size)
    ila.fsize = size;
 
    im = __imlib_LoadImage(file, &ila);
+   ctx->error = ila.err;
 
    return im;
 }
@@ -646,6 +658,7 @@ imlib_load_image_frame(const char *file, int frame)
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
 
    im = __imlib_LoadImage(file, &ila);
+   ctx->error = ila.err;
 
    return im;
 }
@@ -664,6 +677,7 @@ imlib_load_image_frame_mem(const char *file, int frame, const void *data,
    ila.fsize = size;
 
    im = __imlib_LoadImage(file, &ila);
+   ctx->error = ila.err;
 
    return im;
 }
@@ -1879,11 +1893,14 @@ _imlib_save_image(const char *file, int *err)
    CHECK_PARAM_POINTER("file", file);
    CAST_IMAGE(im, ctx->image);
 
+   ctx->error = 0;
+
    if (__imlib_LoadImageData(im))
       return;
 
    __imlib_SaveImage(im, file, &ila);
-   *err = ila.err;
+   ctx->error = ila.err;
+   *err = ctx->error;
 }
 
 EAPI void

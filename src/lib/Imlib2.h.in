@@ -739,6 +739,19 @@ EAPI Visual        *imlib_get_best_visual(Display * display, int screen,
 EAPI void           imlib_flush_loaders(void);
 
 /**
+ * Get error code from previous imlib function call
+ *
+ * For now an error code is only meaningful when an image loading
+ * function (imlib_load_image...()) has failed (returned NULL).
+ *
+ * @return error code
+ *          0: Success,
+ *   positive: Regular errnos,
+ *   negative: IMLIB_ERR_... values, see above
+ */
+EAPI int            imlib_get_error(void);
+
+/**
  * Load an image from file (header only)
  *
  * Please see the section \ref loading for more detail.
