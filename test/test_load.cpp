@@ -194,11 +194,12 @@ test_load(void)
         fd = open(fileo, O_RDONLY);
         D("Load fd %d '%s'\n", fd, fileo);
         snprintf(fileo, sizeof(fileo), ".%s", pfxs[i]);
-        im = imlib_load_image_fde(pfxs[i], &err, fd);
+        im = imlib_load_image_fd(fd, pfxs[i]);
+        err = imlib_get_error();
         EXPECT_TRUE(im);
+        EXPECT_EQ(err, 0);
         if (im)
            image_free(im);
-        EXPECT_EQ(err, 0);
         err = close(fd);
         EXPECT_NE(err, 0);
 
@@ -220,8 +221,10 @@ test_load(void)
           {
              D("Load mem[%d] %d '%s'\n", n, fd, fileo);
              snprintf(fileo, sizeof(fileo), ".%s", pfxs[i]);
-             im = imlib_load_image_mem(pfxs[i], &err, fdata, st.st_size);
-             EXPECT_TRUE(im) << "Load mem: " << fileo;
+             im = imlib_load_image_mem(pfxs[i], fdata, st.st_size);
+             err = imlib_get_error();
+             EXPECT_TRUE(im);
+             EXPECT_EQ(err, 0);
              if (im)
                 image_free(im);
           }

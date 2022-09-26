@@ -85,7 +85,13 @@ image_load_fd(const char *file, int *perr)
       ext = file;
 
    fd = open(file, O_RDONLY);
-   im = imlib_load_image_fde(ext, perr, fd);
+   if (fd < 0)
+     {
+        *perr = errno;
+        return NULL;
+     }
+
+   im = imlib_load_image_fd(fd, ext);
 
    return im;
 }
@@ -122,7 +128,7 @@ image_load_mem(const char *file, int *perr)
    if (fdata == MAP_FAILED)
       goto bail;
 
-   im = imlib_load_image_mem(ext, &err, fdata, st.st_size);
+   im = imlib_load_image_mem(ext, fdata, st.st_size);
 
  quit:
    if (fdata != MAP_FAILED)
@@ -234,12 +240,12 @@ main(int argc, char **argv)
 
         for (cnt = 0; cnt < load_cnt; cnt++)
           {
-             err = -1000;
+             err = 0;
 
              switch (load_mode)
                {
                case LOAD_IMMED:
-                  im = imlib_load_image_with_errno_return(argv[0], &err);
+                  im = imlib_load_image_immediately(argv[0]);
                   break;
                case LOAD_FROM_FD:
                   im = image_load_fd(argv[0], &err);
@@ -262,11 +268,10 @@ main(int argc, char **argv)
 
              if (!im)
                {
-                  if (err > -1000)
-                     fprintf(fout, "*** Error %d:'%s' loading image: '%s'\n",
-                             err, imlib_strerror(err), argv[0]);
-                  else
-                     fprintf(fout, "*** Failed to load image: '%s'\n", argv[0]);
+                  if (err == 0)
+                     err = imlib_get_error();
+                  fprintf(fout, "*** Error %d:'%s' loading image: '%s'\n",
+                          err, imlib_strerror(err), argv[0]);
 
                   if (break_on_error & 2)
                      goto quit;

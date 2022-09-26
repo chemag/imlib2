@@ -598,7 +598,7 @@ imlib_load_image_with_errno_return(const char *file, int *error_return)
 }
 
 EAPI                Imlib_Image
-imlib_load_image_fde(const char *file, int *err, int fd)
+imlib_load_image_fd(int fd, const char *file)
 {
    Imlib_Image         im;
    ImlibLoadArgs       ila = { ILA0(ctx, 1, 1) };
@@ -619,20 +619,11 @@ imlib_load_image_fde(const char *file, int *err, int fd)
         close(fd);
      }
 
-   if (err)
-      *err = ctx->error;
-
    return im;
 }
 
 EAPI                Imlib_Image
-imlib_load_image_fd(int fd, const char *file)
-{
-   return imlib_load_image_fde(file, NULL, fd);
-}
-
-EAPI                Imlib_Image
-imlib_load_image_mem(const char *file, int *err, const void *data, size_t size)
+imlib_load_image_mem(const char *file, const void *data, size_t size)
 {
    Imlib_Image         im;
    ImlibLoadArgs       ila = { ILA0(ctx, 1, 1) };
