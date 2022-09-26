@@ -2,6 +2,7 @@
 #include <Imlib2.h>
 #include "common.h"
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "api.h"

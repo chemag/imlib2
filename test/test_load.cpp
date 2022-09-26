@@ -4,7 +4,6 @@
 #define IMLIB2_DEPRECATED       // Suppress deprecation warnings
 #include <Imlib2.h>
 
-#include <errno.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 
