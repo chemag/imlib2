@@ -659,7 +659,7 @@ imlib_load_image_frame_mem(const char *file, int frame, const void *data,
                            size_t size)
 {
    Imlib_Image         im;
-   ImlibLoadArgs       ila = { ILA0(ctx, 1, 0),.frame = frame };
+   ImlibLoadArgs       ila = { ILA0(ctx, 1, 1),.frame = frame };
 
    CHECK_PARAM_POINTER_RETURN("file", file, NULL);
    CHECK_PARAM_POINTER_RETURN("data", data, NULL);
