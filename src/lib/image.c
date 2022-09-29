@@ -21,6 +21,17 @@
 #include "x11_pixmap.h"
 #endif
 
+struct _ImlibImageFileInfo {
+   struct _ImlibImageFileInfo *next;
+   char               *name;
+   FILE               *fp;
+   const void         *fdata;
+   off_t               fsize;
+   /* vvv Private vvv */
+   bool                keep_fp;
+   /* ^^^ Private ^^^ */
+};
+
 #define DBG_PFX "IMG"
 #define DP(fmt...) DC(DBG_LOAD, fmt)
 

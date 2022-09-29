@@ -26,16 +26,7 @@ typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
 #define FF_FRAME_DISPOSE_CLEAR  (1 << 2)        /* Clear before rendering next frame  */
 #define FF_FRAME_DISPOSE_PREV   (1 << 3)        /* Revert before rendering next frame */
 
-typedef struct _ImlibImageFileInfo {
-   struct _ImlibImageFileInfo *next;
-   char               *name;
-   FILE               *fp;
-   const void         *fdata;
-   off_t               fsize;
-   /* vvv Private vvv */
-   char                keep_fp;
-   /* ^^^ Private ^^^ */
-} ImlibImageFileInfo;
+typedef struct _ImlibImageFileInfo ImlibImageFileInfo;
 
 typedef struct _imlibldctx ImlibLdCtx;
 
