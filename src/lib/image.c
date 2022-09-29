@@ -29,6 +29,7 @@ struct _ImlibImageFileInfo {
    off_t               fsize;
    /* vvv Private vvv */
    bool                keep_fp;
+   bool                keep_mem;
    /* ^^^ Private ^^^ */
 };
 
@@ -97,7 +98,11 @@ __imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp,
         fi->keep_fp = true;
         fi->fp = fp;
      }
-   else if (!fdata)
+   else if (fdata)
+     {
+        fi->keep_mem = true;
+     }
+   else
      {
         fi->fp = fopen(fi->name, "rb");
         if (!fi->fp)
@@ -129,18 +134,16 @@ __imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp,
 static void
 __imlib_FileContextClose(ImlibImageFileInfo * fi)
 {
-   if (!fi->keep_fp)
+   if (fi->fdata && !fi->keep_mem)
      {
-        if (fi->fdata)
-          {
-             munmap((void *)fi->fdata, fi->fsize);
-             fi->fdata = NULL;
-          }
-        if (fi->fp)
-          {
-             fclose(fi->fp);
-             fi->fp = NULL;
-          }
+        munmap((void *)fi->fdata, fi->fsize);
+        fi->fdata = NULL;
+     }
+
+   if (fi->fp && !fi->keep_fp)
+     {
+        fclose(fi->fp);
+        fi->fp = NULL;
      }
 }
 

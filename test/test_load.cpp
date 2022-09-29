@@ -200,12 +200,15 @@ test_load(void)
         fdata = mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
         ASSERT_TRUE(fdata != NULL);
         ASSERT_TRUE(fdata != MAP_FAILED);
-        D("Load mem %d '%s'\n", fd, fileo);
-        snprintf(fileo, sizeof(fileo), ".%s", pfxs[i]);
-        im = imlib_load_image_mem(pfxs[i], &err, fdata, st.st_size);
-        EXPECT_TRUE(im) << "Load mem: " << fileo;
-        if (im)
-           image_free(im);
+        for (int n = 0; n < 3; n++)
+          {
+             D("Load mem[%d] %d '%s'\n", n, fd, fileo);
+             snprintf(fileo, sizeof(fileo), ".%s", pfxs[i]);
+             im = imlib_load_image_mem(pfxs[i], &err, fdata, st.st_size);
+             EXPECT_TRUE(im) << "Load mem: " << fileo;
+             if (im)
+                image_free(im);
+          }
         munmap(fdata, st.st_size);
         err = close(fd);
         EXPECT_EQ(err, 0);
