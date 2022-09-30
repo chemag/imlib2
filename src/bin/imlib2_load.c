@@ -37,6 +37,7 @@ static FILE        *fout;
    "Usage:\n" \
    "  imlib2_load [OPTIONS] FILE...\n" \
    "OPTIONS:\n" \
+   "  -c  : Enable image caching\n" \
    "  -e  : Break on error\n" \
    "  -f  : Load with imlib_load_image_fd()\n" \
    "  -i  : Load image immediately (don't defer data loading)\n" \
@@ -163,6 +164,7 @@ main(int argc, char **argv)
    bool                show_time;
    int                 load_cnt, cnt;
    int                 load_mode;
+   bool                opt_cache;
 
    fout = stdout;
    verbose = 0;
@@ -171,11 +173,15 @@ main(int argc, char **argv)
    show_time = false;
    load_cnt = 1;
    load_mode = LOAD_DEFER;
+   opt_cache = false;
 
-   while ((opt = getopt(argc, argv, "efijmn:pvx")) != -1)
+   while ((opt = getopt(argc, argv, "cefijmn:pvx")) != -1)
      {
         switch (opt)
           {
+          case 'c':
+             opt_cache = true;
+             break;
           case 'e':
              break_on_error += 1;
              break;
@@ -283,9 +289,12 @@ main(int argc, char **argv)
                       imlib_image_get_width(), imlib_image_get_height());
 
              if (load_mode == LOAD_DEFER)
-                imlib_image_get_data();
+                imlib_image_get_data_for_reading_only();
 
-             imlib_free_image_and_decache();
+             if (opt_cache)
+                imlib_free_image();
+             else
+                imlib_free_image_and_decache();
           }
 
         if (show_time)
