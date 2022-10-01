@@ -508,6 +508,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
      {
         err = 0;
         st.st_size = ila->fsize;
+        st.st_mtime = st.st_ctime = 0;
      }
    else if (ila->fp)
      {
