@@ -2,6 +2,7 @@
 #include "Imlib2_Loader.h"
 
 #include <png.h>
+#include <stdbool.h>
 #include <arpa/inet.h>
 
 #define DBG_PFX "LDR-png"
@@ -300,7 +301,8 @@ _load(ImlibImage * im, int load_data)
    const png_chunk_t  *chunk;
    const png_fctl_t   *pfctl;
    unsigned int        len, val;
-   int                 w, h, frame, save_fdat;
+   int                 w, h, frame;
+   bool                save_fdat;
    png_chunk_t         cbuf;
 
    /* read header */
@@ -408,7 +410,7 @@ _load(ImlibImage * im, int load_data)
  scan_done:
    /* Now feed data into libpng to extract requested frame */
 
-   save_fdat = 0;
+   save_fdat = false;
 
    /* At this point we start "progressive" PNG data processing */
    fptr = (unsigned char *)im->fi->fdata;
@@ -490,7 +492,7 @@ _load(ImlibImage * im, int load_data)
               * the frame's first fdAT chunk */
              fptr = (unsigned char *)ctx.pch_fctl;
              len = htonl(ctx.pch_fctl->hdr.len);
-             save_fdat = 1;     /* Save fdAT's as of now (until next fcTL) */
+             save_fdat = true;  /* Save fdAT's as of now (until next fcTL) */
              continue;
 
           case PNG_TYPE_acTL:
