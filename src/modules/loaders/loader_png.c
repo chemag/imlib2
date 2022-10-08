@@ -455,8 +455,9 @@ _load(ImlibImage * im, int load_data)
              if (pfctl->blend_op != APNG_BLEND_OP_SOURCE)
                 im->frame_flags |= FF_FRAME_BLEND;
              val = htons(pfctl->delay_den);
-             im->frame_delay =
-                val > 0 ? 1000 * htons(pfctl->delay_num) / val : 100;
+             if (val == 0)
+                val = 100;
+             im->frame_delay = 1000 * htons(pfctl->delay_num) / val;
 
              D("WxH=%dx%d(%dx%d) X,Y=%d,%d depth=%d color=%d comp=%d filt=%d interlace=%d disp=%d blend=%d delay=%d/%d\n",      //
                htonl(pfctl->w), htonl(pfctl->h),
