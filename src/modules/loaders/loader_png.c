@@ -302,7 +302,7 @@ _load(ImlibImage * im, int load_data)
    const png_fctl_t   *pfctl;
    unsigned int        len, val;
    int                 w, h, frame;
-   bool                save_fdat;
+   bool                save_fdat, seen_fctl;
    png_chunk_t         cbuf;
 
    /* read header */
@@ -411,6 +411,7 @@ _load(ImlibImage * im, int load_data)
    /* Now feed data into libpng to extract requested frame */
 
    save_fdat = false;
+   seen_fctl = false;
 
    /* At this point we start "progressive" PNG data processing */
    fptr = (unsigned char *)im->fi->fdata;
@@ -486,8 +487,10 @@ _load(ImlibImage * im, int load_data)
              /* Needed chunks should now be read */
              /* Note - Just before starting to process data chunks libpng will
               * call info_callback() */
-             if (im->frame_num <= 1)
-                break;          /* Process actual IDAT chunk */
+             if (im->frame_count <= 0)
+                break;          /* Regular PNG - Process actual IDAT chunk */
+             if (im->frame_num == 1 && seen_fctl)
+                break;          /* APNG, First frame is IDAT */
              /* Jump to the record after the frame's fcTL, will typically be
               * the frame's first fdAT chunk */
              fptr = (unsigned char *)ctx.pch_fctl;
@@ -508,13 +511,12 @@ _load(ImlibImage * im, int load_data)
              D("\n");
              if (save_fdat)
                 goto done;      /* First fcTL after frame's fdAT's - done */
+             seen_fctl = true;
              continue;
 
           case PNG_TYPE_fdAT:
 #define P (&chunk->fdat)
              D("\n");
-             if (im->frame_num <= 1)
-                continue;
              if (!save_fdat)
                 continue;
              /* Process fake IDAT frame data */
