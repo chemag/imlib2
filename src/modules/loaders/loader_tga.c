@@ -481,9 +481,9 @@ tgaflip(uint32_t * in, int w, int h, int fliph, int flipv)
         x2 = fliph ? w - 1 : 0;
         for (x = 0; x < nx; x++, x2 += dx)
           {
-             tmp = in[y * h + x];
-             in[y * h + x] = in[y2 * h + x2];
-             in[y2 * h + x2] = tmp;
+             tmp = in[y * w + x];
+             in[y * w + x] = in[y2 * w + x2];
+             in[y2 * w + x2] = tmp;
           }
      }
 }
