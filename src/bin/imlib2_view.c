@@ -45,6 +45,7 @@ static bool         multiframe = false; /* Image has multiple frames     */
 static bool         fixedframe = false; /* We have selected single frame */
 static bool         animated = false;   /* Image has animation sequence  */
 static bool         animate = false;    /* Animation is active           */
+static int          animloop = 0;       /* Animation loop count          */
 
 #define Dprintf(fmt...)  if (debug)        printf(fmt)
 #define Vprintf(fmt...)  if (verbose)      printf(fmt)
@@ -525,6 +526,7 @@ load_image(int no, const char *name)
              animate = true;
              fixedframe = false;
           }
+        animloop = 0;
 
         im = load_image_frame(nbuf, frame, 0);
 
@@ -645,6 +647,15 @@ main(int argc, char **argv)
              else
                 imlib_free_image_and_decache();
              im = NULL;
+          }
+
+        if (animate)
+          {
+             if (finfo.frame_num == 1)
+                animloop++;
+             if (finfo.loop_count == animloop &&
+                 finfo.frame_num == finfo.frame_count)
+                animate = false;
           }
 
         if (animate)

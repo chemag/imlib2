@@ -59,6 +59,7 @@ struct _ImlibImage {
    int                 frame_y;
    int                 frame_flags;     /* Frame flags      */
    int                 frame_delay;     /* Frame delay (ms) */
+   int                 loop_count;      /* Animation loops  */
 
    /* vvv Private vvv */
    ImlibLoader        *loader;

@@ -681,6 +681,7 @@ imlib_image_get_frame_info(Imlib_Frame_Info * info)
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);
 
+   info->loop_count = im->loop_count;
    info->frame_count = im->frame_count;
    info->frame_num = im->frame_num;
    info->canvas_w = im->canvas_w ? im->canvas_w : im->w;

@@ -148,6 +148,7 @@ struct _ImlibImage {
    int                 frame_y;
    int                 frame_flags;     /* Frame flags      */
    int                 frame_delay;     /* Frame delay (ms) */
+   int                 loop_count;      /* Animation loops  */
 };
 
 /* Must match the ones in Imlib2.h.in */

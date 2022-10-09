@@ -144,17 +144,16 @@ _load(ImlibImage * im, int load_data)
                   frame = im->frame_num;
                   if (info.have_animation)
                     {
-                       if (info.animation.num_loops > 0)
-                          im->frame_count = info.animation.num_loops;
-                       else
-                          im->frame_count = 1234567890; // FIXME - Hack
+                       im->frame_count = 1234567890;    // FIXME - Hack
+                       im->loop_count = info.animation.num_loops;
                        im->frame_flags |= FF_IMAGE_ANIMATED;
                        im->canvas_w = info.xsize;
                        im->canvas_h = info.ysize;
                     }
 
-                  D("Canvas WxH=%dx%d frames=%d\n",
-                    im->canvas_w, im->canvas_h, im->frame_count);
+                  D("Canvas WxH=%dx%d frames=%d repeat=%d\n",
+                    im->canvas_w, im->canvas_h,
+                    im->frame_count, im->loop_count);
 
                   if (frame > 1 && im->frame_count > 0
                       && frame > im->frame_count)

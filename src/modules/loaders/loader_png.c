@@ -368,6 +368,7 @@ _load(ImlibImage * im, int load_data)
           case PNG_TYPE_acTL:
 #define P (&chunk->actl)
              im->frame_count = htonl(P->num_frames);
+             im->loop_count = htonl(P->num_plays);
              D("num_frames=%d num_plays=%d\n", im->frame_count,
                htonl(P->num_plays));
              if (im->frame_num > im->frame_count)

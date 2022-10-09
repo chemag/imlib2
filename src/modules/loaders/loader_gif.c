@@ -89,13 +89,14 @@ _load(ImlibImage * im, int load_data)
      {
         frame = im->frame_num;
         im->frame_count = gif->ImageCount;
+        im->loop_count = 0;     /* Loop forever */
         if (im->frame_count > 1)
            im->frame_flags |= FF_IMAGE_ANIMATED;
         im->canvas_w = gif->SWidth;
         im->canvas_h = gif->SHeight;
 
-        D("Canvas WxH=%dx%d frames=%d\n",
-          im->canvas_w, im->canvas_h, im->frame_count);
+        D("Canvas WxH=%dx%d frames=%d repeat=%d\n",
+          im->canvas_w, im->canvas_h, im->frame_count, im->loop_count);
 
 #if 0
         if (frame > 1 && frame > im->frame_count)
