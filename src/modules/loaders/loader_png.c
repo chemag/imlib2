@@ -363,7 +363,13 @@ _load(ImlibImage * im, int load_data)
              D("\n");
              if (im->frame_count == 0)
                 goto scan_done; /* No acTL before IDAT - Regular PNG */
+#ifdef IMLIB2_DEBUG
+             break;             /* Show all frames */
+#else
+             if (ctx.pch_fctl)
+                goto scan_done; /* Got fcTL before IDAT - APNG using default frame */
              break;
+#endif
 
           case PNG_TYPE_acTL:
 #define P (&chunk->actl)
@@ -387,11 +393,7 @@ _load(ImlibImage * im, int load_data)
              if (im->frame_num != frame)
                 break;
              ctx.pch_fctl = chunk;      /* Remember fcTL location */
-#if IMLIB2_DEBUG
-             break;             /* Show all frames */
-#else
-             goto scan_done;
-#endif
+             break;
 #undef P
 
           case PNG_TYPE_IEND:
