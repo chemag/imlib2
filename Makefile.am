@@ -9,7 +9,6 @@ endif
 if BUILD_TEST
 SUBDIRS += test
 endif
-DIST_SUBDIRS = src data doc
 
 CLEANFILES = $(PACKAGE).spec
 
@@ -27,13 +26,18 @@ EXTRA_DIST = AUTHORS COPYING COPYING-PLAIN \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = $(PACKAGE).pc
 
+dist-hook: $(top_builddir)/$(PACKAGE).spec
+	if [ -s $(distdir)/test/Makefile.am ]; then \
+	  rm -f $(distdir)/test/*.*; \
+	  touch $(distdir)/test/Makefile.am; \
+	  cd $(top_srcdir) && $(AUTOMAKE) --foreign $(abs_builddir)/$(distdir)/test/Makefile; \
+	fi
+
 if SRC_IS_GIT
 RPM_RELEASE=`echo -n "1.%(date '+%y%m%d').git"; git rev-parse --short=8 HEAD`
 else
 RPM_RELEASE=`echo -n "1.%(date '+%y%m%d')"`
 endif
-
-dist-hook: $(top_builddir)/$(PACKAGE).spec
 
 $(top_builddir)/$(PACKAGE).spec: FORCE
 	sed "s/\@PACKAGE\@/@PACKAGE@/;s/\@VERSION\@/@VERSION@/;s/\@RPM_RELEASE\@/$(RPM_RELEASE)/" \

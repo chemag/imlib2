@@ -280,6 +280,7 @@ src/bin/Makefile
 src/modules/Makefile
 src/modules/filters/Makefile
 src/modules/loaders/Makefile
+test/Makefile
 data/Makefile
 data/fonts/Makefile
 data/images/Makefile
@@ -288,7 +289,6 @@ doc/Doxyfile
 doc/imlib2_intro.dox
 README
 ])
-AM_COND_IF([SRC_IS_GIT], [ AC_CONFIG_FILES([test/Makefile]) ])
 AC_OUTPUT
 
 #####################################################################
