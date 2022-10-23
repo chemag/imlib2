@@ -33,19 +33,25 @@ dist-hook: $(top_builddir)/$(PACKAGE).spec
 	  cd $(top_srcdir) && $(AUTOMAKE) --foreign $(abs_builddir)/$(distdir)/test/Makefile; \
 	fi
 
-if SRC_IS_GIT
-RPM_RELEASE=`echo -n "1.%(date '+%y%m%d').git"; git rev-parse --short=8 HEAD`
-else
-RPM_RELEASE=`echo -n "1.%(date '+%y%m%d')"`
-endif
+RPR_DEV = `echo -n "1.%(date '+%y%m%d').git"; git rev-parse --short=8 HEAD`
+RPR_REL = 1
+SED_DEV = "s/\@PACKAGE\@/@PACKAGE@/;s/\@VERSION\@/@VERSION@/;s/\@RPM_RELEASE\@/$(RPR_DEV)/"
+SED_REL = "s/\@PACKAGE\@/@PACKAGE@/;s/\@VERSION\@/@VERSION@/;s/\@RPM_RELEASE\@/$(RPR_REL)/"
 
 $(top_builddir)/$(PACKAGE).spec: FORCE
-	sed "s/\@PACKAGE\@/@PACKAGE@/;s/\@VERSION\@/@VERSION@/;s/\@RPM_RELEASE\@/$(RPM_RELEASE)/" \
-		$(top_srcdir)/$(PACKAGE).spec.in > $@
+	@if [ -f $(top_srcdir)/.git-src -a -z "$(release)" ]; then \
+	  sed $(SED_DEV) $(top_srcdir)/$(PACKAGE).spec.in > $@; \
+	else \
+	  sed $(SED_REL) $(top_srcdir)/$(PACKAGE).spec.in > $@; \
+	fi
 
 .PHONY: doc src test
 doc src test:
 	$(MAKE) -C $@
 test: src
+
+.PHONY: release
+release:
+	$(MAKE) dist release=y
 
 FORCE:
