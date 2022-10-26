@@ -102,7 +102,7 @@ test_load(void)
 
         D("Load '%s' (deferred)\n", fileo);
         im = imlib_load_image(fileo);
-        EXPECT_TRUE(im);
+        ASSERT_TRUE(im);
         if (im)
           {
              imlib_context_set_image(im);
