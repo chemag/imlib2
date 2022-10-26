@@ -222,7 +222,7 @@ _load(ImlibImage * im, int load_data)
 #endif /* LIBRSVG need 2.46 */
 
    if (im->lc)
-      __imlib_LoadProgress(im, im->frame_x, im->frame_y, im->w, im->h);
+      __imlib_LoadProgress(im, 0, 0, im->w, im->h);
 
    rc = LOAD_SUCCESS;
 
