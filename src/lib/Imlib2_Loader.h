@@ -131,6 +131,17 @@ typedef struct _ImlibImageTag {
    struct _ImlibImageTag *next;
 } ImlibImageTag;
 
+typedef struct {
+   int                 canvas_w;        /* Canvas size      */
+   int                 canvas_h;
+   int                 frame_count;     /* Number of frames */
+   int                 frame_x; /* Frame origin     */
+   int                 frame_y;
+   int                 frame_flags;     /* Frame flags      */
+   int                 frame_delay;     /* Frame delay (ms) */
+   int                 loop_count;      /* Animation loops  */
+} ImlibImageFrame;
+
 struct _ImlibImage {
    ImlibImageFileInfo *fi;
    ImlibLdCtx         *lc;
@@ -141,14 +152,6 @@ struct _ImlibImage {
    char                rsvd[3];
 
    int                 frame;
-   int                 canvas_w;        /* Canvas size      */
-   int                 canvas_h;
-   int                 frame_count;     /* Number of frames */
-   int                 frame_x; /* Frame origin     */
-   int                 frame_y;
-   int                 frame_flags;     /* Frame flags      */
-   int                 frame_delay;     /* Frame delay (ms) */
-   int                 loop_count;      /* Animation loops  */
 };
 
 /* Must match the ones in Imlib2.h.in */
@@ -175,6 +178,8 @@ ImlibImageTag      *__imlib_RemoveTag(ImlibImage * im, const char *key);
 void                __imlib_FreeTag(ImlibImage * im, ImlibImageTag * t);
 
 const char         *__imlib_GetKey(const ImlibImage * im);
+
+ImlibImageFrame    *__imlib_GetFrame(ImlibImage * im);
 
 void                __imlib_LoadProgressSetPass(ImlibImage * im,
                                                 int pass, int n_pass);

@@ -48,6 +48,7 @@ _load(ImlibImage * im, int load_data)
    JxlBasicInfo        info;
    JxlFrameHeader      fhdr;
    int                 frame, delay_unit;
+   ImlibImageFrame    *pf;
 
 #if MAX_RUNNERS > 0
    size_t              n_runners;
@@ -100,6 +101,7 @@ _load(ImlibImage * im, int load_data)
       goto quit;
 
    frame = im->frame;
+   pf = __imlib_GetFrame(im);
    delay_unit = 0;
 
    for (;;)
@@ -137,23 +139,23 @@ _load(ImlibImage * im, int load_data)
              im->h = info.ysize;
              im->has_alpha = info.alpha_bits > 0;
 
-             if (frame > 0)
+             if (pf)
                {
                   if (info.have_animation)
                     {
-                       im->frame_count = 1234567890;    // FIXME - Hack
-                       im->loop_count = info.animation.num_loops;
-                       im->frame_flags |= FF_IMAGE_ANIMATED;
-                       im->canvas_w = info.xsize;
-                       im->canvas_h = info.ysize;
+                       pf->frame_count = 1234567890;    // FIXME - Hack
+                       pf->loop_count = info.animation.num_loops;
+                       pf->frame_flags |= FF_IMAGE_ANIMATED;
+                       pf->canvas_w = info.xsize;
+                       pf->canvas_h = info.ysize;
                     }
 
                   D("Canvas WxH=%dx%d frames=%d repeat=%d\n",
-                    im->canvas_w, im->canvas_h,
-                    im->frame_count, im->loop_count);
+                    pf->canvas_w, pf->canvas_h,
+                    pf->frame_count, pf->loop_count);
 
-                  if (frame > 1 && im->frame_count > 0
-                      && frame > im->frame_count)
+                  if (frame > 1 && pf->frame_count > 0
+                      && frame > pf->frame_count)
                      QUIT_WITH_RC(LOAD_BADFRAME);
 
                   if (frame > 1)
@@ -178,12 +180,14 @@ _load(ImlibImage * im, int load_data)
              break;
 
           case JXL_DEC_FRAME:
+             if (!pf)
+                break;
              JxlDecoderGetFrameHeader(dec, &fhdr);
              if (fhdr.is_last)
-                im->frame_count = frame;
-             im->frame_delay = fhdr.duration * delay_unit;
+                pf->frame_count = frame;
+             pf->frame_delay = fhdr.duration * delay_unit;
              D("Frame duration=%d tc=%08x nl=%d last=%d\n",
-               im->frame_delay, fhdr.timecode, fhdr.name_length, fhdr.is_last);
+               pf->frame_delay, fhdr.timecode, fhdr.name_length, fhdr.is_last);
              break;
 
           case JXL_DEC_FULL_IMAGE:

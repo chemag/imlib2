@@ -272,6 +272,7 @@ _load(ImlibImage * im, int load_data)
    ie_t               *ie;
    uint32_t           *pdst;
    uint32_t            pixel;
+   ImlibImageFrame    *pf;
 
    rc = LOAD_FAIL;
 
@@ -304,11 +305,12 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
    frame = im->frame;
-   if (frame > 0)
+   pf = __imlib_GetFrame(im);
+   if (pf)
      {
-        im->frame_count = ico.idir.icons;
+        pf->frame_count = ico.idir.icons;
 
-        if (frame > 1 && frame > im->frame_count)
+        if (frame > 1 && frame > pf->frame_count)
            QUIT_WITH_RC(LOAD_BADFRAME);
      }
 

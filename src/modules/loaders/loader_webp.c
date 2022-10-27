@@ -17,6 +17,7 @@ _load(ImlibImage * im, int load_data)
    WebPDemuxer        *demux;
    WebPIterator        iter;
    int                 frame;
+   ImlibImageFrame    *pf;
 
    rc = LOAD_FAIL;
 
@@ -34,19 +35,21 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
    frame = im->frame;
-   if (frame > 0)
+   pf = __imlib_GetFrame(im);
+   if (pf)
      {
-        im->frame_count = WebPDemuxGetI(demux, WEBP_FF_FRAME_COUNT);
-        im->loop_count = WebPDemuxGetI(demux, WEBP_FF_LOOP_COUNT);
-        if (im->frame_count > 1)
-           im->frame_flags |= FF_IMAGE_ANIMATED;
-        im->canvas_w = WebPDemuxGetI(demux, WEBP_FF_CANVAS_WIDTH);
-        im->canvas_h = WebPDemuxGetI(demux, WEBP_FF_CANVAS_HEIGHT);
+        frame = im->frame;
+        pf->frame_count = WebPDemuxGetI(demux, WEBP_FF_FRAME_COUNT);
+        pf->loop_count = WebPDemuxGetI(demux, WEBP_FF_LOOP_COUNT);
+        if (pf->frame_count > 1)
+           pf->frame_flags |= FF_IMAGE_ANIMATED;
+        pf->canvas_w = WebPDemuxGetI(demux, WEBP_FF_CANVAS_WIDTH);
+        pf->canvas_h = WebPDemuxGetI(demux, WEBP_FF_CANVAS_HEIGHT);
 
         D("Canvas WxH=%dx%d frames=%d repeat=%d\n",
-          im->canvas_w, im->canvas_h, im->frame_count, im->loop_count);
+          pf->canvas_w, pf->canvas_h, pf->frame_count, pf->loop_count);
 
-        if (frame > 1 && frame > im->frame_count)
+        if (frame > 1 && frame > pf->frame_count)
            QUIT_WITH_RC(LOAD_BADFRAME);
      }
    else
@@ -61,18 +64,22 @@ _load(ImlibImage * im, int load_data)
 
    im->w = iter.width;
    im->h = iter.height;
-   im->frame_x = iter.x_offset;
-   im->frame_y = iter.y_offset;
-   im->frame_delay = iter.duration;
-   if (iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND)
-      im->frame_flags |= FF_FRAME_DISPOSE_CLEAR;
-   if (iter.blend_method == WEBP_MUX_BLEND)
-      im->frame_flags |= FF_FRAME_BLEND;
+   if (pf)
+     {
+        pf->frame_x = iter.x_offset;
+        pf->frame_y = iter.y_offset;
+        pf->frame_delay = iter.duration;
+        if (iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND)
+           pf->frame_flags |= FF_FRAME_DISPOSE_CLEAR;
+        if (iter.blend_method == WEBP_MUX_BLEND)
+           pf->frame_flags |= FF_FRAME_BLEND;
 
-   D("Canvas WxH=%dx%d frame=%d/%d X,Y=%d,%d WxH=%dx%d alpha=%d T=%d dm=%d co=%d bl=%d\n",      //
-     im->canvas_w, im->canvas_h, iter.frame_num, im->frame_count,
-     im->frame_x, im->frame_y, im->w, im->h, iter.has_alpha,
-     im->frame_delay, iter.dispose_method, iter.complete, iter.blend_method);
+        D("Canvas WxH=%dx%d frame=%d/%d X,Y=%d,%d WxH=%dx%d alpha=%d T=%d dm=%d co=%d bl=%d\n", //
+          pf->canvas_w, pf->canvas_h, iter.frame_num, pf->frame_count,
+          pf->frame_x, pf->frame_y, im->w, im->h, iter.has_alpha,
+          pf->frame_delay, iter.dispose_method, iter.complete,
+          iter.blend_method);
+     }
 
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;

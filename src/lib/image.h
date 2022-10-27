@@ -42,6 +42,17 @@ typedef struct _ImlibImageTag {
    struct _ImlibImageTag *next;
 } ImlibImageTag;
 
+typedef struct {
+   int                 canvas_w;        /* Canvas size      */
+   int                 canvas_h;
+   int                 frame_count;     /* Number of frames */
+   int                 frame_x; /* Frame origin     */
+   int                 frame_y;
+   int                 frame_flags;     /* Frame flags      */
+   int                 frame_delay;     /* Frame delay (ms) */
+   int                 loop_count;      /* Animation loops  */
+} ImlibImageFrame;
+
 struct _ImlibImage {
    ImlibImageFileInfo *fi;
    ImlibLdCtx         *lc;
@@ -52,14 +63,6 @@ struct _ImlibImage {
    char                rsvd[3];
 
    int                 frame;
-   int                 canvas_w;        /* Canvas size      */
-   int                 canvas_h;
-   int                 frame_count;     /* Number of frames */
-   int                 frame_x; /* Frame origin     */
-   int                 frame_y;
-   int                 frame_flags;     /* Frame flags      */
-   int                 frame_delay;     /* Frame delay (ms) */
-   int                 loop_count;      /* Animation loops  */
 
    /* vvv Private vvv */
    ImlibLoader        *loader;
@@ -75,6 +78,8 @@ struct _ImlibImage {
    ImlibBorder         border;
    ImlibImageTag      *tags;
    ImlibImageDataMemoryFunction data_memory_func;
+
+   ImlibImageFrame    *pframe;
    /* ^^^ Private ^^^ */
 };
 
@@ -123,6 +128,8 @@ ImlibImageTag      *__imlib_GetTag(const ImlibImage * im, const char *key);
 ImlibImageTag      *__imlib_RemoveTag(ImlibImage * im, const char *key);
 void                __imlib_FreeTag(ImlibImage * im, ImlibImageTag * t);
 void                __imlib_FreeAllTags(ImlibImage * im);
+
+ImlibImageFrame    *__imlib_GetFrame(ImlibImage * im);
 
 void                __imlib_SetCacheSize(int size);
 int                 __imlib_GetCacheSize(void);

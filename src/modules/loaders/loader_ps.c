@@ -22,6 +22,7 @@ _load(ImlibImage * im, int load_data)
    unsigned char      *src;
    uint32_t           *dst;
    int                 i, j;
+   ImlibImageFrame    *pf;
 
    rc = LOAD_FAIL;
    spdoc = NULL;
@@ -47,12 +48,13 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
    frame = im->frame;
-   if (frame > 0)
+   pf = __imlib_GetFrame(im);
+   if (pf)
      {
-        im->frame_count = spectre_document_get_n_pages(spdoc);
-        D("Pages=%d\n", im->frame_count);
+        pf->frame_count = spectre_document_get_n_pages(spdoc);
+        D("Pages=%d\n", pf->frame_count);
 
-        if (frame > 1 && frame > im->frame_count)
+        if (frame > 1 && frame > pf->frame_count)
            QUIT_WITH_RC(LOAD_BADFRAME);
      }
    else

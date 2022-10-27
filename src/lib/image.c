@@ -207,6 +207,8 @@ __imlib_ConsumeImage(ImlibImage * im)
    if (im->fi)
       __imlib_ImageFileContextPop(im);
 
+   free(im->pframe);
+
    free(im);
 }
 
@@ -729,8 +731,11 @@ __imlib_LoadProgress(ImlibImage * im, int x, int y, int w, int h)
    lc->area += w * h;
    lc->pct = (100. * lc->area + .1) / (im->w * im->h);
 
-   x += im->frame_x;
-   y += im->frame_y;
+   if (im->pframe)
+     {
+        x += im->pframe->frame_x;
+        y += im->pframe->frame_y;
+     }
 
    rc = !lc->progress(im, lc->pct, x, y, w, h);
 
@@ -762,14 +767,25 @@ __imlib_LoadProgressRows(ImlibImage * im, int row, int nrows)
    pct = (100 * nrtot * (lc->pass + 1)) / (im->h * lc->n_pass);
    if (pct == 100 || pct >= lc->pct + lc->granularity)
      {
-        col += im->frame_x;
-        row += im->frame_y;
+        if (im->pframe)
+          {
+             col += im->pframe->frame_x;
+             row += im->pframe->frame_y;
+          }
         rc = !lc->progress(im, pct, col, row, im->w, nrows);
         lc->row = nrtot;
         lc->pct += lc->granularity;
      }
 
    return rc;
+}
+
+__EXPORT__ ImlibImageFrame *
+__imlib_GetFrame(ImlibImage * im)
+{
+   if (im->frame > 0 && !im->pframe)
+      im->pframe = calloc(1, sizeof(ImlibImageFrame));
+   return im->pframe;
 }
 
 /* free and image - if its uncachable and refcoutn is 0 - free it in reality */

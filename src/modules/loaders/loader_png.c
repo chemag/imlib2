@@ -274,7 +274,7 @@ row_callback(png_struct * png_ptr, png_byte * new_row,
 
         if (im->lc)
           {
-             if (im->frame_count > 1)
+             if (im->frame > 0)
                {
                   if (done)
                      __imlib_LoadProgress(im, 0, 0, im->w, im->h);
@@ -304,6 +304,7 @@ _load(ImlibImage * im, int load_data)
    int                 w, h, frame, fcount;
    bool                save_fdat, seen_actl, seen_fctl;
    png_chunk_t         cbuf;
+   ImlibImageFrame    *pf;
 
    /* read header */
    rc = LOAD_FAIL;
@@ -338,7 +339,8 @@ _load(ImlibImage * im, int load_data)
                                info_callback, row_callback, NULL);
 
    frame = im->frame;
-   if (frame <= 0)
+   pf = __imlib_GetFrame(im);
+   if (!pf)
       goto scan_done;
 
    /* Animation info requested. Look it up to find the frame's
@@ -376,11 +378,11 @@ _load(ImlibImage * im, int load_data)
           case PNG_TYPE_acTL:
              seen_actl = true;
 #define P (&chunk->actl)
-             im->frame_count = htonl(P->num_frames);
-             im->loop_count = htonl(P->num_plays);
-             D("num_frames=%d num_plays=%d\n", im->frame_count,
+             pf->frame_count = htonl(P->num_frames);
+             pf->loop_count = htonl(P->num_plays);
+             D("num_frames=%d num_plays=%d\n", pf->frame_count,
                htonl(P->num_plays));
-             if (frame > im->frame_count)
+             if (frame > pf->frame_count)
                 QUIT_WITH_RC(LOAD_BADFRAME);
              break;
 #undef P
@@ -453,29 +455,32 @@ _load(ImlibImage * im, int load_data)
              im->w = htonl(pfctl->w);
              im->h = htonl(pfctl->h);
 #endif
-             im->canvas_w = w;
-             im->canvas_h = h;
-             im->frame_x = htonl(pfctl->x);
-             im->frame_y = htonl(pfctl->y);
-             if (pfctl->dispose_op == APNG_DISPOSE_OP_BACKGROUND)
-                im->frame_flags |= FF_FRAME_DISPOSE_CLEAR;
-             else if (pfctl->dispose_op == APNG_DISPOSE_OP_PREVIOUS)
-                im->frame_flags |= FF_FRAME_DISPOSE_PREV;
-             if (pfctl->blend_op != APNG_BLEND_OP_SOURCE)
-                im->frame_flags |= FF_FRAME_BLEND;
-             val = htons(pfctl->delay_den);
-             if (val == 0)
-                val = 100;
-             im->frame_delay = 1000 * htons(pfctl->delay_num) / val;
+             if (pf)
+               {
+                  pf->canvas_w = w;
+                  pf->canvas_h = h;
+                  pf->frame_x = htonl(pfctl->x);
+                  pf->frame_y = htonl(pfctl->y);
+                  if (pfctl->dispose_op == APNG_DISPOSE_OP_BACKGROUND)
+                     pf->frame_flags |= FF_FRAME_DISPOSE_CLEAR;
+                  else if (pfctl->dispose_op == APNG_DISPOSE_OP_PREVIOUS)
+                     pf->frame_flags |= FF_FRAME_DISPOSE_PREV;
+                  if (pfctl->blend_op != APNG_BLEND_OP_SOURCE)
+                     pf->frame_flags |= FF_FRAME_BLEND;
+                  val = htons(pfctl->delay_den);
+                  if (val == 0)
+                     val = 100;
+                  pf->frame_delay = 1000 * htons(pfctl->delay_num) / val;
 
-             D("WxH=%dx%d(%dx%d) X,Y=%d,%d depth=%d color=%d comp=%d filt=%d interlace=%d disp=%d blend=%d delay=%d/%d\n",      //
-               htonl(pfctl->w), htonl(pfctl->h),
-               im->canvas_w, im->canvas_h, im->frame_x, im->frame_y,
-               P->depth, P->color, P->comp, P->filt, P->interl,
-               pfctl->dispose_op, pfctl->blend_op,
-               pfctl->delay_num, pfctl->delay_den);
+                  D("WxH=%dx%d(%dx%d) X,Y=%d,%d depth=%d color=%d comp=%d filt=%d interlace=%d disp=%d blend=%d delay=%d/%d\n", //
+                    htonl(pfctl->w), htonl(pfctl->h),
+                    pf->canvas_w, pf->canvas_h, pf->frame_x, pf->frame_y,
+                    P->depth, P->color, P->comp, P->filt, P->interl,
+                    pfctl->dispose_op, pfctl->blend_op,
+                    pfctl->delay_num, pfctl->delay_den);
+               }
 
-             if (frame <= 1)
+             if (!pf || frame <= 1)
                 break;          /* Process actual IHDR chunk */
 
              /* Process fake IHDR for frame */
@@ -493,7 +498,7 @@ _load(ImlibImage * im, int load_data)
              /* Needed chunks should now be read */
              /* Note - Just before starting to process data chunks libpng will
               * call info_callback() */
-             if (im->frame_count <= 0)
+             if (!pf || pf->frame_count <= 0)
                 break;          /* Regular PNG - Process actual IDAT chunk */
              if (frame == 1 && seen_fctl)
                 break;          /* APNG, First frame is IDAT */
@@ -506,10 +511,12 @@ _load(ImlibImage * im, int load_data)
 
           case PNG_TYPE_acTL:
 #define P (&chunk->actl)
-             if (im->frame_count > 1)
-                im->frame_flags |= FF_IMAGE_ANIMATED;
+             if (!pf)
+                continue;
+             if (pf->frame_count > 1)
+                pf->frame_flags |= FF_IMAGE_ANIMATED;
              D("num_frames=%d num_plays=%d\n",
-               im->frame_count, htonl(P->num_plays));
+               pf->frame_count, htonl(P->num_plays));
              continue;
 #undef P
 

@@ -677,21 +677,31 @@ EAPI void
 imlib_image_get_frame_info(Imlib_Frame_Info * info)
 {
    ImlibImage         *im;
+   ImlibImageFrame    *fp;
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);
 
-   info->loop_count = im->loop_count;
-   info->frame_count = im->frame_count;
+   fp = im->pframe;
+   if (!fp)
+     {
+        memset(info, 0, sizeof(Imlib_Frame_Info));
+        info->canvas_w = info->frame_w = im->w;
+        info->canvas_h = info->frame_h = im->h;
+        return;
+     }
+
+   info->loop_count = fp->loop_count;
+   info->frame_count = fp->frame_count;
    info->frame_num = im->frame;
-   info->canvas_w = im->canvas_w ? im->canvas_w : im->w;
-   info->canvas_h = im->canvas_h ? im->canvas_h : im->h;
-   info->frame_x = im->frame_x;
-   info->frame_y = im->frame_y;
+   info->canvas_w = fp->canvas_w ? fp->canvas_w : im->w;
+   info->canvas_h = fp->canvas_h ? fp->canvas_h : im->h;
+   info->frame_x = fp->frame_x;
+   info->frame_y = fp->frame_y;
    info->frame_w = im->w;
    info->frame_h = im->h;
-   info->frame_flags = im->frame_flags;
-   info->frame_delay = im->frame_delay ? im->frame_delay : 100;
+   info->frame_flags = fp->frame_flags;
+   info->frame_delay = fp->frame_delay ? fp->frame_delay : 100;
 }
 
 EAPI void
