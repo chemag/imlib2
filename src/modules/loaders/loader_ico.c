@@ -261,8 +261,11 @@ ico_data_get_nibble(uint8_t * data, int w, int x, int y)
 }
 
 static int
-ico_load(ico_t * ico, ImlibImage * im, int load_data)
+_load(ImlibImage * im, int load_data)
 {
+   int                 rc;
+   ico_t               ico;
+   unsigned int        i;
    int                 ic, x, y, w, h, d, frame;
    uint32_t           *cmap;
    uint8_t            *pxls, *mask, *psrc;
@@ -270,14 +273,44 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
    uint32_t           *pdst;
    uint32_t            pixel;
 
+   rc = LOAD_FAIL;
+
+   mm_init(im->fi->fdata, im->fi->fsize);
+
+   ico.ie = NULL;
+   if (mm_read(&ico.idir, sizeof(ico.idir)))
+      goto quit;
+
+   SWAP_LE_16_INPLACE(ico.idir.rsvd);
+   SWAP_LE_16_INPLACE(ico.idir.type);
+   SWAP_LE_16_INPLACE(ico.idir.icons);
+
+   if (ico.idir.rsvd != 0 ||
+       (ico.idir.type != 1 && ico.idir.type != 2) || ico.idir.icons <= 0)
+      goto quit;
+
+   ico.ie = calloc(ico.idir.icons, sizeof(ie_t));
+   if (!ico.ie)
+      QUIT_WITH_RC(LOAD_OOM);
+
+   D("Loading '%s' Nicons = %d\n", im->fi->name, ico.idir.icons);
+
+   for (i = 0; i < ico.idir.icons; i++)
+     {
+        ico_read_idir(&ico, i);
+        ico_read_icon(&ico, i);
+     }
+
+   rc = LOAD_BADIMAGE;          /* Format accepted */
+
    frame = 0;                   /* Select default */
    if (im->frame_num > 0)
      {
         frame = im->frame_num;
-        im->frame_count = ico->idir.icons;
+        im->frame_count = ico.idir.icons;
 
         if (frame > 1 && frame > im->frame_count)
-           return 0;
+           QUIT_WITH_RC(LOAD_BADFRAME);
      }
 
    ic = frame - 1;
@@ -285,9 +318,9 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
      {
         /* Select default: Find icon with largest size and depth */
         ic = y = d = 0;
-        for (x = 0; x < ico->idir.icons; x++)
+        for (x = 0; x < ico.idir.icons; x++)
           {
-             ie = &ico->ie[x];
+             ie = &ico.ie[x];
              w = ie->w;
              h = ie->h;
              if (w * h < y)
@@ -300,12 +333,12 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
           }
      }
 
-   ie = &ico->ie[ic];
+   ie = &ico.ie[ic];
 
    w = ie->w;
    h = ie->h;
    if (!IMAGE_DIMENSIONS_OK(w, h))
-      return 0;
+      goto quit;
 
    im->w = w;
    im->h = h;
@@ -313,10 +346,10 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
    im->has_alpha = 1;
 
    if (!load_data)
-      return 1;
+      QUIT_WITH_RC(LOAD_SUCCESS);
 
    if (!__imlib_AllocateData(im))
-      return 0;
+      QUIT_WITH_RC(LOAD_OOM);
 
    D("Loading icon %d: WxHxD=%dx%dx%d\n", ic, w, h, ie->bih.bpp);
 
@@ -389,52 +422,10 @@ ico_load(ico_t * ico, ImlibImage * im, int load_data)
         break;
      }
 
-   return 1;
-}
+   rc = LOAD_SUCCESS;
 
-static int
-_load(ImlibImage * im, int load_data)
-{
-   int                 rc;
-   ico_t               ico;
-   unsigned int        i;
-
-   rc = LOAD_FAIL;
-
-   mm_init(im->fi->fdata, im->fi->fsize);
-
-   ico.ie = NULL;
-   if (mm_read(&ico.idir, sizeof(ico.idir)))
-      goto quit;
-
-   SWAP_LE_16_INPLACE(ico.idir.rsvd);
-   SWAP_LE_16_INPLACE(ico.idir.type);
-   SWAP_LE_16_INPLACE(ico.idir.icons);
-
-   if (ico.idir.rsvd != 0 ||
-       (ico.idir.type != 1 && ico.idir.type != 2) || ico.idir.icons <= 0)
-      goto quit;
-
-   ico.ie = calloc(ico.idir.icons, sizeof(ie_t));
-   if (!ico.ie)
-      QUIT_WITH_RC(LOAD_OOM);
-
-   D("Loading '%s' Nicons = %d\n", im->fi->name, ico.idir.icons);
-
-   for (i = 0; i < ico.idir.icons; i++)
-     {
-        ico_read_idir(&ico, i);
-        ico_read_icon(&ico, i);
-     }
-
-   rc = LOAD_BADIMAGE;          /* Format accepted */
-
-   if (ico_load(&ico, im, load_data))
-     {
-        if (im->lc)
-           __imlib_LoadProgressRows(im, 0, im->h);
-        rc = LOAD_SUCCESS;
-     }
+   if (im->lc)
+      __imlib_LoadProgressRows(im, 0, im->h);
 
  quit:
    ico_delete(&ico);
