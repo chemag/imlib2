@@ -1,7 +1,6 @@
 /*
  * XBM loader
  */
-#define _GNU_SOURCE             /* memmem() */
 #include "config.h"
 #include "Imlib2_Loader.h"
 
