@@ -301,8 +301,8 @@ _load(ImlibImage * im, int load_data)
    const png_chunk_t  *chunk;
    const png_fctl_t   *pfctl;
    unsigned int        len, val;
-   int                 w, h, frame;
-   bool                save_fdat, seen_fctl;
+   int                 w, h, frame, fcount;
+   bool                save_fdat, seen_actl, seen_fctl;
    png_chunk_t         cbuf;
 
    /* read header */
@@ -337,16 +337,18 @@ _load(ImlibImage * im, int load_data)
    png_set_progressive_read_fn(png_ptr, &ctx,
                                info_callback, row_callback, NULL);
 
+   frame = im->frame_num;
    if (im->frame_num <= 0)
       goto scan_done;
 
    /* Animation info requested. Look it up to find the frame's
     * w,h which we need for making a "fake" IHDR in next pass. */
 
-   frame = 0;                   /* Frame number */
+   fcount = 0;                  /* Frame counter */
    ctx.pch_fctl = NULL;         /* Ponter to requested frame fcTL chunk */
    fptr = (unsigned char *)im->fi->fdata;
    fptr += _PNG_SIG_SIZE;
+   seen_actl = false;
 
    for (ic = 0;; ic++, fptr += 8 + len + 4)
      {
@@ -361,7 +363,7 @@ _load(ImlibImage * im, int load_data)
           {
           case PNG_TYPE_IDAT:
              D("\n");
-             if (im->frame_count == 0)
+             if (!seen_actl)
                 goto scan_done; /* No acTL before IDAT - Regular PNG */
 #ifdef IMLIB2_DEBUG
              break;             /* Show all frames */
@@ -372,25 +374,26 @@ _load(ImlibImage * im, int load_data)
 #endif
 
           case PNG_TYPE_acTL:
+             seen_actl = true;
 #define P (&chunk->actl)
              im->frame_count = htonl(P->num_frames);
              im->loop_count = htonl(P->num_plays);
              D("num_frames=%d num_plays=%d\n", im->frame_count,
                htonl(P->num_plays));
-             if (im->frame_num > im->frame_count)
+             if (frame > im->frame_count)
                 QUIT_WITH_RC(LOAD_BADFRAME);
              break;
 #undef P
 
           case PNG_TYPE_fcTL:
 #define P (&chunk->fctl)
-             frame++;
+             fcount++;
              D("frame=%d(%d) x,y=%d,%d wxh=%dx%d delay=%d/%d disp=%d blend=%d\n",       //
-               frame, htonl(P->frame),
+               fcount, htonl(P->frame),
                htonl(P->x), htonl(P->y), htonl(P->w), htonl(P->h),
                htons(P->delay_num), htons(P->delay_den),
                P->dispose_op, P->blend_op);
-             if (im->frame_num != frame)
+             if (frame != fcount)
                 break;
              ctx.pch_fctl = chunk;      /* Remember fcTL location */
              break;
@@ -472,7 +475,7 @@ _load(ImlibImage * im, int load_data)
                pfctl->dispose_op, pfctl->blend_op,
                pfctl->delay_num, pfctl->delay_den);
 
-             if (im->frame_num <= 1)
+             if (frame <= 1)
                 break;          /* Process actual IHDR chunk */
 
              /* Process fake IHDR for frame */
@@ -492,7 +495,7 @@ _load(ImlibImage * im, int load_data)
               * call info_callback() */
              if (im->frame_count <= 0)
                 break;          /* Regular PNG - Process actual IDAT chunk */
-             if (im->frame_num == 1 && seen_fctl)
+             if (frame == 1 && seen_fctl)
                 break;          /* APNG, First frame is IDAT */
              /* Jump to the record after the frame's fcTL, will typically be
               * the frame's first fdAT chunk */
