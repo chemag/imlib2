@@ -376,9 +376,11 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         r_up.w = finfo.frame_w;
         r_up.h = finfo.frame_h;
      }
-
    if (fixedframe)
-      r_up.x = r_up.y = 0;
+     {
+        r_up.x -= finfo.frame_x;
+        r_up.y -= finfo.frame_y;
+     }
 
    imlib_context_set_anti_alias(0);
    imlib_context_set_dither(0);
