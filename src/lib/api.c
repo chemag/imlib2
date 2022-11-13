@@ -683,7 +683,7 @@ imlib_image_get_frame_info(Imlib_Frame_Info * info)
 
    info->loop_count = im->loop_count;
    info->frame_count = im->frame_count;
-   info->frame_num = im->frame_num;
+   info->frame_num = im->frame;
    info->canvas_w = im->canvas_w ? im->canvas_w : im->w;
    info->canvas_h = im->canvas_h ? im->canvas_h : im->h;
    info->frame_x = im->frame_x;

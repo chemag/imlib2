@@ -46,15 +46,18 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
-   frame = 1;
-   if (im->frame_num > 0)
+   frame = im->frame;
+   if (frame > 0)
      {
-        frame = im->frame_num;
         im->frame_count = spectre_document_get_n_pages(spdoc);
         D("Pages=%d\n", im->frame_count);
 
         if (frame > 1 && frame > im->frame_count)
            QUIT_WITH_RC(LOAD_BADFRAME);
+     }
+   else
+     {
+        frame = 1;
      }
 
    sppage = spectre_document_get_page(spdoc, frame - 1);

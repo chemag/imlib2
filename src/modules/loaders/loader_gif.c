@@ -84,10 +84,9 @@ _load(ImlibImage * im, int load_data)
 
    transp = -1;
    fcount = 0;
-   frame = 1;
-   if (im->frame_num > 0)
+   frame = im->frame;
+   if (frame > 0)
      {
-        frame = im->frame_num;
         im->frame_count = gif->ImageCount;
         im->loop_count = 0;     /* Loop forever */
         if (im->frame_count > 1)
@@ -137,7 +136,7 @@ _load(ImlibImage * im, int load_data)
 
              fcount += 1;
 
-             if (gif->ImageCount != frame)
+             if (frame > 0 && gif->ImageCount != frame)
                {
                   int                 size = 0;
                   GifByteType        *data;
@@ -204,7 +203,7 @@ _load(ImlibImage * im, int load_data)
                }
 
              /* Break if no specific frame was requested */
-             if (im->frame_num == 0)
+             if (frame == 0)
                 break;
           }
         else if (rec == EXTENSION_RECORD_TYPE)

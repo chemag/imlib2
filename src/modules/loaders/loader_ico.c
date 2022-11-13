@@ -303,10 +303,9 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
-   frame = 0;                   /* Select default */
-   if (im->frame_num > 0)
+   frame = im->frame;
+   if (frame > 0)
      {
-        frame = im->frame_num;
         im->frame_count = ico.idir.icons;
 
         if (frame > 1 && frame > im->frame_count)

@@ -33,10 +33,9 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
-   frame = 1;
-   if (im->frame_num > 0)
+   frame = im->frame;
+   if (frame > 0)
      {
-        frame = im->frame_num;
         im->frame_count = WebPDemuxGetI(demux, WEBP_FF_FRAME_COUNT);
         im->loop_count = WebPDemuxGetI(demux, WEBP_FF_LOOP_COUNT);
         if (im->frame_count > 1)
@@ -49,6 +48,10 @@ _load(ImlibImage * im, int load_data)
 
         if (frame > 1 && frame > im->frame_count)
            QUIT_WITH_RC(LOAD_BADFRAME);
+     }
+   else
+     {
+        frame = 1;
      }
 
    if (!WebPDemuxGetFrame(demux, frame, &iter))

@@ -337,8 +337,8 @@ _load(ImlibImage * im, int load_data)
    png_set_progressive_read_fn(png_ptr, &ctx,
                                info_callback, row_callback, NULL);
 
-   frame = im->frame_num;
-   if (im->frame_num <= 0)
+   frame = im->frame;
+   if (frame <= 0)
       goto scan_done;
 
    /* Animation info requested. Look it up to find the frame's

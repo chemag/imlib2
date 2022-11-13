@@ -47,7 +47,7 @@ _load(ImlibImage * im, int load_data)
    JxlDecoder         *dec;
    JxlBasicInfo        info;
    JxlFrameHeader      fhdr;
-   int                 delay_unit;
+   int                 frame, delay_unit;
 
 #if MAX_RUNNERS > 0
    size_t              n_runners;
@@ -99,6 +99,7 @@ _load(ImlibImage * im, int load_data)
    if (jst != JXL_DEC_SUCCESS)
       goto quit;
 
+   frame = im->frame;
    delay_unit = 0;
 
    for (;;)
@@ -136,12 +137,8 @@ _load(ImlibImage * im, int load_data)
              im->h = info.ysize;
              im->has_alpha = info.alpha_bits > 0;
 
-             int                 frame;
-
-             frame = 1;
-             if (im->frame_num > 0)
+             if (frame > 0)
                {
-                  frame = im->frame_num;
                   if (info.have_animation)
                     {
                        im->frame_count = 1234567890;    // FIXME - Hack
@@ -158,16 +155,16 @@ _load(ImlibImage * im, int load_data)
                   if (frame > 1 && im->frame_count > 0
                       && frame > im->frame_count)
                      QUIT_WITH_RC(LOAD_BADFRAME);
+
+                  if (frame > 1)
+                    {
+                       /* Fast forward to desired frame */
+                       JxlDecoderSkipFrames(dec, frame - 1);
+                    }
                }
 
              if (!load_data)
                 QUIT_WITH_RC(LOAD_SUCCESS);
-
-             if (frame > 1)
-               {
-                  /* Fast forward to desired frame */
-                  JxlDecoderSkipFrames(dec, frame - 1);
-               }
              break;
 
           case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
@@ -183,7 +180,7 @@ _load(ImlibImage * im, int load_data)
           case JXL_DEC_FRAME:
              JxlDecoderGetFrameHeader(dec, &fhdr);
              if (fhdr.is_last)
-                im->frame_count = im->frame_num;
+                im->frame_count = frame;
              im->frame_delay = fhdr.duration * delay_unit;
              D("Frame duration=%d tc=%08x nl=%d last=%d\n",
                im->frame_delay, fhdr.timecode, fhdr.name_length, fhdr.is_last);

@@ -220,19 +220,20 @@ __imlib_FindCachedImage(const char *file, int frame)
    for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
         /* if the filenames match and it's valid */
-        if (!strcmp(file, im->file) && !IM_FLAG_ISSET(im, F_INVALID) &&
-            frame == im->frame_num)
+        if (strcmp(file, im->file) || IM_FLAG_ISSET(im, F_INVALID))
+           continue;
+        if (frame != im->frame)
+           continue;
+
+        /* move the image to the head of the image list */
+        if (im_prev)
           {
-             /* move the image to the head of the image list */
-             if (im_prev)
-               {
-                  im_prev->next = im->next;
-                  im->next = images;
-                  images = im;
-               }
-             DP(" got %p: '%s' frame %d\n", im, im->fi->name, im->frame_num);
-             return im;
+             im_prev->next = im->next;
+             im->next = images;
+             images = im;
           }
+        DP(" got %p: '%s' frame %d\n", im, im->fi->name, im->frame);
+        return im;
      }
    DP(" got none\n");
    return NULL;
@@ -242,7 +243,7 @@ __imlib_FindCachedImage(const char *file, int frame)
 static void
 __imlib_AddImageToCache(ImlibImage * im)
 {
-   DP("%s: %p: '%s' frame %d\n", __func__, im, im->fi->name, im->frame_num);
+   DP("%s: %p: '%s' frame %d\n", __func__, im, im->fi->name, im->frame);
    im->next = images;
    images = im;
 }
@@ -254,7 +255,7 @@ __imlib_RemoveImageFromCache(ImlibImage * im_del)
    ImlibImage         *im, *im_prev;
 
    im = im_del;
-   DP("%s: %p: '%s' frame %d\n", __func__, im, im->fi->name, im->frame_num);
+   DP("%s: %p: '%s' frame %d\n", __func__, im, im->fi->name, im->frame);
 
    for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
      {
@@ -380,8 +381,8 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
 {
    int                 rc;
 
-   DP("%s: fmt='%s' file='%s'(%s), imm=%d\n", __func__,
-      l->name, im->file, im->fi->name, load_data);
+   DP("%s: fmt='%s' file='%s'(%s) frame=%d, imm=%d\n", __func__,
+      l->name, im->file, im->fi->name, im->frame, load_data);
 
 #if IMLIB2_DEBUG
    unsigned int        t0 = __imlib_time_us();
@@ -548,7 +549,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    im = __imlib_ProduceImage();
    im->file = strdup(file);
    im->key = im_key;
-   im->frame_num = ila->frame;
+   im->frame = ila->frame;
 
    if (__imlib_ImageFileContextPush(im, true, im_file ? im_file : im->file) ||
        __imlib_FileContextOpen(im->fi, ila->fp, ila->fdata, st.st_size))

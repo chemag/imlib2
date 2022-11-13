@@ -51,10 +51,10 @@ struct _ImlibImage {
    char                has_alpha;
    char                rsvd[3];
 
+   int                 frame;
    int                 canvas_w;        /* Canvas size      */
    int                 canvas_h;
    int                 frame_count;     /* Number of frames */
-   int                 frame_num;       /* Current frame    */
    int                 frame_x; /* Frame origin     */
    int                 frame_y;
    int                 frame_flags;     /* Frame flags      */
