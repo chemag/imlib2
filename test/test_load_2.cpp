@@ -91,6 +91,7 @@ TEST(LOAD2, load_1)
              fn = buf;
           }
         D("Load '%s'\n", fn);
+
         im = imlib_load_image(fn);
         ASSERT_TRUE(im);
         imlib_context_set_image(im);
@@ -99,5 +100,26 @@ TEST(LOAD2, load_1)
         h = imlib_image_get_height();
         crc = crc32(0, data, w * h * sizeof(uint32_t));
         EXPECT_EQ(crc, tii[i].crc);
+        imlib_free_image_and_decache();
+
+        im = imlib_load_image_frame(fn, 0);
+        ASSERT_TRUE(im);
+        imlib_context_set_image(im);
+        data = (unsigned char *)imlib_image_get_data();
+        w = imlib_image_get_width();
+        h = imlib_image_get_height();
+        crc = crc32(0, data, w * h * sizeof(uint32_t));
+        EXPECT_EQ(crc, tii[i].crc);
+        imlib_free_image_and_decache();
+
+        im = imlib_load_image_frame(fn, 1);
+        ASSERT_TRUE(im);
+        imlib_context_set_image(im);
+        data = (unsigned char *)imlib_image_get_data();
+        w = imlib_image_get_width();
+        h = imlib_image_get_height();
+        crc = crc32(0, data, w * h * sizeof(uint32_t));
+        EXPECT_EQ(crc, tii[i].crc);
+        imlib_free_image_and_decache();
      }
 }
