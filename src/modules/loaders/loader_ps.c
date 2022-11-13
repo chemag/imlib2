@@ -67,12 +67,13 @@ _load(ImlibImage * im, int load_data)
 
    spectre_page_get_size(sppage, &w, &h);
 
-   D("WxH=%dx%d pages=%d fmt=%s level=%d eps=%d\n", w, h, im->frame_count,
+   D("WxH=%dx%d pages=%d fmt=%s level=%d eps=%d\n", w, h,
+     spectre_document_get_n_pages(spdoc),
      spectre_document_get_format(spdoc),
      spectre_document_get_language_level(spdoc),
      spectre_document_is_eps(spdoc));
-   im->w = im->canvas_w = w;
-   im->h = im->canvas_h = h;
+   im->w = w;
+   im->h = h;
 
    if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
       goto quit;
