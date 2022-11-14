@@ -729,6 +729,9 @@ __imlib_LoadProgress(ImlibImage * im, int x, int y, int w, int h)
    lc->area += w * h;
    lc->pct = (100. * lc->area + .1) / (im->w * im->h);
 
+   x += im->frame_x;
+   y += im->frame_y;
+
    rc = !lc->progress(im, lc->pct, x, y, w, h);
 
    return rc;
@@ -738,6 +741,7 @@ __EXPORT__ int
 __imlib_LoadProgressRows(ImlibImage * im, int row, int nrows)
 {
    ImlibLdCtx         *lc = im->lc;
+   int                 col = 0;
    int                 rc = 0;
    int                 pct, nrtot;
 
@@ -758,7 +762,9 @@ __imlib_LoadProgressRows(ImlibImage * im, int row, int nrows)
    pct = (100 * nrtot * (lc->pass + 1)) / (im->h * lc->n_pass);
    if (pct == 100 || pct >= lc->pct + lc->granularity)
      {
-        rc = !lc->progress(im, pct, 0, row, im->w, nrows);
+        col += im->frame_x;
+        row += im->frame_y;
+        rc = !lc->progress(im, pct, col, row, im->w, nrows);
         lc->row = nrtot;
         lc->pct += lc->granularity;
      }

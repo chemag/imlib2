@@ -261,7 +261,7 @@ row_callback(png_struct * png_ptr, png_byte * new_row,
 
         done = pass >= 6 && (int)row_num >= PNG_PASS_ROWS(im->h, pass) - 1;
         if (im->lc && done)
-           __imlib_LoadProgress(im, im->frame_x, im->frame_y, im->w, im->h);
+           __imlib_LoadProgress(im, 0, 0, im->w, im->h);
      }
    else
      {
@@ -277,9 +277,9 @@ row_callback(png_struct * png_ptr, png_byte * new_row,
              if (im->frame_count > 1)
                {
                   if (done)
-                     __imlib_LoadProgress(im, im->frame_x, im->frame_y, im->w,
-                                          im->h);
+                     __imlib_LoadProgress(im, 0, 0, im->w, im->h);
                }
+
              else if (__imlib_LoadProgressRows(im, y, 1))
                {
                   png_process_data_pause(png_ptr, 0);
