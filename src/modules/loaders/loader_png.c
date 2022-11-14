@@ -339,8 +339,8 @@ _load(ImlibImage * im, int load_data)
                                info_callback, row_callback, NULL);
 
    frame = im->frame;
-   pf = __imlib_GetFrame(im);
-   if (!pf)
+   pf = NULL;
+   if (frame <= 0)
       goto scan_done;
 
    /* Animation info requested. Look it up to find the frame's
@@ -378,6 +378,9 @@ _load(ImlibImage * im, int load_data)
           case PNG_TYPE_acTL:
              seen_actl = true;
 #define P (&chunk->actl)
+             pf = __imlib_GetFrame(im);
+             if (!pf)
+                QUIT_WITH_RC(LOAD_OOM);
              pf->frame_count = htonl(P->num_frames);
              pf->loop_count = htonl(P->num_plays);
              D("num_frames=%d num_plays=%d\n", pf->frame_count,

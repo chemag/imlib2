@@ -14,7 +14,7 @@ _load(ImlibImage * im, int load_data)
    SpectreDocument    *spdoc;
    SpectrePage        *sppage;
    SpectreStatus       spst;
-   int                 frame;
+   int                 frame, fcount;
    int                 w, h;
    SpectreRenderContext *sprc;
    unsigned char      *pdata;
@@ -48,18 +48,17 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
    frame = im->frame;
-   pf = __imlib_GetFrame(im);
-   if (pf)
+   if (frame > 0)
      {
-        pf->frame_count = spectre_document_get_n_pages(spdoc);
-        D("Pages=%d\n", pf->frame_count);
-
-        if (frame > 1 && frame > pf->frame_count)
+        fcount = spectre_document_get_n_pages(spdoc);
+        D("Pages=%d\n", fcount);
+        if (frame > 1 && frame > fcount)
            QUIT_WITH_RC(LOAD_BADFRAME);
-     }
-   else
-     {
-        frame = 1;
+
+        pf = __imlib_GetFrame(im);
+        if (!pf)
+           QUIT_WITH_RC(LOAD_OOM);
+        pf->frame_count = fcount;
      }
 
    sppage = spectre_document_get_page(spdoc, frame - 1);

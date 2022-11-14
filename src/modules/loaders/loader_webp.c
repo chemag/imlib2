@@ -16,7 +16,7 @@ _load(ImlibImage * im, int load_data)
    WebPData            webp_data;
    WebPDemuxer        *demux;
    WebPIterator        iter;
-   int                 frame;
+   int                 frame, fcount;
    ImlibImageFrame    *pf;
 
    rc = LOAD_FAIL;
@@ -34,12 +34,18 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
+   pf = NULL;
    frame = im->frame;
-   pf = __imlib_GetFrame(im);
-   if (pf)
+   if (frame > 0)
      {
-        frame = im->frame;
-        pf->frame_count = WebPDemuxGetI(demux, WEBP_FF_FRAME_COUNT);
+        fcount = WebPDemuxGetI(demux, WEBP_FF_FRAME_COUNT);
+        if (frame > 1 && frame > fcount)
+           QUIT_WITH_RC(LOAD_BADFRAME);
+
+        pf = __imlib_GetFrame(im);
+        if (!pf)
+           QUIT_WITH_RC(LOAD_OOM);
+        pf->frame_count = fcount;
         pf->loop_count = WebPDemuxGetI(demux, WEBP_FF_LOOP_COUNT);
         if (pf->frame_count > 1)
            pf->frame_flags |= FF_IMAGE_ANIMATED;
@@ -48,9 +54,6 @@ _load(ImlibImage * im, int load_data)
 
         D("Canvas WxH=%dx%d frames=%d repeat=%d\n",
           pf->canvas_w, pf->canvas_h, pf->frame_count, pf->loop_count);
-
-        if (frame > 1 && frame > pf->frame_count)
-           QUIT_WITH_RC(LOAD_BADFRAME);
      }
    else
      {

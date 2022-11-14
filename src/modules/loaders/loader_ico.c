@@ -305,13 +305,16 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
    frame = im->frame;
-   pf = __imlib_GetFrame(im);
-   if (pf)
+   if (frame > 0)
      {
-        pf->frame_count = ico.idir.icons;
-
-        if (frame > 1 && frame > pf->frame_count)
+        if (frame > 1 && frame > ico.idir.icons)
            QUIT_WITH_RC(LOAD_BADFRAME);
+
+        pf = __imlib_GetFrame(im);
+        if (!pf)
+           QUIT_WITH_RC(LOAD_OOM);
+
+        pf->frame_count = ico.idir.icons;
      }
 
    ic = frame - 1;

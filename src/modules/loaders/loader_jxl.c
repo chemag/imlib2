@@ -100,9 +100,9 @@ _load(ImlibImage * im, int load_data)
    if (jst != JXL_DEC_SUCCESS)
       goto quit;
 
-   frame = im->frame;
-   pf = __imlib_GetFrame(im);
    delay_unit = 0;
+   frame = im->frame;
+   pf = NULL;
 
    for (;;)
      {
@@ -139,24 +139,27 @@ _load(ImlibImage * im, int load_data)
              im->h = info.ysize;
              im->has_alpha = info.alpha_bits > 0;
 
-             if (pf)
+             if (frame > 0)
                {
                   if (info.have_animation)
                     {
+                       pf = __imlib_GetFrame(im);
+                       if (!pf)
+                          QUIT_WITH_RC(LOAD_OOM);
                        pf->frame_count = 1234567890;    // FIXME - Hack
                        pf->loop_count = info.animation.num_loops;
                        pf->frame_flags |= FF_IMAGE_ANIMATED;
                        pf->canvas_w = info.xsize;
                        pf->canvas_h = info.ysize;
+
+                       D("Canvas WxH=%dx%d frames=%d repeat=%d\n",
+                         pf->canvas_w, pf->canvas_h,
+                         pf->frame_count, pf->loop_count);
+
+                       if (frame > 1 && pf->frame_count > 0
+                           && frame > pf->frame_count)
+                          QUIT_WITH_RC(LOAD_BADFRAME);
                     }
-
-                  D("Canvas WxH=%dx%d frames=%d repeat=%d\n",
-                    pf->canvas_w, pf->canvas_h,
-                    pf->frame_count, pf->loop_count);
-
-                  if (frame > 1 && pf->frame_count > 0
-                      && frame > pf->frame_count)
-                     QUIT_WITH_RC(LOAD_BADFRAME);
 
                   if (frame > 1)
                     {

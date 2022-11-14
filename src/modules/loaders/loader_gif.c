@@ -84,12 +84,19 @@ _load(ImlibImage * im, int load_data)
 
    rc = LOAD_BADIMAGE;          /* Format accepted */
 
+   pf = NULL;
    transp = -1;
    fcount = 0;
    frame = im->frame;
-   pf = __imlib_GetFrame(im);
-   if (pf)
+   if (frame > 0)
      {
+#if 0
+        if (frame > 1 && frame > gif->ImageCount)
+           QUIT_WITH_RC(LOAD_BADFRAME);
+#endif
+        pf = __imlib_GetFrame(im);
+        if (!pf)
+           QUIT_WITH_RC(LOAD_OOM);
         pf->frame_count = gif->ImageCount;
         pf->loop_count = 0;     /* Loop forever */
         if (pf->frame_count > 1)
@@ -99,11 +106,10 @@ _load(ImlibImage * im, int load_data)
 
         D("Canvas WxH=%dx%d frames=%d repeat=%d\n",
           pf->canvas_w, pf->canvas_h, pf->frame_count, pf->loop_count);
-
-#if 0
-        if (frame > 1 && frame > pf->frame_count)
-           goto quit;
-#endif
+     }
+   else
+     {
+        frame = 1;
      }
 
    bg = gif->SBackGroundColor;
@@ -139,7 +145,7 @@ _load(ImlibImage * im, int load_data)
 
              fcount += 1;
 
-             if (frame > 0 && gif->ImageCount != frame)
+             if (gif->ImageCount != frame)
                {
                   int                 size = 0;
                   GifByteType        *data;

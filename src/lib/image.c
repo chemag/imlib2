@@ -783,7 +783,7 @@ __imlib_LoadProgressRows(ImlibImage * im, int row, int nrows)
 __EXPORT__ ImlibImageFrame *
 __imlib_GetFrame(ImlibImage * im)
 {
-   if (im->frame > 0 && !im->pframe)
+   if (!im->pframe)
       im->pframe = calloc(1, sizeof(ImlibImageFrame));
    return im->pframe;
 }
