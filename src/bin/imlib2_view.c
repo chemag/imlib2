@@ -197,7 +197,8 @@ anim_init(int w, int h)
 }
 
 static void
-anim_update(Imlib_Image im, const rect_t * up_in, rect_t * up_out, int flags)
+anim_update(Imlib_Image im, const rect_t * r_up, const rect_t * r_out,
+            rect_t * r_dam, int flags)
 {
    static const rect_t r_zero = { };
    static rect_t       r_prev = { };
@@ -243,36 +244,37 @@ anim_update(Imlib_Image im, const rect_t * up_in, rect_t * up_out, int flags)
           }
 
         /* Damaged area is (cleared + new frame) */
-        up_out->x = MIN(r_prev.x, up_in->x);
-        up_out->y = MIN(r_prev.y, up_in->y);
-        up_out->w = MAX(r_prev.x + r_prev.w, up_in->x + up_in->w) - up_out->x;
-        up_out->h = MAX(r_prev.y + r_prev.h, up_in->y + up_in->h) - up_out->y;
+        r_dam->x = MIN(r_prev.x, r_out->x);
+        r_dam->y = MIN(r_prev.y, r_out->y);
+        r_dam->w = MAX(r_prev.x + r_prev.w, r_out->x + r_out->w) - r_dam->x;
+        r_dam->h = MAX(r_prev.y + r_prev.h, r_out->y + r_out->h) - r_dam->y;
      }
    else
      {
-        *up_out = *up_in;
+        *r_dam = *r_out;
      }
 
    if (flags & IMLIB_FRAME_DISPOSE_PREV)
      {
-        Dprintf(" Save  %d,%d %dx%d\n", up_in->x, up_in->y, up_in->w, up_in->h);
+        Dprintf(" Save  %d,%d %dx%d\n", r_out->x, r_out->y, r_out->w, r_out->h);
         im_prev =
-           imlib_create_cropped_image(up_in->x, up_in->y, up_in->w, up_in->h);
+           imlib_create_cropped_image(r_out->x, r_out->y, r_out->w, r_out->h);
      }
 
    if (flags & (IMLIB_FRAME_DISPOSE_CLEAR | IMLIB_FRAME_DISPOSE_PREV))
-      r_prev = *up_in;          /* Clear/revert next time around */
+      r_prev = *r_out;          /* Clear/revert next time around */
    else
       r_prev = r_zero;          /* No clearing before next frame */
 
    /* Render new frame on canvas */
-   Dprintf(" Render %d,%d %dx%d\n", up_in->x, up_in->y, up_in->w, up_in->h);
+   Dprintf(" Render %d,%d %dx%d -> %d,%d\n", r_up->x, r_up->y, r_up->w, r_up->h,
+           r_out->x, r_out->y);
    if (flags & IMLIB_FRAME_BLEND)
       imlib_context_set_blend(1);
    else
       imlib_context_set_blend(0);
-   imlib_blend_image_onto_image(im, 1, 0, 0, up_in->w, up_in->h,
-                                up_in->x, up_in->y, up_in->w, up_in->h);
+   imlib_blend_image_onto_image(im, 1, r_up->x, r_up->y, r_up->w, r_up->h,
+                                r_out->x, r_out->y, r_up->w, r_up->h);
 }
 
 static int
@@ -281,7 +283,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
 {
    static double       scale_x = 0., scale_y = 0.;
    int                 up_wx, up_wy, up_ww, up_wh;
-   rect_t              r_up;
+   rect_t              r_up, r_out;
 
    if (opt_progress_print)
       printf("%s: %3d%% %4d,%4d %4dx%4d\n",
@@ -291,6 +293,34 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
    imlib_image_get_frame_info(&finfo);
    multiframe = finfo.frame_count > 1;
    animated = finfo.frame_flags & IMLIB_IMAGE_ANIMATED;
+
+   if (update_w <= 0 || update_h <= 0)
+     {
+        /* Explicit rendering (not doing callbacks) */
+        r_up.x = 0;
+        r_up.y = 0;
+        r_up.w = finfo.frame_w;
+        r_up.h = finfo.frame_h;
+     }
+   else
+     {
+        r_up.x = update_x;
+        r_up.y = update_y;
+        r_up.w = update_w;
+        r_up.h = update_h;
+     }
+
+   r_out = r_up;
+   if (!fixedframe)
+     {
+        r_out.x += finfo.frame_x;
+        r_out.y += finfo.frame_y;
+     }
+
+   Dprintf("U=%d,%d %dx%d F=%d,%d %dx%d O=%d,%d %dx%d\n",
+           r_up.x, r_up.y, r_up.w, r_up.h,
+           finfo.frame_x, finfo.frame_y, finfo.frame_w, finfo.frame_h,
+           r_out.x, r_out.y, r_out.w, r_out.h);
 
    /* first time it's called */
    if (image_width == 0)
@@ -362,24 +392,6 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         anim_init(image_width, image_height);
      }
 
-   r_up.x = update_x;
-   r_up.y = update_y;
-   r_up.w = update_w;
-   r_up.h = update_h;
-   if (update_w <= 0 || update_h <= 0)
-     {
-        /* Explicit rendering (not doing callbacks) */
-        r_up.x = finfo.frame_x;
-        r_up.y = finfo.frame_y;
-        r_up.w = finfo.frame_w;
-        r_up.h = finfo.frame_h;
-     }
-   if (fixedframe)
-     {
-        r_up.x -= finfo.frame_x;
-        r_up.y -= finfo.frame_y;
-     }
-
    imlib_context_set_anti_alias(0);
    imlib_context_set_dither(0);
 
@@ -388,36 +400,37 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         rect_t              r_dam = { };
 
         /* Update animated "target" canvas image (fg_im) */
-        anim_update(im, &r_up, &r_dam, finfo.frame_flags);
-        r_up = r_dam;           /* r_up is now the "damaged" (to be re-rendered) area */
+        anim_update(im, &r_up, &r_out, &r_dam, finfo.frame_flags);
+        r_out = r_dam;          /* r_up is now the "damaged" (to be re-rendered) area */
         im = fg_im;
 
         /* Re-render checkered background where animated image has changes */
         imlib_context_set_image(bg_im);
         imlib_context_set_blend(0);
         imlib_blend_image_onto_image(bg_im_clean, 0,
-                                     r_up.x, r_up.y, r_up.w, r_up.h,
-                                     r_up.x, r_up.y, r_up.w, r_up.h);
+                                     r_out.x, r_out.y, r_out.w, r_out.h,
+                                     r_out.x, r_out.y, r_out.w, r_out.h);
      }
 
    /* Render image on background image */
-   Dprintf(" Update %d,%d %dx%d\n", r_up.x, r_up.y, r_up.w, r_up.h);
+   Dprintf(" Update %d,%d %dx%d\n", r_out.x, r_out.y, r_out.w, r_out.h);
    imlib_context_set_image(bg_im);
    imlib_context_set_blend(1);
    imlib_blend_image_onto_image(im, 1,
-                                r_up.x, r_up.y, r_up.w, r_up.h,
-                                r_up.x, r_up.y, r_up.w, r_up.h);
+                                r_out.x, r_out.y, r_out.w, r_out.h,
+                                r_out.x, r_out.y, r_out.w, r_out.h);
 
    /* Render image (part) (or updated canvas) on window background pixmap */
-   up_wx = SCALE_X(r_up.x);
-   up_wy = SCALE_Y(r_up.y);
-   up_ww = SCALE_X(r_up.w);
-   up_wh = SCALE_Y(r_up.h);
+   up_wx = SCALE_X(r_out.x);
+   up_wy = SCALE_Y(r_out.y);
+   up_ww = SCALE_X(r_out.w);
+   up_wh = SCALE_Y(r_out.h);
    Dprintf(" Paint  %d,%d %dx%d\n", up_wx, up_wy, up_ww, up_wh);
    imlib_context_set_blend(0);
    imlib_context_set_drawable(bg_pm);
-   imlib_render_image_part_on_drawable_at_size(r_up.x, r_up.y, r_up.w, r_up.h,
-                                               up_wx, up_wy, up_ww, up_wh);
+   imlib_render_image_part_on_drawable_at_size(r_out.x, r_out.y, r_out.w,
+                                               r_out.h, up_wx, up_wy, up_ww,
+                                               up_wh);
 
    /* Update window */
    XClearArea(disp, win, up_wx, up_wy, up_ww, up_wh, False);
@@ -474,7 +487,7 @@ load_image(int no, const char *name)
 
    Vprintf("Show  %d: '%s'\n", no, name);
 
-   anim_update(NULL, NULL, NULL, 0);    /* Clean up previous animation */
+   anim_update(NULL, NULL, NULL, NULL, 0);      /* Clean up previous animation */
 
    image_width = 0;             /* Force redraw in progress() */
 
