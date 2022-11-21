@@ -511,6 +511,7 @@ _load(ImlibImage * im, int load_data)
              /* Needed chunks should now be read */
              /* Note - Just before starting to process data chunks libpng will
               * call info_callback() */
+             save_fdat = true;  /* Save IDAT/fdAT's as of now (until next fcTL) */
              if (!pf || pf->frame_count <= 0)
                 break;          /* Regular PNG - Process actual IDAT chunk */
              if (frame == 1 && seen_fctl)
@@ -519,7 +520,6 @@ _load(ImlibImage * im, int load_data)
               * the frame's first fdAT chunk */
              fptr = (unsigned char *)ctx.pch_fctl;
              len = htonl(ctx.pch_fctl->hdr.len);
-             save_fdat = true;  /* Save fdAT's as of now (until next fcTL) */
              continue;
 
           case PNG_TYPE_acTL:
@@ -568,7 +568,6 @@ _load(ImlibImage * im, int load_data)
      }
 
  done:
-
    rc = ctx.rc;
    if (rc <= 0)
       goto quit;
