@@ -404,6 +404,16 @@ _load(ImlibImage * im, int load_data)
              break;
 #undef P
 
+          case PNG_TYPE_fdAT:
+             D("\n");
+#ifdef IMLIB2_DEBUG
+             break;             /* Show all frames */
+#else
+             if (ctx.pch_fctl)
+                goto scan_done; /* Got fcTL and fdAT - APNG regular frame */
+             break;
+#endif
+
           case PNG_TYPE_IEND:
              D("\n");
              goto scan_check;
