@@ -225,7 +225,6 @@ row_callback(png_struct * png_ptr, png_byte * new_row,
    uint32_t           *dptr;
    const uint32_t     *sptr;
    int                 x, y, x0, dx, y0, dy;
-   int                 done;
 
    DL("%s: png=%p data=%p row=%d, pass=%d\n", __func__, png_ptr, new_row,
       row_num, pass);
@@ -258,10 +257,6 @@ row_callback(png_struct * png_ptr, png_byte * new_row,
              dptr[x] = *sptr++;
 #endif
           }
-
-        done = pass >= 6 && (int)row_num >= PNG_PASS_ROWS(im->h, pass) - 1;
-        if (im->lc && done)
-           __imlib_LoadProgress(im, 0, 0, im->w, im->h);
      }
    else
      {
@@ -270,17 +265,9 @@ row_callback(png_struct * png_ptr, png_byte * new_row,
         dptr = im->data + y * im->w;
         memcpy(dptr, new_row, sizeof(uint32_t) * im->w);
 
-        done = (int)row_num >= im->h - 1;
-
-        if (im->lc)
+        if (im->lc && im->frame == 0)
           {
-             if (im->frame > 0)
-               {
-                  if (done)
-                     __imlib_LoadProgress(im, 0, 0, im->w, im->h);
-               }
-
-             else if (__imlib_LoadProgressRows(im, y, 1))
+             if (__imlib_LoadProgressRows(im, y, 1))
                {
                   png_process_data_pause(png_ptr, 0);
                   ctx->rc = LOAD_BREAK;
@@ -571,6 +558,9 @@ _load(ImlibImage * im, int load_data)
    rc = ctx.rc;
    if (rc <= 0)
       goto quit;
+
+   if (im->lc && (ctx.interlace || im->frame != 0))
+      __imlib_LoadProgress(im, 0, 0, im->w, im->h);
 
    rc = LOAD_SUCCESS;
 
