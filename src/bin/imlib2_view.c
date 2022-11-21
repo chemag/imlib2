@@ -202,7 +202,6 @@ anim_update(Imlib_Image im, const rect_t * up_in, rect_t * up_out, int flags)
    static const rect_t r_zero = { };
    static rect_t       r_prev = { };
    static Imlib_Image  im_prev = NULL;
-   Imlib_Image         im_save = NULL;
 
    if (!im)
      {
@@ -217,13 +216,6 @@ anim_update(Imlib_Image im, const rect_t * up_in, rect_t * up_out, int flags)
      }
 
    imlib_context_set_image(fg_im);
-
-   if (flags & IMLIB_FRAME_DISPOSE_PREV)
-     {
-        Dprintf(" Save  %d,%d %dx%d\n", up_in->x, up_in->y, up_in->w, up_in->h);
-        im_save =
-           imlib_create_cropped_image(up_in->x, up_in->y, up_in->w, up_in->h);
-     }
 
    if (r_prev.w > 0)
      {
@@ -260,7 +252,13 @@ anim_update(Imlib_Image im, const rect_t * up_in, rect_t * up_out, int flags)
      {
         *up_out = *up_in;
      }
-   im_prev = im_save;
+
+   if (flags & IMLIB_FRAME_DISPOSE_PREV)
+     {
+        Dprintf(" Save  %d,%d %dx%d\n", up_in->x, up_in->y, up_in->w, up_in->h);
+        im_prev =
+           imlib_create_cropped_image(up_in->x, up_in->y, up_in->w, up_in->h);
+     }
 
    if (flags & (IMLIB_FRAME_DISPOSE_CLEAR | IMLIB_FRAME_DISPOSE_PREV))
       r_prev = *up_in;          /* Clear/revert next time around */
