@@ -682,133 +682,137 @@ main(int argc, char **argv)
         timeout = 0;
 
         XFlush(disp);
-        XNextEvent(disp, &ev);
-        switch (ev.type)
+        do
           {
-          default:
-             if (prog_x11_event(&ev))
-                goto quit;
-             break;
-          case KeyPress:
-             while (XCheckTypedWindowEvent(disp, win, KeyPress, &ev))
-                ;
-             key = XLookupKeysym(&ev.xkey, 0);
-             switch (key)
+             XNextEvent(disp, &ev);
+             switch (ev.type)
                {
                default:
+                  if (prog_x11_event(&ev))
+                     goto quit;
                   break;
-               case XK_q:
-               case XK_Escape:
-                  goto quit;
-               case XK_r:
-                  goto show_cur;
-               case XK_Right:
-                  goto show_next;
-               case XK_Left:
-                  goto show_prev;
-               case XK_p:
-                  animate = animated && !animate;
+               case KeyPress:
+                  while (XCheckTypedWindowEvent(disp, win, KeyPress, &ev))
+                     ;
+                  key = XLookupKeysym(&ev.xkey, 0);
+                  switch (key)
+                    {
+                    default:
+                       break;
+                    case XK_q:
+                    case XK_Escape:
+                       goto quit;
+                    case XK_r:
+                       goto show_cur;
+                    case XK_Right:
+                       goto show_next;
+                    case XK_Left:
+                       goto show_prev;
+                    case XK_p:
+                       animate = animated && !animate;
+                       break;
+                    case XK_Up:
+                       goto show_next_frame;
+                    case XK_Down:
+                       goto show_prev_frame;
+                    }
                   break;
-               case XK_Up:
-                  goto show_next_frame;
-               case XK_Down:
-                  goto show_prev_frame;
-               }
-             break;
-          case ButtonPress:
-             b = ev.xbutton.button;
-             x = ev.xbutton.x;
-             y = ev.xbutton.y;
-             if (b == 3)
-               {
-                  zoom_mode = 1;
-                  zx = x;
-                  zy = y;
-                  bg_pm_redraw(zx, zy, 0., 0);
-               }
-             break;
-          case ButtonRelease:
-             b = ev.xbutton.button;
-             if (b == 3)
-                zoom_mode = 0;
-             if (b == 1)
-                goto show_next;
-             if (b == 2)
-                goto show_prev;
-             break;
-          case MotionNotify:
-             while (XCheckTypedWindowEvent(disp, win, MotionNotify, &ev))
-                ;
-             x = ev.xmotion.x;
-             if (zoom_mode)
-               {
-                  zoom = ((double)x - (double)zx) / 32.0;
-                  if (zoom < 0)
-                     zoom = 1.0 + ((zoom * 32.0) / ((double)(zx + 1)));
-                  else
-                     zoom += 1.0;
-                  if (zoom <= 0.0001)
-                     zoom = 0.0001;
-
-                  bg_pm_redraw(zx, zy, zoom, 0);
-                  timeout = 200000;     /* .2 s */
-               }
-             break;
-
-           show_cur:
-             inc = 0;
-             goto show_next_prev;
-           show_next:
-             inc = 1;
-             goto show_next_prev;
-           show_prev:
-             inc = -1;
-             goto show_next_prev;
-           show_next_prev:
-             for (no2 = no;;)
-               {
-                  no2 += inc;
-                  if (no2 >= argc)
+               case ButtonPress:
+                  b = ev.xbutton.button;
+                  x = ev.xbutton.x;
+                  y = ev.xbutton.y;
+                  if (b == 3)
                     {
-                       inc = -1;
-                       continue;
+                       zoom_mode = 1;
+                       zx = x;
+                       zy = y;
+                       bg_pm_redraw(zx, zy, 0., 0);
                     }
-                  else if (no2 < 0)
+                  break;
+               case ButtonRelease:
+                  b = ev.xbutton.button;
+                  if (b == 3)
+                     zoom_mode = 0;
+                  if (b == 1)
+                     goto show_next;
+                  if (b == 2)
+                     goto show_prev;
+                  break;
+               case MotionNotify:
+                  while (XCheckTypedWindowEvent(disp, win, MotionNotify, &ev))
+                     ;
+                  x = ev.xmotion.x;
+                  if (zoom_mode)
                     {
-                       inc = 1;
-                       continue;
+                       zoom = ((double)x - (double)zx) / 32.0;
+                       if (zoom < 0)
+                          zoom = 1.0 + ((zoom * 32.0) / ((double)(zx + 1)));
+                       else
+                          zoom += 1.0;
+                       if (zoom <= 0.0001)
+                          zoom = 0.0001;
+
+                       bg_pm_redraw(zx, zy, zoom, 0);
+                       timeout = 200000;        /* .2 s */
                     }
-                  if (no2 == no && inc != 0)
+                  break;
+
+                show_cur:
+                  inc = 0;
+                  goto show_next_prev;
+                show_next:
+                  inc = 1;
+                  goto show_next_prev;
+                show_prev:
+                  inc = -1;
+                  goto show_next_prev;
+                show_next_prev:
+                  for (no2 = no;;)
+                    {
+                       no2 += inc;
+                       if (no2 >= argc)
+                         {
+                            inc = -1;
+                            continue;
+                         }
+                       else if (no2 < 0)
+                         {
+                            inc = 1;
+                            continue;
+                         }
+                       if (no2 == no && inc != 0)
+                          break;
+                       im2 = load_image(no2, argv[no2]);
+                       if (!im2)
+                         {
+                            Vprintf("*** Error loading image: %s\n", argv[no2]);
+                            continue;
+                         }
+                       zoom = 1.0;
+                       zoom_mode = 0;
+                       no = no2;
+                       im = im2;
+                       break;
+                    }
+                  break;
+                show_next_frame:
+                  inc = 1;
+                  goto show_next_prev_frame;
+                show_prev_frame:
+                  inc = -1;
+                  goto show_next_prev_frame;
+                show_next_prev_frame:
+                  if (!multiframe)
                      break;
-                  im2 = load_image(no2, argv[no2]);
-                  if (!im2)
-                    {
-                       Vprintf("*** Error loading image: %s\n", argv[no2]);
-                       continue;
-                    }
-                  zoom = 1.0;
-                  zoom_mode = 0;
-                  no = no2;
-                  im = im2;
+                  if (!animated)
+                     image_width = 0;   /* Reset window size */
+                  im = load_image_frame(argv[no], finfo.frame_num, inc);
                   break;
                }
-             break;
-           show_next_frame:
-             inc = 1;
-             goto show_next_prev_frame;
-           show_prev_frame:
-             inc = -1;
-             goto show_next_prev_frame;
-           show_next_prev_frame:
-             if (!multiframe)
-                break;
-             if (!animated)
-                image_width = 0;        /* Reset window size */
-             im = load_image_frame(argv[no], finfo.frame_num, inc);
-             break;
           }
+        while (XPending(disp));
 
-        if (multiframe || XPending(disp))
+        if (multiframe)
            continue;
 
         xfd = ConnectionNumber(disp);
