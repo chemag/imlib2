@@ -28,7 +28,7 @@ typedef int         (*ImlibProgressFunction)(ImlibImage * im, char percent,
 
 typedef struct _ImlibImageFileInfo ImlibImageFileInfo;
 
-typedef struct _imlibldctx ImlibLdCtx;
+typedef struct _ImlibLoaderCtx ImlibLoaderCtx;
 
 typedef struct {
    int                 left, right, top, bottom;
@@ -55,7 +55,7 @@ typedef struct {
 
 struct _ImlibImage {
    ImlibImageFileInfo *fi;
-   ImlibLdCtx         *lc;
+   ImlibLoaderCtx     *lc;
 
    int                 w, h;
    uint32_t           *data;

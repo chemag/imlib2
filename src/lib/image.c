@@ -37,7 +37,7 @@ struct _ImlibImageFileInfo {
 #define DP(fmt...) DC(DBG_LOAD, fmt)
 
 /* Imlib loader context */
-struct _imlibldctx {
+struct _ImlibLoaderCtx {
    ImlibProgressFunction progress;
    char                granularity;
    int                 pct, area, row;
@@ -420,7 +420,7 @@ __imlib_LoadImageWrapper(const ImlibLoader * l, ImlibImage * im, int load_data)
 }
 
 static void
-__imlib_LoadCtxInit(ImlibImage * im, ImlibLdCtx * lc,
+__imlib_LoadCtxInit(ImlibImage * im, ImlibLoaderCtx * lc,
                     ImlibProgressFunction prog, int gran)
 {
    im->lc = lc;
@@ -460,7 +460,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    ImlibImage         *im;
    ImlibLoader       **loaders, *best_loader, *l, *previous_l;
    int                 err, loader_ret;
-   ImlibLdCtx          ilc;
+   ImlibLoaderCtx      ilc;
    struct stat         st;
    char               *im_file, *im_key;
 
@@ -747,7 +747,7 @@ __imlib_LoadProgressSetPass(ImlibImage * im, int pass, int n_pass)
 __EXPORT__ int
 __imlib_LoadProgress(ImlibImage * im, int x, int y, int w, int h)
 {
-   ImlibLdCtx         *lc = im->lc;
+   ImlibLoaderCtx     *lc = im->lc;
    int                 rc;
 
    lc->area += w * h;
@@ -761,7 +761,7 @@ __imlib_LoadProgress(ImlibImage * im, int x, int y, int w, int h)
 __EXPORT__ int
 __imlib_LoadProgressRows(ImlibImage * im, int row, int nrows)
 {
-   ImlibLdCtx         *lc = im->lc;
+   ImlibLoaderCtx     *lc = im->lc;
    int                 col = 0;
    int                 rc = 0;
    int                 pct, nrtot;
@@ -842,7 +842,7 @@ void
 __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
 {
    ImlibLoader        *l;
-   ImlibLdCtx          ilc;
+   ImlibLoaderCtx      ilc;
    int                 loader_ret;
 
    if (!file)

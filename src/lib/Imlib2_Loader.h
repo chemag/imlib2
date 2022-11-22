@@ -121,7 +121,7 @@ typedef struct _ImlibImageFileInfo {
    off_t               fsize;
 } ImlibImageFileInfo;
 
-typedef struct _imlibldctx ImlibLdCtx;
+typedef struct _ImlibLoaderCtx ImlibLoaderCtx;
 
 typedef struct _ImlibImageTag {
    char               *key;
@@ -144,7 +144,7 @@ typedef struct {
 
 struct _ImlibImage {
    ImlibImageFileInfo *fi;
-   ImlibLdCtx         *lc;
+   ImlibLoaderCtx     *lc;
 
    int                 w, h;
    uint32_t           *data;
