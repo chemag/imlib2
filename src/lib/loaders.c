@@ -22,6 +22,7 @@ typedef struct {
    const char         *const *ext;
 } KnownLoader;
 
+static const char  *const ext_ani[] = { "ani", NULL };
 static const char  *const ext_argb[] = { "argb", NULL };
 static const char  *const ext_bmp[] = { "bmp", NULL };
 static const char  *const ext_ff[] = { "ff", NULL };
@@ -79,6 +80,7 @@ static const char  *const ext_id3[] = { "mp3", NULL };
 #endif
 
 static const KnownLoader loaders_known[] = {
+   {"ani", ext_ani},
    {"argb", ext_argb},
    {"bmp", ext_bmp},
    {"ff", ext_ff},
