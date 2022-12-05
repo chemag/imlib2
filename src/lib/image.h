@@ -101,7 +101,7 @@ ImlibLoader        *__imlib_FindBestLoader(const char *file, const char *format,
 ImlibImage         *__imlib_CreateImage(int w, int h, uint32_t * data);
 ImlibImage         *__imlib_LoadImage(const char *file, ImlibLoadArgs * ila);
 int                 __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im,
-                                         const char *file, int load_data);
+                                         int load_data, const char *file);
 int                 __imlib_LoadImageData(ImlibImage * im);
 void                __imlib_DirtyImage(ImlibImage * im);
 void                __imlib_FreeImage(ImlibImage * im);

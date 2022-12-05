@@ -163,7 +163,7 @@ struct _ImlibImage {
 ImlibLoader        *__imlib_FindBestLoader(const char *file, const char *format,
                                            int for_save);
 int                 __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im,
-                                         const char *file, int load_data);
+                                         int load_data, const char *file);
 
 uint32_t           *__imlib_AllocateData(ImlibImage * im);
 void                __imlib_FreeData(ImlibImage * im);

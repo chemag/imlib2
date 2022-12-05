@@ -531,7 +531,7 @@ _load(ImlibImage * im, int load_data)
              goto quit;
           }
 
-        rc = __imlib_LoadEmbedded(loader, im, tmp, load_data);
+        rc = __imlib_LoadEmbedded(loader, im, load_data, tmp);
 
         unlink(tmp);
      }
@@ -565,7 +565,7 @@ _load(ImlibImage * im, int load_data)
              goto quit;
           }
 
-        rc = __imlib_LoadEmbedded(loader, im, file, load_data);
+        rc = __imlib_LoadEmbedded(loader, im, load_data, file);
 
 #if USE_TAGS
         if (!im->loader)

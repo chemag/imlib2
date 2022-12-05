@@ -148,7 +148,7 @@ __imlib_FileContextClose(ImlibImageFileInfo * fi)
 }
 
 static int
-__imlib_ImageFileContextPush(ImlibImage * im, bool load, char *file)
+__imlib_ImageFileContextPush(ImlibImage * im, char *file)
 {
    ImlibImageFileInfo *fi;
 
@@ -553,7 +553,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    im->key = im_key;
    im->frame = ila->frame;
 
-   if (__imlib_ImageFileContextPush(im, true, im_file ? im_file : im->file) ||
+   if (__imlib_ImageFileContextPush(im, im_file ? im_file : im->file) ||
        __imlib_FileContextOpen(im->fi, ila->fp, ila->fdata, st.st_size))
      {
         ila->err = errno;
@@ -692,15 +692,15 @@ __imlib_LoadImageData(ImlibImage * im)
 }
 
 __EXPORT__ int
-__imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, const char *file,
-                     int load_data)
+__imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, int load_data,
+                     const char *file)
 {
    int                 rc;
 
    if (!l || !im)
-      return 0;
+      return LOAD_FAIL;
 
-   __imlib_ImageFileContextPush(im, true, strdup(file));
+   __imlib_ImageFileContextPush(im, strdup(file));
    rc = __imlib_FileContextOpen(im->fi, NULL, NULL, 0);
    if (rc)
       return LOAD_FAIL;
@@ -841,7 +841,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
    if (ila->pfunc)
       __imlib_LoadCtxInit(im, &ilc, ila->pfunc, ila->pgran);
 
-   __imlib_ImageFileContextPush(im, false, strdup(file));
+   __imlib_ImageFileContextPush(im, strdup(file));
 
    /* call the saver */
    loader_ret = l->module->save(im);

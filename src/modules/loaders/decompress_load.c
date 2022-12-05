@@ -54,7 +54,7 @@ decompress_load(ImlibImage * im, int load_data, const char *const *pext,
    close(dest);
 
    if (res)
-      rc = __imlib_LoadEmbedded(loader, im, tmp, load_data);
+      rc = __imlib_LoadEmbedded(loader, im, load_data, tmp);
 
    unlink(tmp);
 
