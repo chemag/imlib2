@@ -102,6 +102,9 @@ ImlibImage         *__imlib_CreateImage(int w, int h, uint32_t * data);
 ImlibImage         *__imlib_LoadImage(const char *file, ImlibLoadArgs * ila);
 int                 __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im,
                                          int load_data, const char *file);
+int                 __imlib_LoadEmbeddedMem(ImlibLoader * l, ImlibImage * im,
+                                            int load_data, const void *fdata,
+                                            unsigned int fsize);
 int                 __imlib_LoadImageData(ImlibImage * im);
 void                __imlib_DirtyImage(ImlibImage * im);
 void                __imlib_FreeImage(ImlibImage * im);

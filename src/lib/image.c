@@ -713,6 +713,28 @@ __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im, int load_data,
    return rc;
 }
 
+__EXPORT__ int
+__imlib_LoadEmbeddedMem(ImlibLoader * l, ImlibImage * im, int load_data,
+                        const void *fdata, unsigned int fsize)
+{
+   int                 rc;
+
+   if (!l || !im)
+      return LOAD_FAIL;
+
+   __imlib_ImageFileContextPush(im, NULL);
+   rc = __imlib_FileContextOpen(im->fi, NULL, fdata, fsize);
+   if (rc)
+      return LOAD_FAIL;
+
+   rc = __imlib_LoadImageWrapper(l, im, load_data);
+
+   __imlib_FileContextClose(im->fi);
+   __imlib_ImageFileContextPop(im);
+
+   return rc;
+}
+
 __EXPORT__ void
 __imlib_LoadProgressSetPass(ImlibImage * im, int pass, int n_pass)
 {

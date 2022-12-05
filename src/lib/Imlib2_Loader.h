@@ -164,6 +164,9 @@ ImlibLoader        *__imlib_FindBestLoader(const char *file, const char *format,
                                            int for_save);
 int                 __imlib_LoadEmbedded(ImlibLoader * l, ImlibImage * im,
                                          int load_data, const char *file);
+int                 __imlib_LoadEmbeddedMem(ImlibLoader * l, ImlibImage * im,
+                                            int load_data, const void *fdata,
+                                            unsigned int fsize);
 
 uint32_t           *__imlib_AllocateData(ImlibImage * im);
 void                __imlib_FreeData(ImlibImage * im);
