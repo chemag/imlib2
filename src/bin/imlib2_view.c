@@ -28,6 +28,7 @@ static int          window_width = 0, window_height = 0;
 static Imlib_Image  bg_im = NULL;
 static Imlib_Image  bg_im_clean = NULL;
 static Imlib_Image  fg_im = NULL;       /* The animated image */
+static Imlib_Image  im_curr = NULL;     /* The current image */
 
 static bool         opt_cache = false;
 static bool         opt_progr = true;   /* Render through progress callback */
@@ -277,6 +278,22 @@ anim_update(Imlib_Image im, const rect_t * r_up, const rect_t * r_out,
                                 r_out->x, r_out->y, r_up->w, r_up->h);
 }
 
+static void
+free_image(Imlib_Image im)
+{
+   Dprintf(" Cache usage: %d/%d\n", imlib_get_cache_used(),
+           imlib_get_cache_size());
+
+   if (!im)
+      return;
+
+   imlib_context_set_image(im);
+   if (opt_cache)
+      imlib_free_image();
+   else
+      imlib_free_image_and_decache();
+}
+
 static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
@@ -447,10 +464,13 @@ load_image_frame(const char *name, int frame, int inc)
 {
    Imlib_Image         im;
 
+   free_image(im_curr);
+
    if (inc && finfo.frame_count > 0)
       frame = (finfo.frame_count + frame + inc - 1) % finfo.frame_count + 1;
 
    im = imlib_load_image_frame(name, frame);
+   im_curr = im;
    if (!im)
       return im;
 
@@ -478,9 +498,10 @@ load_image_frame(const char *name, int frame, int inc)
    return im;
 }
 
-static              Imlib_Image
+static int
 load_image(int no, const char *name)
 {
+   int                 err;
    Imlib_Image         im;
    char               *ptr;
    Drawable            draw;
@@ -515,8 +536,15 @@ load_image(int no, const char *name)
         ho = h * opt_sgrab_y;
         im = imlib_create_scaled_image_from_drawable(None, 0, 0, w, h, wo, ho,
                                                      1, (get_alpha) ? 1 : 0);
+        if (!im)
+           return -1;
 
         progress(im, 100, 0, 0, wo, ho);
+
+        imlib_context_set_image(im);
+        imlib_free_image();     /* Grabbed image is never cached */
+
+        err = 0;
      }
    else
      {
@@ -544,16 +572,17 @@ load_image(int no, const char *name)
         im = load_image_frame(nbuf, frame, 0);
 
         animate = animate && animated;
+
+        err = !im;
      }
 
-   return im;
+   return err;
 }
 
 int
 main(int argc, char **argv)
 {
-   int                 opt;
-   Imlib_Image        *im;
+   int                 opt, err;
    int                 no, inc;
 
    verbose = 0;
@@ -626,16 +655,16 @@ main(int argc, char **argv)
    if (opt_cache)
       imlib_set_cache_size(32 * 1024 * 1024);
 
-   no = -1;
-   for (im = NULL; !im;)
+   for (no = 0; no < argc; no++)
      {
-        no++;
-        if (no == argc)
-          {
-             fprintf(stderr, "No loadable image\n");
-             exit(0);
-          }
-        im = load_image(no, argv[no]);
+        err = load_image(no, argv[no]);
+        if (!err)
+           break;
+     }
+   if (no >= argc)
+     {
+        fprintf(stderr, "No loadable image\n");
+        exit(0);
      }
 
    for (;;)
@@ -647,20 +676,7 @@ main(int argc, char **argv)
         struct timeval      tval;
         fd_set              fdset;
         KeySym              key;
-        Imlib_Image        *im2;
         int                 no2;
-
-        if (im)
-          {
-             Dprintf(" Cache usage: %d/%d\n", imlib_get_cache_used(),
-                     imlib_get_cache_size());
-             imlib_context_set_image(im);
-             if (opt_cache)
-                imlib_free_image();
-             else
-                imlib_free_image_and_decache();
-             im = NULL;
-          }
 
         if (animate)
           {
@@ -674,7 +690,7 @@ main(int argc, char **argv)
         if (animate)
           {
              usleep(1e3 * finfo.frame_delay);
-             im = load_image_frame(argv[no], finfo.frame_num, 1);
+             load_image_frame(argv[no], finfo.frame_num, 1);
              if (!XPending(disp))
                 continue;
           }
@@ -782,8 +798,8 @@ main(int argc, char **argv)
                          }
                        if (no2 == no && inc != 0)
                           break;
-                       im2 = load_image(no2, argv[no2]);
-                       if (!im2)
+                       err = load_image(no2, argv[no2]);
+                       if (err)
                          {
                             Vprintf("*** Error loading image: %s\n", argv[no2]);
                             continue;
@@ -791,7 +807,6 @@ main(int argc, char **argv)
                        zoom = 1.0;
                        zoom_mode = 0;
                        no = no2;
-                       im = im2;
                        break;
                     }
                   break;
@@ -806,7 +821,7 @@ main(int argc, char **argv)
                      break;
                   if (!animated)
                      image_width = 0;   /* Reset window size */
-                  im = load_image_frame(argv[no], finfo.frame_num, inc);
+                  load_image_frame(argv[no], finfo.frame_num, inc);
                   break;
                }
           }
