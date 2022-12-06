@@ -38,12 +38,26 @@ _load_embedded(ImlibImage * im, int load_data, const char *data,
 {
    int                 rc;
    ImlibLoader        *loader;
+   int                 frame;
+   void               *lc;
 
    loader = __imlib_FindBestLoader(NULL, "ico", 0);
    if (!loader)
       return LOAD_FAIL;
 
+   /* Disable frame and progress handling in sub-loader */
+   frame = im->frame;
+   lc = im->lc;
+   im->frame = 0;
+   im->lc = NULL;
+
    rc = __imlib_LoadEmbeddedMem(loader, im, load_data, data, size);
+
+   im->frame = frame;
+   im->lc = lc;
+
+   if (rc == LOAD_SUCCESS && im->lc)
+      __imlib_LoadProgress(im, 0, 0, im->w, im->h);
 
    return rc;
 }
