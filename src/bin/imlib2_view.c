@@ -5,6 +5,7 @@
 #include <X11/keysym.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -569,6 +570,7 @@ load_image(int no, const char *name)
           }
         animloop = 0;
 
+        memset(&finfo, 0, sizeof(finfo));
         im = load_image_frame(nbuf, frame, 0);
 
         animate = animate && animated;
@@ -783,31 +785,33 @@ main(int argc, char **argv)
                   inc = -1;
                   goto show_next_prev;
                 show_next_prev:
-                  for (no2 = no;;)
+                  no2 = no + inc;
+                  if (no2 >= argc)
+                     break;
+                  if (no2 < 0)
+                     break;
+                  for (;;)
                     {
+                       err = load_image(no2, argv[no2]);
+                       if (err == 0)
+                         {
+                            zoom = 1.0;
+                            zoom_mode = 0;
+                            no = no2;
+                            break;
+                         }
+                       Vprintf("*** Error loading image: %s\n", argv[no2]);
                        no2 += inc;
                        if (no2 >= argc)
                          {
+                            no2 = argc - 2;
                             inc = -1;
-                            continue;
                          }
                        else if (no2 < 0)
                          {
+                            no2 = 1;
                             inc = 1;
-                            continue;
                          }
-                       if (no2 == no && inc != 0)
-                          break;
-                       err = load_image(no2, argv[no2]);
-                       if (err)
-                         {
-                            Vprintf("*** Error loading image: %s\n", argv[no2]);
-                            continue;
-                         }
-                       zoom = 1.0;
-                       zoom_mode = 0;
-                       no = no2;
-                       break;
                     }
                   break;
                 show_next_frame:
