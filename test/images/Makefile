@@ -43,6 +43,7 @@ imgs_64:  $(ALL_64)
  ALL_MISC += xeyes.jp2 xeyes.j2k
  ALL_MISC += xeyes-gray.png
  ALL_MISC += xeyes-gray.jp2 xeyes-gray.j2k
+ ALL_MISC += xeyes-P8.ppm
 imgs_misc: $(ALL_MISC)
 
 %.argb: %.png
@@ -98,6 +99,9 @@ imgs_misc: $(ALL_MISC)
 
 %-P3.ppm: %.ppm
 	pnmtopnm -plain <$< >$@
+
+%-P8.ppm: %.png
+	imlib2_conv $< $@
 
 %-P7_332.ppm: %.ppm
 	pamtoxvmini <$< >$@
