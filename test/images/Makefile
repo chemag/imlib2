@@ -20,6 +20,7 @@
  TYPES += ppm
  TYPES += pgm
  TYPES += pbm
+ TYPES += pam
  TYPES += tga
  TYPES += tiff
  TYPES += webp
@@ -40,10 +41,12 @@ $(warning imgs_64=$(ALL_64))
 imgs_64:  $(ALL_64)
 
  ALL_MISC  = icon-64-gray.jp2 icon-64-gray.j2k
+ ALL_MISC += icon-64-gray.pam icon-64-mono.pam
  ALL_MISC += xeyes.jp2 xeyes.j2k
  ALL_MISC += xeyes-gray.png
  ALL_MISC += xeyes-gray.jp2 xeyes-gray.j2k
  ALL_MISC += xeyes-P8.ppm
+ ALL_MISC += xeyes.pam xeyes-gray.pam xeyes-mono.pam
 imgs_misc: $(ALL_MISC)
 
 %.argb: %.png
@@ -70,6 +73,12 @@ imgs_misc: $(ALL_MISC)
 %-gray.png: %.png
 	$(CONVERT) -colorspace Gray $< $@
 
+%-gray.pam: %.png
+	$(CONVERT) -colorspace Gray $< $@
+
+%-mono.pam: %-gray.pam
+	pamthreshold $< > $@
+
 %.jp2: %.png
 	opj2_compress -i $< -o $@
 
@@ -90,6 +99,9 @@ imgs_misc: $(ALL_MISC)
 
 %.pbm: %.png
 	$(CONVERT_BITMAP) $< $@
+
+%.pam: %.png
+	$(CONVERT) $< $@
 
 %-P1.pbm: %.pbm
 	pnmtopnm -plain <$< >$@
