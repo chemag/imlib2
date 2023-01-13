@@ -304,19 +304,18 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
    if (!im)
       return NULL;
    im->data = malloc(width * height * sizeof(uint32_t));
-   if (im->data &&
-       __imlib_GrabDrawableToRGBA(im->data, 0, 0, width, height, ctx->display,
-                                  ctx->drawable, mask, ctx->visual,
-                                  ctx->colormap, ctx->depth, x, y, width,
-                                  height, &domask, need_to_grab_x))
-     {
-        im->has_alpha = domask;
-     }
-   else
+
+   if (!im->data ||
+       !__imlib_GrabDrawableToRGBA(im->data, 0, 0, width, height, ctx->display,
+                                   ctx->drawable, mask, ctx->visual,
+                                   ctx->colormap, ctx->depth, x, y, width,
+                                   height, &domask, need_to_grab_x))
      {
         __imlib_FreeImage(im);
-        im = NULL;
+        return NULL;
      }
+
+   im->has_alpha = domask;
 
    return im;
 }
@@ -359,8 +358,6 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int src_x, int src_y,
    if (!IMAGE_DIMENSIONS_OK(dst_width, dst_height))
       return NULL;
 
-   domask = mask != 0 || get_mask_from_shape;
-
    im = __imlib_CreateImage(dst_width, dst_height, NULL);
    if (!im)
       return NULL;
@@ -371,11 +368,18 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int src_x, int src_y,
         return NULL;
      }
 
-   __imlib_GrabDrawableScaledToRGBA(im->data, 0, 0, dst_width, dst_height,
-                                    ctx->display, ctx->drawable, mask,
-                                    ctx->visual, ctx->colormap, ctx->depth,
-                                    src_x, src_y, src_width, src_height,
-                                    &domask, need_to_grab_x);
+   domask = mask != 0 || get_mask_from_shape;
+
+   if (!im->data ||
+       !__imlib_GrabDrawableScaledToRGBA(im->data, 0, 0, dst_width, dst_height,
+                                         ctx->display, ctx->drawable, mask,
+                                         ctx->visual, ctx->colormap, ctx->depth,
+                                         src_x, src_y, src_width, src_height,
+                                         &domask, need_to_grab_x))
+     {
+        __imlib_FreeImage(im);
+        return NULL;
+     }
 
    im->has_alpha = domask;
 
