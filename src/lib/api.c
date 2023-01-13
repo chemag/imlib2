@@ -1047,23 +1047,14 @@ imlib_create_cropped_image(int x, int y, int width, int height)
         __imlib_FreeImage(im);
         return NULL;
      }
-   if (im_old->has_alpha)
-     {
-        im->has_alpha = 1;
-        __imlib_BlendImageToImage(im_old, im, 0, 0, 1, x, y, abs(width),
-                                  abs(height), 0, 0, width, height, NULL,
-                                  (ImlibOp) IMLIB_OP_COPY,
-                                  ctx->cliprect.x, ctx->cliprect.y,
-                                  ctx->cliprect.w, ctx->cliprect.h);
-     }
-   else
-     {
-        __imlib_BlendImageToImage(im_old, im, 0, 0, 0, x, y, abs(width),
-                                  abs(height), 0, 0, width, height, NULL,
-                                  (ImlibOp) IMLIB_OP_COPY,
-                                  ctx->cliprect.x, ctx->cliprect.y,
-                                  ctx->cliprect.w, ctx->cliprect.h);
-     }
+
+   im->has_alpha = im_old->has_alpha;
+   __imlib_BlendImageToImage(im_old, im, 0, 0, im->has_alpha,
+                             x, y, abs(width), abs(height), 0, 0, width, height,
+                             NULL, (ImlibOp) IMLIB_OP_COPY,
+                             ctx->cliprect.x, ctx->cliprect.y,
+                             ctx->cliprect.w, ctx->cliprect.h);
+
    return im;
 }
 
@@ -1089,25 +1080,15 @@ imlib_create_cropped_scaled_image(int source_x, int source_y,
         __imlib_FreeImage(im);
         return NULL;
      }
-   if (im_old->has_alpha)
-     {
-        im->has_alpha = 1;
-        __imlib_BlendImageToImage(im_old, im, ctx->anti_alias, 0, 1, source_x,
-                                  source_y, source_width, source_height, 0, 0,
-                                  destination_width, destination_height, NULL,
-                                  (ImlibOp) IMLIB_OP_COPY,
-                                  ctx->cliprect.x, ctx->cliprect.y,
-                                  ctx->cliprect.w, ctx->cliprect.h);
-     }
-   else
-     {
-        __imlib_BlendImageToImage(im_old, im, ctx->anti_alias, 0, 0, source_x,
-                                  source_y, source_width, source_height, 0, 0,
-                                  destination_width, destination_height, NULL,
-                                  (ImlibOp) IMLIB_OP_COPY,
-                                  ctx->cliprect.x, ctx->cliprect.y,
-                                  ctx->cliprect.w, ctx->cliprect.h);
-     }
+
+   im->has_alpha = im_old->has_alpha;
+   __imlib_BlendImageToImage(im_old, im, ctx->anti_alias, 0, im->has_alpha,
+                             source_x, source_y, source_width, source_height,
+                             0, 0, destination_width, destination_height,
+                             NULL, (ImlibOp) IMLIB_OP_COPY,
+                             ctx->cliprect.x, ctx->cliprect.y,
+                             ctx->cliprect.w, ctx->cliprect.h);
+
    return im;
 }
 
