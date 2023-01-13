@@ -559,13 +559,12 @@ __imlib_RenderImageSkewed(Display * d, ImlibImage * im, Drawable w, Drawable m,
         dy1 = 0;
      }
 
-   if (!IMAGE_DIMENSIONS_OK(dw, dh))
+   back = __imlib_CreateImage(dw, dh, NULL, 1);
+   if (!back)
       return;
 
    __imlib_GetContext(d, v, cm, depth);
 
-   back = __imlib_CreateImage(dw, dh, NULL);
-   back->data = calloc(dw * dh, sizeof(uint32_t));
    __imlib_GrabDrawableToRGBA(back->data, 0, 0, dw, dh, d, w, 0, v, cm,
                               depth, dx1, dy1, dw, dh, 0, 1);
 
@@ -576,5 +575,6 @@ __imlib_RenderImageSkewed(Display * d, ImlibImage * im, Drawable w, Drawable m,
    __imlib_RenderImage(d, back, w, m, v, cm, depth, 0, 0, dw, dh,
                        dx1, dy1, dw, dh, 0, hiq, 0, dither_mask, mat, 0,
                        OP_COPY);
+
    __imlib_FreeImage(back);
 }

@@ -292,21 +292,18 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
    ImlibImage         *im;
    char                domask = 0;
 
-   if (!IMAGE_DIMENSIONS_OK(width, height))
-      return NULL;
    if (mask)
      {
         domask = 1;
         if (mask == (Pixmap) 1)
            mask = None;
      }
-   im = __imlib_CreateImage(width, height, NULL);
+
+   im = __imlib_CreateImage(width, height, NULL, 0);
    if (!im)
       return NULL;
-   im->data = malloc(width * height * sizeof(uint32_t));
 
-   if (!im->data ||
-       !__imlib_GrabDrawableToRGBA(im->data, 0, 0, width, height, ctx->display,
+   if (!__imlib_GrabDrawableToRGBA(im->data, 0, 0, width, height, ctx->display,
                                    ctx->drawable, mask, ctx->visual,
                                    ctx->colormap, ctx->depth, x, y, width,
                                    height, &domask, need_to_grab_x))
@@ -326,17 +323,10 @@ imlib_create_image_from_ximage(XImage * image, XImage * mask, int x, int y,
 {
    ImlibImage         *im;
 
-   if (!IMAGE_DIMENSIONS_OK(width, height))
-      return NULL;
-   im = __imlib_CreateImage(width, height, NULL);
+   im = __imlib_CreateImage(width, height, NULL, 0);
    if (!im)
       return NULL;
-   im->data = malloc(width * height * sizeof(uint32_t));
-   if (!im->data)
-     {
-        __imlib_FreeImage(im);
-        return NULL;
-     }
+
    __imlib_GrabXImageToRGBA(im->data, 0, 0, width, height,
                             ctx->display, image, mask, ctx->visual,
                             ctx->depth, x, y, width, height, need_to_grab_x);
@@ -355,23 +345,14 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int src_x, int src_y,
 
    if (!IMAGE_DIMENSIONS_OK(src_width, src_height))
       return NULL;
-   if (!IMAGE_DIMENSIONS_OK(dst_width, dst_height))
-      return NULL;
 
-   im = __imlib_CreateImage(dst_width, dst_height, NULL);
+   im = __imlib_CreateImage(dst_width, dst_height, NULL, 0);
    if (!im)
       return NULL;
-   im->data = malloc(dst_width * dst_height * sizeof(uint32_t));
-   if (!im->data)
-     {
-        __imlib_FreeImage(im);
-        return NULL;
-     }
 
    domask = mask != 0 || get_mask_from_shape;
 
-   if (!im->data ||
-       !__imlib_GrabDrawableScaledToRGBA(im->data, 0, 0, dst_width, dst_height,
+   if (!__imlib_GrabDrawableScaledToRGBA(im->data, 0, 0, dst_width, dst_height,
                                          ctx->display, ctx->drawable, mask,
                                          ctx->visual, ctx->colormap, ctx->depth,
                                          src_x, src_y, src_width, src_height,

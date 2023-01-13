@@ -362,19 +362,42 @@ __imlib_GetCacheSize(void)
    return cache_size;
 }
 
-/* create a new image struct from data passed that is wize w x h then return */
-/* a pointer to that image sturct */
+/* Create a new image struct
+ * If data is non-zero use it for pixel data, otherwise allocate the
+ * pixel data buffer.
+ * If zero is set the pixel data buffer is zeroed. */
 ImlibImage         *
-__imlib_CreateImage(int w, int h, uint32_t * data)
+__imlib_CreateImage(int w, int h, uint32_t * data, int zero)
 {
    ImlibImage         *im;
+   uint32_t           *dptr = data;
+
+   if (!IMAGE_DIMENSIONS_OK(w, h))
+      return NULL;
+
+   if (!dptr)
+     {
+        if (zero)
+           dptr = calloc(w * h, sizeof(uint32_t));
+        else
+           dptr = malloc(w * h * sizeof(uint32_t));
+     }
+   if (!dptr)
+      return NULL;
 
    im = __imlib_ProduceImage();
+   if (!im)
+     {
+        if (!data)
+           free(dptr);
+        return NULL;
+     }
    im->w = w;
    im->h = h;
-   im->data = data;
+   im->data = dptr;
    im->references = 1;
    IM_FLAG_SET(im, F_UNCACHEABLE);
+
    return im;
 }
 

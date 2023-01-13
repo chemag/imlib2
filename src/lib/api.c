@@ -931,14 +931,11 @@ imlib_blend_image_onto_image(Imlib_Image src_image, char merge_alpha,
 EAPI                Imlib_Image
 imlib_create_image(int width, int height)
 {
-   uint32_t           *data;
+   ImlibImage         *im;
 
-   if (!IMAGE_DIMENSIONS_OK(width, height))
-      return NULL;
-   data = malloc(width * height * sizeof(uint32_t));
-   if (data)
-      return __imlib_CreateImage(width, height, data);
-   return NULL;
+   im = __imlib_CreateImage(width, height, NULL, 0);
+
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -947,11 +944,13 @@ imlib_create_image_using_data(int width, int height, uint32_t * data)
    ImlibImage         *im;
 
    CHECK_PARAM_POINTER_RETURN("data", data, NULL);
-   if (!IMAGE_DIMENSIONS_OK(width, height))
+
+   im = __imlib_CreateImage(width, height, data, 0);
+   if (!im)
       return NULL;
-   im = __imlib_CreateImage(width, height, data);
-   if (im)
-      IM_FLAG_SET(im, F_DONT_FREE_DATA);
+
+   IM_FLAG_SET(im, F_DONT_FREE_DATA);
+
    return im;
 }
 
@@ -962,11 +961,12 @@ EAPI                Imlib_Image
    ImlibImage         *im;
 
    CHECK_PARAM_POINTER_RETURN("data", data, NULL);
-   if (!IMAGE_DIMENSIONS_OK(width, height))
+
+   im = __imlib_CreateImage(width, height, data, 0);
+   if (!im)
       return NULL;
-   im = __imlib_CreateImage(width, height, data);
-   if (im)
-      im->data_memory_func = func;
+
+   im->data_memory_func = func;
 
    return im;
 }
@@ -977,20 +977,14 @@ imlib_create_image_using_copied_data(int width, int height, uint32_t * data)
    ImlibImage         *im;
 
    CHECK_PARAM_POINTER_RETURN("data", data, NULL);
-   if (!IMAGE_DIMENSIONS_OK(width, height))
-      return NULL;
-   im = __imlib_CreateImage(width, height, NULL);
+
+   im = __imlib_CreateImage(width, height, NULL, 0);
    if (!im)
       return NULL;
-   im->data = malloc(width * height * sizeof(uint32_t));
-   if (data)
-     {
-        memcpy(im->data, data, width * height * sizeof(uint32_t));
-        return im;
-     }
-   else
-      __imlib_FreeImage(im);
-   return NULL;
+
+   memcpy(im->data, data, width * height * sizeof(uint32_t));
+
+   return im;
 }
 
 EAPI                Imlib_Image
@@ -1000,21 +994,14 @@ imlib_clone_image(void)
 
    CHECK_PARAM_POINTER_RETURN("image", ctx->image, NULL);
    CAST_IMAGE(im_old, ctx->image);
+
    if (__imlib_LoadImageData(im_old))
       return NULL;
-   /* Note: below check should've ensured by original image allocation,
-    * but better safe than sorry. */
-   if (!IMAGE_DIMENSIONS_OK(im_old->w, im_old->h))
+
+   im = __imlib_CreateImage(im_old->w, im_old->h, NULL, 0);
+   if (!im)
       return NULL;
-   im = __imlib_CreateImage(im_old->w, im_old->h, NULL);
-   if (!(im))
-      return NULL;
-   im->data = malloc(im->w * im->h * sizeof(uint32_t));
-   if (!(im->data))
-     {
-        __imlib_FreeImage(im);
-        return NULL;
-     }
+
    memcpy(im->data, im_old->data, im->w * im->h * sizeof(uint32_t));
    im->flags = im_old->flags;
    IM_FLAG_SET(im, F_UNCACHEABLE);
@@ -1025,6 +1012,7 @@ imlib_clone_image(void)
       im->format = strdup(im_old->format);
    if (im_old->file)
       im->file = strdup(im_old->file);
+
    return im;
 }
 
@@ -1034,18 +1022,14 @@ imlib_create_cropped_image(int x, int y, int width, int height)
    ImlibImage         *im, *im_old;
 
    CHECK_PARAM_POINTER_RETURN("image", ctx->image, NULL);
-   if (!IMAGE_DIMENSIONS_OK(abs(width), abs(height)))
-      return NULL;
    CAST_IMAGE(im_old, ctx->image);
+
    if (__imlib_LoadImageData(im_old))
       return NULL;
-   im = __imlib_CreateImage(abs(width), abs(height), NULL);
-   im->data = malloc(abs(width * height) * sizeof(uint32_t));
-   if (!(im->data))
-     {
-        __imlib_FreeImage(im);
-        return NULL;
-     }
+
+   im = __imlib_CreateImage(abs(width), abs(height), NULL, 0);
+   if (!im)
+      return NULL;
 
    im->has_alpha = im_old->has_alpha;
    __imlib_BlendImageToImage(im_old, im, 0, 0, im->has_alpha,
@@ -1065,18 +1049,14 @@ imlib_create_cropped_scaled_image(int src_x, int src_y,
    ImlibImage         *im, *im_old;
 
    CHECK_PARAM_POINTER_RETURN("image", ctx->image, NULL);
-   if (!IMAGE_DIMENSIONS_OK(abs(dst_width), abs(dst_height)))
-      return NULL;
    CAST_IMAGE(im_old, ctx->image);
+
    if (__imlib_LoadImageData(im_old))
       return NULL;
-   im = __imlib_CreateImage(abs(dst_width), abs(dst_height), NULL);
-   im->data = malloc(abs(dst_width * dst_height) * sizeof(uint32_t));
-   if (!(im->data))
-     {
-        __imlib_FreeImage(im);
-        return NULL;
-     }
+
+   im = __imlib_CreateImage(abs(dst_width), abs(dst_height), NULL, 0);
+   if (!im)
+      return NULL;
 
    im->has_alpha = im_old->has_alpha;
    __imlib_BlendImageToImage(im_old, im, ctx->anti_alias, 0, im->has_alpha,
@@ -1938,16 +1918,9 @@ imlib_create_rotated_image(double angle)
    dx = (int)(cos(angle) * _ROTATE_PREC_MAX);
    dy = -(int)(sin(angle) * _ROTATE_PREC_MAX);
 
-   if (!IMAGE_DIMENSIONS_OK(sz, sz))
+   im = __imlib_CreateImage(sz, sz, NULL, 1);
+   if (!im)
       return NULL;
-
-   im = __imlib_CreateImage(sz, sz, NULL);
-   im->data = calloc(sz * sz, sizeof(uint32_t));
-   if (!(im->data))
-     {
-        __imlib_FreeImage(im);
-        return NULL;
-     }
 
    if (ctx->anti_alias)
      {
@@ -1997,16 +1970,6 @@ imlib_rotate_image_from_buffer(double angle, Imlib_Image src_image)
       return;                   // If size is wrong
    else
       sz = im->w;               // update sz with real width
-
-#if 0                           /* Not necessary 'cause destination is context */
-   im = __imlib_CreateImage(sz, sz, NULL);
-   im->data = calloc(sz * sz, sizeof(uint32_t));
-   if (!(im->data))
-     {
-        __imlib_FreeImage(im);
-        return;
-     }
-#endif
 
    if (ctx->anti_alias)
      {
