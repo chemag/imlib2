@@ -186,7 +186,8 @@ imlib_render_pixmaps_for_whole_image(Pixmap * pixmap_return,
    CHECK_PARAM_POINTER("image", ctx->image);
    CHECK_PARAM_POINTER("pixmap_return", pixmap_return);
    CAST_IMAGE(im, ctx->image);
-   if (__imlib_LoadImageData(im))
+   ctx->error = __imlib_LoadImageData(im);
+   if (ctx->error)
       return;
    __imlib_CreatePixmapsForImage(ctx->display, ctx->drawable, ctx->visual,
                                  ctx->depth, ctx->colormap, im, pixmap_return,
@@ -206,7 +207,8 @@ imlib_render_pixmaps_for_whole_image_at_size(Pixmap * pixmap_return,
    CHECK_PARAM_POINTER("image", ctx->image);
    CHECK_PARAM_POINTER("pixmap_return", pixmap_return);
    CAST_IMAGE(im, ctx->image);
-   if (__imlib_LoadImageData(im))
+   ctx->error = __imlib_LoadImageData(im);
+   if (ctx->error)
       return;
    __imlib_CreatePixmapsForImage(ctx->display, ctx->drawable, ctx->visual,
                                  ctx->depth, ctx->colormap, im, pixmap_return,
@@ -229,7 +231,8 @@ imlib_render_image_on_drawable(int x, int y)
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if (__imlib_LoadImageData(im))
+   ctx->error = __imlib_LoadImageData(im);
+   if (ctx->error)
       return;
    __imlib_RenderImage(ctx->display, im, ctx->drawable, ctx->mask,
                        ctx->visual, ctx->colormap, ctx->depth, 0, 0, im->w,
@@ -245,7 +248,8 @@ imlib_render_image_on_drawable_at_size(int x, int y, int width, int height)
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if (__imlib_LoadImageData(im))
+   ctx->error = __imlib_LoadImageData(im);
+   if (ctx->error)
       return;
    __imlib_RenderImage(ctx->display, im, ctx->drawable, ctx->mask,
                        ctx->visual, ctx->colormap, ctx->depth,
@@ -265,7 +269,8 @@ imlib_render_image_part_on_drawable_at_size(int src_x, int src_y,
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if (__imlib_LoadImageData(im))
+   ctx->error = __imlib_LoadImageData(im);
+   if (ctx->error)
       return;
    __imlib_RenderImage(ctx->display, im, ctx->drawable, 0,
                        ctx->visual, ctx->colormap, ctx->depth,
@@ -385,7 +390,8 @@ imlib_copy_drawable_to_image(Pixmap mask, int src_x, int src_y, int src_width,
      }
    CAST_IMAGE(im, ctx->image);
 
-   if (__imlib_LoadImageData(im))
+   ctx->error = __imlib_LoadImageData(im);
+   if (ctx->error)
       return 0;
 
    pre_adj = 0;
@@ -446,7 +452,8 @@ imlib_render_image_updates_on_drawable(Imlib_Updates updates, int x, int y)
    u = (ImlibUpdate *) updates;
    if (!updates)
       return;
-   if (__imlib_LoadImageData(im))
+   ctx->error = __imlib_LoadImageData(im);
+   if (ctx->error)
       return;
    ximcs = __imlib_GetXImageCacheCountMax(ctx->display);        /* Save */
    if (ximcs == 0)              /* Only if we don't set this up elsewhere */
@@ -473,7 +480,8 @@ imlib_render_image_on_drawable_skewed(int src_x, int src_y,
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if (__imlib_LoadImageData(im))
+   ctx->error = __imlib_LoadImageData(im);
+   if (ctx->error)
       return;
    __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
                              ctx->visual, ctx->colormap, ctx->depth, src_x,
@@ -495,7 +503,8 @@ imlib_render_image_on_drawable_at_angle(int src_x, int src_y,
 
    CHECK_PARAM_POINTER("image", ctx->image);
    CAST_IMAGE(im, ctx->image);
-   if (__imlib_LoadImageData(im))
+   ctx->error = __imlib_LoadImageData(im);
+   if (ctx->error)
       return;
    __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
                              ctx->visual, ctx->colormap, ctx->depth, src_x,
