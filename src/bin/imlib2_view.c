@@ -511,6 +511,7 @@ load_image(int no, const char *name)
 
    anim_update(NULL, NULL, NULL, NULL, 0);      /* Clean up previous animation */
 
+   err = 0;
    image_width = 0;             /* Force redraw in progress() */
 
    draw = strtoul(name, &ptr, 0);
@@ -544,8 +545,6 @@ load_image(int no, const char *name)
 
         imlib_context_set_image(im);
         imlib_free_image();     /* Grabbed image is never cached */
-
-        err = 0;
      }
    else
      {
@@ -575,7 +574,12 @@ load_image(int no, const char *name)
 
         animate = animate && animated;
 
-        err = !im;
+        if (!im)
+          {
+             err = imlib_get_error();
+             Vprintf("*** Error %d:'%s' loading image: '%s'\n",
+                     err, imlib_strerror(err), name);
+          }
      }
 
    return err;
@@ -800,7 +804,6 @@ main(int argc, char **argv)
                             no = no2;
                             break;
                          }
-                       Vprintf("*** Error loading image: %s\n", argv[no2]);
                        no2 += inc;
                        if (no2 >= argc)
                          {
