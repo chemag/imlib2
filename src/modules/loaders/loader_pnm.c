@@ -9,8 +9,8 @@
 
 static const char  *const _formats[] = { "pnm", "ppm", "pgm", "pbm", "pam" };
 
-typedef enum
-   { BW_RAW_PACKED, BW_RAW, BW_PLAIN, GRAY_RAW, GRAY_PLAIN, RGB_RAW, RGB_PLAIN,
+typedef enum {
+   BW_RAW_PACKED, BW_RAW, BW_PLAIN, GRAY_RAW, GRAY_PLAIN, RGB_RAW, RGB_PLAIN,
    XV332
 } px_type;
 
@@ -513,8 +513,8 @@ _load(ImlibImage * im, int load_data)
                        for (x = 0; x < w; x++)
                          {
                             *ptr2 =
-                               (ptr[1] << 24) | (ptr[0] << 16) | (ptr[0] << 8) |
-                               ptr[0];
+                               ((uint32_t)ptr[1] << 24) | (ptr[0] << 16) |
+                               (ptr[0] << 8) | ptr[0];
                             ptr2++;
                             ptr += 2;
                          }
@@ -524,7 +524,7 @@ _load(ImlibImage * im, int load_data)
                        for (x = 0; x < w; x++)
                          {
                             *ptr2 =
-                               (((ptr[1] * 255) / v) << 24) |
+                               ((uint32_t)((ptr[1] * 255) / v) << 24) |
                                (((ptr[0] * 255) / v) << 16) |
                                (((ptr[0] * 255) / v) << 8) | ((ptr[0] * 255) /
                                                               v);
