@@ -248,18 +248,18 @@ imlib_render_image_on_drawable_at_size(int x, int y, int width, int height)
    if (__imlib_LoadImageData(im))
       return;
    __imlib_RenderImage(ctx->display, im, ctx->drawable, ctx->mask,
-                       ctx->visual, ctx->colormap, ctx->depth, 0, 0, im->w,
-                       im->h, x, y, width, height, ctx->anti_alias,
-                       ctx->dither, ctx->blend, ctx->dither_mask,
-                       ctx->mask_alpha_threshold, ctx->color_modifier,
-                       ctx->operation);
+                       ctx->visual, ctx->colormap, ctx->depth,
+                       0, 0, im->w, im->h, x, y, width, height,
+                       ctx->anti_alias, ctx->dither, ctx->blend,
+                       ctx->dither_mask, ctx->mask_alpha_threshold,
+                       ctx->color_modifier, ctx->operation);
 }
 
 EAPI void
-imlib_render_image_part_on_drawable_at_size(int source_x, int source_y,
-                                            int source_width,
-                                            int source_height, int x, int y,
-                                            int width, int height)
+imlib_render_image_part_on_drawable_at_size(int src_x, int src_y,
+                                            int src_width, int src_height,
+                                            int dst_x, int dst_y,
+                                            int dst_width, int dst_height)
 {
    ImlibImage         *im;
 
@@ -267,11 +267,12 @@ imlib_render_image_part_on_drawable_at_size(int source_x, int source_y,
    CAST_IMAGE(im, ctx->image);
    if (__imlib_LoadImageData(im))
       return;
-   __imlib_RenderImage(ctx->display, im, ctx->drawable, 0, ctx->visual,
-                       ctx->colormap, ctx->depth, source_x, source_y,
-                       source_width, source_height, x, y, width, height,
-                       ctx->anti_alias, ctx->dither, ctx->blend, 0,
-                       0, ctx->color_modifier, ctx->operation);
+   __imlib_RenderImage(ctx->display, im, ctx->drawable, 0,
+                       ctx->visual, ctx->colormap, ctx->depth,
+                       src_x, src_y, src_width, src_height,
+                       dst_x, dst_y, dst_width, dst_height,
+                       ctx->anti_alias, ctx->dither, ctx->blend, 0, 0,
+                       ctx->color_modifier, ctx->operation);
 }
 
 EAPI                uint32_t
@@ -344,40 +345,36 @@ imlib_create_image_from_ximage(XImage * image, XImage * mask, int x, int y,
 }
 
 EAPI                Imlib_Image
-imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
-                                        int source_y, int source_width,
-                                        int source_height,
-                                        int destination_width,
-                                        int destination_height,
+imlib_create_scaled_image_from_drawable(Pixmap mask, int src_x, int src_y,
+                                        int src_width, int src_height,
+                                        int dst_width, int dst_height,
                                         char need_to_grab_x,
                                         char get_mask_from_shape)
 {
    ImlibImage         *im;
    char                domask;
 
-   if (!IMAGE_DIMENSIONS_OK(source_width, source_height))
+   if (!IMAGE_DIMENSIONS_OK(src_width, src_height))
       return NULL;
-   if (!IMAGE_DIMENSIONS_OK(destination_width, destination_height))
+   if (!IMAGE_DIMENSIONS_OK(dst_width, dst_height))
       return NULL;
 
    domask = mask != 0 || get_mask_from_shape;
 
-   im = __imlib_CreateImage(destination_width, destination_height, NULL);
+   im = __imlib_CreateImage(dst_width, dst_height, NULL);
    if (!im)
       return NULL;
-   im->data = malloc(destination_width * destination_height * sizeof(uint32_t));
+   im->data = malloc(dst_width * dst_height * sizeof(uint32_t));
    if (!im->data)
      {
         __imlib_FreeImage(im);
         return NULL;
      }
 
-   __imlib_GrabDrawableScaledToRGBA(im->data, 0, 0,
-                                    destination_width, destination_height,
+   __imlib_GrabDrawableScaledToRGBA(im->data, 0, 0, dst_width, dst_height,
                                     ctx->display, ctx->drawable, mask,
                                     ctx->visual, ctx->colormap, ctx->depth,
-                                    source_x, source_y,
-                                    source_width, source_height,
+                                    src_x, src_y, src_width, src_height,
                                     &domask, need_to_grab_x);
 
    im->has_alpha = domask;
@@ -386,8 +383,8 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int source_x,
 }
 
 EAPI char
-imlib_copy_drawable_to_image(Pixmap mask, int x, int y, int width, int height,
-                             int destination_x, int destination_y,
+imlib_copy_drawable_to_image(Pixmap mask, int src_x, int src_y, int src_width,
+                             int src_height, int dst_x, int dst_y,
                              char need_to_grab_x)
 {
    ImlibImage         *im;
@@ -407,49 +404,49 @@ imlib_copy_drawable_to_image(Pixmap mask, int x, int y, int width, int height,
       return 0;
 
    pre_adj = 0;
-   if (x < 0)
+   if (src_x < 0)
      {
-        width += x;
-        pre_adj = x;
-        x = 0;
+        src_width += src_x;
+        pre_adj = src_x;
+        src_x = 0;
      }
-   if (width < 0)
-      width = 0;
-   if (destination_x < 0)
+   if (src_width < 0)
+      src_width = 0;
+   if (dst_x < 0)
      {
-        width += destination_x;
-        x -= destination_x - pre_adj;
-        destination_x = 0;
+        src_width += dst_x;
+        src_x -= dst_x - pre_adj;
+        dst_x = 0;
      }
-   if ((destination_x + width) >= im->w)
-      width = im->w - destination_x;
+   if ((dst_x + src_width) >= im->w)
+      src_width = im->w - dst_x;
 
    pre_adj = 0;
-   if (y < 0)
+   if (src_y < 0)
      {
-        height += y;
-        pre_adj = y;
-        y = 0;
+        src_height += src_y;
+        pre_adj = src_y;
+        src_y = 0;
      }
-   if (height < 0)
-      height = 0;
-   if (destination_y < 0)
+   if (src_height < 0)
+      src_height = 0;
+   if (dst_y < 0)
      {
-        height += destination_y;
-        y -= destination_y - pre_adj;
-        destination_y = 0;
+        src_height += dst_y;
+        src_y -= dst_y - pre_adj;
+        dst_y = 0;
      }
-   if ((destination_y + height) >= im->h)
-      height = im->h - destination_y;
+   if ((dst_y + src_height) >= im->h)
+      src_height = im->h - dst_y;
 
-   if ((width <= 0) || (height <= 0))
+   if ((src_width <= 0) || (src_height <= 0))
       return 0;
    __imlib_DirtyImage(im);
-   return __imlib_GrabDrawableToRGBA(im->data, destination_x, destination_y,
-                                     im->w, im->h, ctx->display,
-                                     ctx->drawable, mask, ctx->visual,
-                                     ctx->colormap, ctx->depth, x, y, width,
-                                     height, &domask, need_to_grab_x);
+   return __imlib_GrabDrawableToRGBA(im->data, dst_x, dst_y, im->w, im->h,
+                                     ctx->display, ctx->drawable, mask,
+                                     ctx->visual, ctx->colormap, ctx->depth,
+                                     src_x, src_y, src_width, src_height,
+                                     &domask, need_to_grab_x);
 }
 
 EAPI void
@@ -481,9 +478,9 @@ imlib_render_image_updates_on_drawable(Imlib_Updates updates, int x, int y)
 }
 
 EAPI void
-imlib_render_image_on_drawable_skewed(int source_x, int source_y,
-                                      int source_width, int source_height,
-                                      int destination_x, int destination_y,
+imlib_render_image_on_drawable_skewed(int src_x, int src_y,
+                                      int src_width, int src_height,
+                                      int dst_x, int dst_y,
                                       int h_angle_x, int h_angle_y,
                                       int v_angle_x, int v_angle_y)
 {
@@ -494,9 +491,9 @@ imlib_render_image_on_drawable_skewed(int source_x, int source_y,
    if (__imlib_LoadImageData(im))
       return;
    __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
-                             ctx->visual, ctx->colormap, ctx->depth, source_x,
-                             source_y, source_width, source_height,
-                             destination_x, destination_y, h_angle_x,
+                             ctx->visual, ctx->colormap, ctx->depth, src_x,
+                             src_y, src_width, src_height,
+                             dst_x, dst_y, h_angle_x,
                              h_angle_y, v_angle_x, v_angle_y, ctx->anti_alias,
                              ctx->dither, ctx->blend, ctx->dither_mask,
                              ctx->mask_alpha_threshold, ctx->color_modifier,
@@ -504,9 +501,9 @@ imlib_render_image_on_drawable_skewed(int source_x, int source_y,
 }
 
 EAPI void
-imlib_render_image_on_drawable_at_angle(int source_x, int source_y,
-                                        int source_width, int source_height,
-                                        int destination_x, int destination_y,
+imlib_render_image_on_drawable_at_angle(int src_x, int src_y,
+                                        int src_width, int src_height,
+                                        int dst_x, int dst_y,
                                         int angle_x, int angle_y)
 {
    ImlibImage         *im;
@@ -516,9 +513,9 @@ imlib_render_image_on_drawable_at_angle(int source_x, int source_y,
    if (__imlib_LoadImageData(im))
       return;
    __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
-                             ctx->visual, ctx->colormap, ctx->depth, source_x,
-                             source_y, source_width, source_height,
-                             destination_x, destination_y, angle_x, angle_y,
+                             ctx->visual, ctx->colormap, ctx->depth, src_x,
+                             src_y, src_width, src_height,
+                             dst_x, dst_y, angle_x, angle_y,
                              0, 0, ctx->anti_alias, ctx->dither, ctx->blend,
                              ctx->dither_mask, ctx->mask_alpha_threshold,
                              ctx->color_modifier, ctx->operation);

@@ -897,18 +897,18 @@ imlib_image_set_has_alpha(char has_alpha)
 }
 
 EAPI void
-imlib_blend_image_onto_image(Imlib_Image source_image, char merge_alpha,
-                             int source_x, int source_y, int source_width,
-                             int source_height, int destination_x,
-                             int destination_y, int destination_width,
-                             int destination_height)
+imlib_blend_image_onto_image(Imlib_Image src_image, char merge_alpha,
+                             int src_x, int src_y,
+                             int src_width, int src_height,
+                             int dst_x, int dst_y,
+                             int dst_width, int dst_height)
 {
    ImlibImage         *im_src, *im_dst;
    int                 aa;
 
-   CHECK_PARAM_POINTER("source_image", source_image);
+   CHECK_PARAM_POINTER("src_image", src_image);
    CHECK_PARAM_POINTER("image", ctx->image);
-   CAST_IMAGE(im_src, source_image);
+   CAST_IMAGE(im_src, src_image);
    CAST_IMAGE(im_dst, ctx->image);
    if (__imlib_LoadImageData(im_src))
       return;
@@ -917,13 +917,12 @@ imlib_blend_image_onto_image(Imlib_Image source_image, char merge_alpha,
    __imlib_DirtyImage(im_dst);
    /* FIXME: hack to get around infinite loops for scaling down too far */
    aa = ctx->anti_alias;
-   if ((abs(destination_width) < (source_width >> 7))
-       || (abs(destination_height) < (source_height >> 7)))
+   if ((abs(dst_width) < (src_width >> 7)) ||
+       (abs(dst_height) < (src_height >> 7)))
       aa = 0;
-   __imlib_BlendImageToImage(im_src, im_dst, aa, ctx->blend,
-                             merge_alpha, source_x, source_y, source_width,
-                             source_height, destination_x, destination_y,
-                             destination_width, destination_height,
+   __imlib_BlendImageToImage(im_src, im_dst, aa, ctx->blend, merge_alpha,
+                             src_x, src_y, src_width, src_height,
+                             dst_x, dst_y, dst_width, dst_height,
                              ctx->color_modifier, ctx->operation,
                              ctx->cliprect.x, ctx->cliprect.y,
                              ctx->cliprect.w, ctx->cliprect.h);
@@ -1059,22 +1058,20 @@ imlib_create_cropped_image(int x, int y, int width, int height)
 }
 
 EAPI                Imlib_Image
-imlib_create_cropped_scaled_image(int source_x, int source_y,
-                                  int source_width, int source_height,
-                                  int destination_width, int destination_height)
+imlib_create_cropped_scaled_image(int src_x, int src_y,
+                                  int src_width, int src_height,
+                                  int dst_width, int dst_height)
 {
    ImlibImage         *im, *im_old;
 
    CHECK_PARAM_POINTER_RETURN("image", ctx->image, NULL);
-   if (!IMAGE_DIMENSIONS_OK(abs(destination_width), abs(destination_height)))
+   if (!IMAGE_DIMENSIONS_OK(abs(dst_width), abs(dst_height)))
       return NULL;
    CAST_IMAGE(im_old, ctx->image);
    if (__imlib_LoadImageData(im_old))
       return NULL;
-   im = __imlib_CreateImage(abs(destination_width), abs(destination_height),
-                            NULL);
-   im->data =
-      malloc(abs(destination_width * destination_height) * sizeof(uint32_t));
+   im = __imlib_CreateImage(abs(dst_width), abs(dst_height), NULL);
+   im->data = malloc(abs(dst_width * dst_height) * sizeof(uint32_t));
    if (!(im->data))
      {
         __imlib_FreeImage(im);
@@ -1083,8 +1080,8 @@ imlib_create_cropped_scaled_image(int source_x, int source_y,
 
    im->has_alpha = im_old->has_alpha;
    __imlib_BlendImageToImage(im_old, im, ctx->anti_alias, 0, im->has_alpha,
-                             source_x, source_y, source_width, source_height,
-                             0, 0, destination_width, destination_height,
+                             src_x, src_y, src_width, src_height,
+                             0, 0, dst_width, dst_height,
                              NULL, (ImlibOp) IMLIB_OP_COPY,
                              ctx->cliprect.x, ctx->cliprect.y,
                              ctx->cliprect.w, ctx->cliprect.h);
@@ -1556,9 +1553,10 @@ imlib_image_copy_alpha_to_image(Imlib_Image image_source, int x, int y)
 }
 
 EAPI void
-imlib_image_copy_alpha_rectangle_to_image(Imlib_Image image_source, int x,
-                                          int y, int width, int height,
-                                          int destination_x, int destination_y)
+imlib_image_copy_alpha_rectangle_to_image(Imlib_Image image_source,
+                                          int src_x, int src_y,
+                                          int src_width, int src_height,
+                                          int dst_x, int dst_y)
 {
    ImlibImage         *im, *im2;
 
@@ -1571,8 +1569,8 @@ imlib_image_copy_alpha_rectangle_to_image(Imlib_Image image_source, int x,
    if (__imlib_LoadImageData(im2))
       return;
    __imlib_DirtyImage(im);
-   __imlib_copy_alpha_data(im, im2, x, y, width, height, destination_x,
-                           destination_y);
+   __imlib_copy_alpha_data(im, im2, src_x, src_y, src_width, src_height,
+                           dst_x, dst_y);
 }
 
 EAPI void
@@ -1967,15 +1965,15 @@ imlib_create_rotated_image(double angle)
 }
 
 void
-imlib_rotate_image_from_buffer(double angle, Imlib_Image source_image)
+imlib_rotate_image_from_buffer(double angle, Imlib_Image src_image)
 {
    ImlibImage         *im, *im_old;
    int                 x, y, dx, dy, sz;
    double              x1, y1, d;
 
    // source image (to rotate)
-   CHECK_PARAM_POINTER("source_image", source_image);
-   CAST_IMAGE(im_old, source_image);
+   CHECK_PARAM_POINTER("src_image", src_image);
+   CAST_IMAGE(im_old, src_image);
 
    // current context image
    CHECK_PARAM_POINTER("image", ctx->image);
@@ -2026,18 +2024,17 @@ imlib_rotate_image_from_buffer(double angle, Imlib_Image source_image)
 }
 
 EAPI void
-imlib_blend_image_onto_image_at_angle(Imlib_Image source_image,
-                                      char merge_alpha, int source_x,
-                                      int source_y, int source_width,
-                                      int source_height, int destination_x,
-                                      int destination_y, int angle_x,
-                                      int angle_y)
+imlib_blend_image_onto_image_at_angle(Imlib_Image src_image, char merge_alpha,
+                                      int src_x, int src_y,
+                                      int src_width, int src_height,
+                                      int dst_x, int dst_y,
+                                      int angle_x, int angle_y)
 {
    ImlibImage         *im_src, *im_dst;
 
-   CHECK_PARAM_POINTER("source_image", source_image);
+   CHECK_PARAM_POINTER("src_image", src_image);
    CHECK_PARAM_POINTER("image", ctx->image);
-   CAST_IMAGE(im_src, source_image);
+   CAST_IMAGE(im_src, src_image);
    CAST_IMAGE(im_dst, ctx->image);
    if (__imlib_LoadImageData(im_src))
       return;
@@ -2045,28 +2042,27 @@ imlib_blend_image_onto_image_at_angle(Imlib_Image source_image,
       return;
    __imlib_DirtyImage(im_dst);
    __imlib_BlendImageToImageSkewed(im_src, im_dst, ctx->anti_alias,
-                                   ctx->blend, merge_alpha, source_x,
-                                   source_y, source_width, source_height,
-                                   destination_x, destination_y, angle_x,
-                                   angle_y, 0, 0, ctx->color_modifier,
-                                   ctx->operation,
+                                   ctx->blend, merge_alpha,
+                                   src_x, src_y, src_width, src_height,
+                                   dst_x, dst_y, angle_x, angle_y,
+                                   0, 0, ctx->color_modifier, ctx->operation,
                                    ctx->cliprect.x, ctx->cliprect.y,
                                    ctx->cliprect.w, ctx->cliprect.h);
 }
 
 EAPI void
-imlib_blend_image_onto_image_skewed(Imlib_Image source_image,
-                                    char merge_alpha, int source_x,
-                                    int source_y, int source_width,
-                                    int source_height, int destination_x,
-                                    int destination_y, int h_angle_x,
-                                    int h_angle_y, int v_angle_x, int v_angle_y)
+imlib_blend_image_onto_image_skewed(Imlib_Image src_image, char merge_alpha,
+                                    int src_x, int src_y,
+                                    int src_width, int src_height,
+                                    int dst_x, int dst_y,
+                                    int h_angle_x, int h_angle_y,
+                                    int v_angle_x, int v_angle_y)
 {
    ImlibImage         *im_src, *im_dst;
 
-   CHECK_PARAM_POINTER("source_image", source_image);
+   CHECK_PARAM_POINTER("src_image", src_image);
    CHECK_PARAM_POINTER("image", ctx->image);
-   CAST_IMAGE(im_src, source_image);
+   CAST_IMAGE(im_src, src_image);
    CAST_IMAGE(im_dst, ctx->image);
    if (__imlib_LoadImageData(im_src))
       return;
@@ -2074,10 +2070,10 @@ imlib_blend_image_onto_image_skewed(Imlib_Image source_image,
       return;
    __imlib_DirtyImage(im_dst);
    __imlib_BlendImageToImageSkewed(im_src, im_dst, ctx->anti_alias,
-                                   ctx->blend, merge_alpha, source_x,
-                                   source_y, source_width, source_height,
-                                   destination_x, destination_y, h_angle_x,
-                                   h_angle_y, v_angle_x, v_angle_y,
+                                   ctx->blend, merge_alpha,
+                                   src_x, src_y, src_width, src_height,
+                                   dst_x, dst_y,
+                                   h_angle_x, h_angle_y, v_angle_x, v_angle_y,
                                    ctx->color_modifier, ctx->operation,
                                    ctx->cliprect.x, ctx->cliprect.y,
                                    ctx->cliprect.w, ctx->cliprect.h);
