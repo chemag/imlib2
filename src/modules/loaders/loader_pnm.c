@@ -14,6 +14,8 @@ typedef enum {
    XV332
 } px_type;
 
+#define mm_check(p) ((const char *)(p) <= (const char *)im->fi->fdata + im->fi->fsize)
+
 static struct {
    const unsigned char *data, *dptr;
    unsigned int        size;
@@ -24,18 +26,6 @@ mm_init(const void *src, unsigned int size)
 {
    mdata.data = mdata.dptr = src;
    mdata.size = size;
-}
-
-static int
-mm_read(void *dst, unsigned int len)
-{
-   if (mdata.dptr + len > mdata.data + mdata.size)
-      return 1;                 /* Out of data */
-
-   memcpy(dst, mdata.dptr, len);
-   mdata.dptr += len;
-
-   return 0;
 }
 
 static int
@@ -226,10 +216,8 @@ _load(ImlibImage * im, int load_data)
    int                 rc;
    int                 p;
    unsigned int        w, h, v, hlen;
-   uint8_t            *data = NULL;     /* for the binary versions */
-   uint8_t            *ptr = NULL;
-   int                *idata = NULL;    /* for the ASCII versions */
-   uint32_t           *ptr2, rval, gval, bval;
+   const uint8_t      *ptr;
+   uint32_t           *ptr2, aval, rval, gval, bval;
    unsigned            i, j, x, y;
    px_type             pxt;
 
@@ -334,6 +322,8 @@ _load(ImlibImage * im, int load_data)
    if (!ptr2)
       QUIT_WITH_RC(LOAD_OOM);
 
+   ptr = mdata.dptr;
+
    /* start reading the data */
    switch (pxt)
      {
@@ -363,17 +353,9 @@ _load(ImlibImage * im, int load_data)
                   if (mm_getu(&gval))
                      goto quit;
 
-                  if (v == 0 || v == 255)
-                    {
-                       *ptr2++ = 0xff000000 | (gval << 16) | (gval << 8) | gval;
-                    }
-                  else
-                    {
-                       *ptr2++ =
-                          0xff000000 |
-                          (((gval * 255) / v) << 16) |
-                          (((gval * 255) / v) << 8) | ((gval * 255) / v);
-                    }
+                  if (v != 0 && v != 255)
+                     gval = (gval * 255) / v;
+                  *ptr2++ = PIXEL_ARGB(0xff, gval, gval, gval);
                }
 
              if (im->lc && __imlib_LoadProgressRows(im, y, 1))
@@ -393,17 +375,13 @@ _load(ImlibImage * im, int load_data)
                   if (mm_getu(&bval))
                      goto quit;
 
-                  if (v == 0 || v == 255)
+                  if (v != 0 && v != 255)
                     {
-                       *ptr2++ = 0xff000000 | (rval << 16) | (gval << 8) | bval;
+                       rval = (rval * 255) / v;
+                       gval = (gval * 255) / v;
+                       bval = (bval * 255) / v;
                     }
-                  else
-                    {
-                       *ptr2++ =
-                          0xff000000 |
-                          (((rval * 255) / v) << 16) |
-                          (((gval * 255) / v) << 8) | ((bval * 255) / v);
-                    }
+                  *ptr2++ = PIXEL_ARGB(0xff, rval, gval, bval);
                }
 
              if (im->lc && __imlib_LoadProgressRows(im, y, 1))
@@ -412,29 +390,21 @@ _load(ImlibImage * im, int load_data)
         break;
 
      case BW_RAW_PACKED:       /* binary 1bit monochrome */
-        data = malloc((w + 7) / 8 * sizeof(uint8_t));
-        if (!data)
-           QUIT_WITH_RC(LOAD_OOM);
-
-        ptr2 = im->data;
         for (y = 0; y < h; y++)
           {
-             if (mm_read(data, (w + 7) / 8))
+             if (!mm_check(ptr + (w + 7) / 8))
                 goto quit;
 
-             ptr = data;
-             for (x = 0; x < w; x += 8)
+             for (x = 0; x < w; x += 8, ptr++)
                {
                   j = (w - x >= 8) ? 8 : w - x;
                   for (i = 0; i < j; i++)
                     {
                        if (ptr[0] & (0x80 >> i))
-                          *ptr2 = 0xff000000;
+                          *ptr2++ = 0xff000000;
                        else
-                          *ptr2 = 0xffffffff;
-                       ptr2++;
+                          *ptr2++ = 0xffffffff;
                     }
-                  ptr++;
                }
 
              if (im->lc && __imlib_LoadProgressRows(im, y, 1))
@@ -445,24 +415,14 @@ _load(ImlibImage * im, int load_data)
      case BW_RAW:              /* binary 1byte monochrome */
         if (im->has_alpha)
           {
-             data = malloc(2 * sizeof(uint8_t) * w);
-             if (!data)
-                QUIT_WITH_RC(LOAD_OOM);
-
-             ptr2 = im->data;
              for (y = 0; y < h; y++)
                {
-                  if (mm_read(data, w * 2))
+                  if (!mm_check(ptr + 2 * w))
                      goto quit;
 
-                  ptr = data;
-                  for (x = 0; x < w; x++)
-                    {
-                       *ptr2 =
-                          (ptr[1] ? 0xff000000 : 0) | (ptr[0] ? 0xffffff : 0);
-                       ptr2++;
-                       ptr += 2;
-                    }
+                  for (x = 0; x < w; x++, ptr += 2)
+                     *ptr2++ =
+                        (ptr[1] ? 0xff000000 : 0) | (ptr[0] ? 0xffffff : 0);
                }
 
              if (im->lc && __imlib_LoadProgressRows(im, y, 1))
@@ -470,23 +430,13 @@ _load(ImlibImage * im, int load_data)
           }
         else
           {
-             data = malloc(1 * sizeof(uint8_t) * w);
-             if (!data)
-                QUIT_WITH_RC(LOAD_OOM);
-
-             ptr2 = im->data;
              for (y = 0; y < h; y++)
                {
-                  if (mm_read(data, w * 1))
+                  if (!mm_check(ptr + w))
                      goto quit;
 
-                  ptr = data;
-                  for (x = 0; x < w; x++)
-                    {
-                       *ptr2 = 0xff000000 | (ptr[0] ? 0xffffff : 0);
-                       ptr2++;
-                       ptr++;
-                    }
+                  for (x = 0; x < w; x++, ptr++)
+                     *ptr2++ = 0xff000000 | (ptr[0] ? 0xffffff : 0);
                }
 
              if (im->lc && __imlib_LoadProgressRows(im, y, 1))
@@ -497,39 +447,27 @@ _load(ImlibImage * im, int load_data)
      case GRAY_RAW:            /* binary 8bit grayscale GGGGGGGG */
         if (im->has_alpha)
           {
-             data = malloc(2 * sizeof(uint8_t) * w);
-             if (!data)
-                QUIT_WITH_RC(LOAD_OOM);
-
-             ptr2 = im->data;
              for (y = 0; y < h; y++)
                {
-                  if (mm_read(data, w * 2))
+                  if (!mm_check(ptr + 2 * w))
                      goto quit;
 
-                  ptr = data;
                   if (v == 0 || v == 255)
                     {
-                       for (x = 0; x < w; x++)
+                       for (x = 0; x < w; x++, ptr += 2)
                          {
-                            *ptr2 =
-                               ((uint32_t)ptr[1] << 24) | (ptr[0] << 16) |
-                               (ptr[0] << 8) | ptr[0];
-                            ptr2++;
-                            ptr += 2;
+                            aval = ptr[1];
+                            gval = ptr[0];
+                            *ptr2++ = PIXEL_ARGB(aval, gval, gval, gval);
                          }
                     }
                   else
                     {
-                       for (x = 0; x < w; x++)
+                       for (x = 0; x < w; x++, ptr += 2)
                          {
-                            *ptr2 =
-                               ((uint32_t)((ptr[1] * 255) / v) << 24) |
-                               (((ptr[0] * 255) / v) << 16) |
-                               (((ptr[0] * 255) / v) << 8) | ((ptr[0] * 255) /
-                                                              v);
-                            ptr2++;
-                            ptr += 2;
+                            aval = (ptr[1] * 255) / v;
+                            gval = (ptr[0] * 255) / v;
+                            *ptr2++ = PIXEL_ARGB(aval, gval, gval, gval);
                          }
                     }
 
@@ -539,39 +477,25 @@ _load(ImlibImage * im, int load_data)
           }
         else
           {
-             data = malloc(1 * sizeof(uint8_t) * w);
-             if (!data)
-                QUIT_WITH_RC(LOAD_OOM);
-
-             ptr2 = im->data;
              for (y = 0; y < h; y++)
                {
-                  if (mm_read(data, w * 1))
+                  if (!mm_check(ptr + w))
                      goto quit;
 
-                  ptr = data;
                   if (v == 0 || v == 255)
                     {
-                       for (x = 0; x < w; x++)
+                       for (x = 0; x < w; x++, ptr++)
                          {
-                            *ptr2 =
-                               0xff000000 | (ptr[0] << 16) | (ptr[0] << 8) |
-                               ptr[0];
-                            ptr2++;
-                            ptr++;
+                            gval = ptr[0];
+                            *ptr2++ = PIXEL_ARGB(0xff, gval, gval, gval);
                          }
                     }
                   else
                     {
-                       for (x = 0; x < w; x++)
+                       for (x = 0; x < w; x++, ptr++)
                          {
-                            *ptr2 =
-                               0xff000000 |
-                               (((ptr[0] * 255) / v) << 16) |
-                               (((ptr[0] * 255) / v) << 8) | ((ptr[0] * 255) /
-                                                              v);
-                            ptr2++;
-                            ptr++;
+                            gval = (ptr[0] * 255) / v;
+                            *ptr2++ = PIXEL_ARGB(0xff, gval, gval, gval);
                          }
                     }
 
@@ -584,38 +508,22 @@ _load(ImlibImage * im, int load_data)
      case RGB_RAW:             /* 24bit binary RGBRGBRGB */
         if (im->has_alpha)
           {
-             data = malloc(4 * sizeof(uint8_t) * w);
-             if (!data)
-                QUIT_WITH_RC(LOAD_OOM);
-
-             ptr2 = im->data;
              for (y = 0; y < h; y++)
                {
-                  if (mm_read(data, w * 4))
+                  if (!mm_check(ptr + 4 * w))
                      goto quit;
 
-                  ptr = data;
                   if (v == 0 || v == 255)
                     {
-                       for (x = 0; x < w; x++)
-                         {
-                            *ptr2 = PIXEL_ARGB(ptr[3], ptr[0], ptr[1], ptr[2]);
-                            ptr2++;
-                            ptr += 4;
-                         }
+                       for (x = 0; x < w; x++, ptr += 4)
+                          *ptr2++ = PIXEL_ARGB(ptr[3], ptr[0], ptr[1], ptr[2]);
                     }
                   else
                     {
-                       for (x = 0; x < w; x++)
-                         {
-                            *ptr2 =
-                               PIXEL_ARGB((ptr[3] * 255) / v,
-                                          (ptr[0] * 255) / v,
-                                          (ptr[1] * 255) / v,
-                                          (ptr[2] * 255) / v);
-                            ptr2++;
-                            ptr += 4;
-                         }
+                       for (x = 0; x < w; x++, ptr += 4)
+                          *ptr2++ =
+                             PIXEL_ARGB((ptr[3] * 255) / v, (ptr[0] * 255) / v,
+                                        (ptr[1] * 255) / v, (ptr[2] * 255) / v);
                     }
 
                   if (im->lc && __imlib_LoadProgressRows(im, y, 1))
@@ -624,40 +532,22 @@ _load(ImlibImage * im, int load_data)
           }
         else
           {
-             data = malloc(3 * sizeof(uint8_t) * w);
-             if (!data)
-                QUIT_WITH_RC(LOAD_OOM);
-
-             ptr2 = im->data;
              for (y = 0; y < h; y++)
                {
-                  if (mm_read(data, w * 3))
+                  if (!mm_check(ptr + 3 * w))
                      goto quit;
 
-                  ptr = data;
                   if (v == 0 || v == 255)
                     {
-                       for (x = 0; x < w; x++)
-                         {
-                            *ptr2 =
-                               0xff000000 | (ptr[0] << 16) | (ptr[1] << 8) |
-                               ptr[2];
-                            ptr2++;
-                            ptr += 3;
-                         }
+                       for (x = 0; x < w; x++, ptr += 3)
+                          *ptr2++ = PIXEL_ARGB(0xff, ptr[0], ptr[1], ptr[2]);
                     }
                   else
                     {
-                       for (x = 0; x < w; x++)
-                         {
-                            *ptr2 =
-                               0xff000000 |
-                               (((ptr[0] * 255) / v) << 16) |
-                               (((ptr[1] * 255) / v) << 8) | ((ptr[2] * 255) /
-                                                              v);
-                            ptr2++;
-                            ptr += 3;
-                         }
+                       for (x = 0; x < w; x++, ptr += 3)
+                          *ptr2++ =
+                             PIXEL_ARGB(0xff, (ptr[0] * 255) / v,
+                                        (ptr[1] * 255) / v, (ptr[2] * 255) / v);
                     }
 
                   if (im->lc && __imlib_LoadProgressRows(im, y, 1))
@@ -667,31 +557,22 @@ _load(ImlibImage * im, int load_data)
         break;
 
      case XV332:               /* XV's 8bit 332 format */
-        data = malloc(1 * sizeof(uint8_t) * w);
-        if (!data)
-           QUIT_WITH_RC(LOAD_OOM);
-
-        ptr2 = im->data;
         for (y = 0; y < h; y++)
           {
-             if (mm_read(data, w * 1))
+             if (!mm_check(ptr + w))
                 goto quit;
 
-             ptr = data;
-             for (x = 0; x < w; x++)
+             for (x = 0; x < w; x++, ptr++)
                {
-                  int                 r, g, b;
-
-                  r = (*ptr >> 5) & 0x7;
-                  g = (*ptr >> 2) & 0x7;
-                  b = (*ptr) & 0x3;
-                  *ptr2 =
+                  aval = *ptr;
+                  rval = (aval >> 5) & 0x7;
+                  gval = (aval >> 2) & 0x7;
+                  bval = (aval) & 0x3;
+                  *ptr2++ =
                      0xff000000 |
-                     (((r << 21) | (r << 18) | (r << 15)) & 0xff0000) |
-                     (((g << 13) | (g << 10) | (g << 7)) & 0xff00) |
-                     ((b << 6) | (b << 4) | (b << 2) | (b << 0));
-                  ptr2++;
-                  ptr++;
+                     (((rval << 21) | (rval << 18) | (rval << 15)) & 0xff0000) |
+                     (((gval << 13) | (gval << 10) | (gval << 7)) & 0xff00) |
+                     ((bval << 6) | (bval << 4) | (bval << 2) | (bval << 0));
                }
 
              if (im->lc && __imlib_LoadProgressRows(im, y, 1))
@@ -709,9 +590,6 @@ _load(ImlibImage * im, int load_data)
    rc = LOAD_SUCCESS;
 
  quit:
-   free(idata);
-   free(data);
-
    return rc;
 }
 
