@@ -593,6 +593,24 @@ _load(ImlibImage * im, int load_data)
    return rc;
 }
 
+/**INDENT-OFF**/
+static const char fmt_rgb[] =
+    "P6\n"
+    "# PNM File written by Imlib2\n"
+    "%i %i\n"
+    "255\n";
+
+static const char fmt_rgba[] =
+    "P7\n"
+    "# PAM File written by Imlib2\n"
+    "WIDTH %d\n"
+    "HEIGHT %d\n"
+    "DEPTH 4\n"
+    "MAXVAL 255\n"
+    "TUPLTYPE RGB_ALPHA\n"
+    "ENDHDR\n";
+/**INDENT-ON**/
+
 static int
 _save(ImlibImage * im)
 {
@@ -618,8 +636,7 @@ _save(ImlibImage * im)
    /* if the image has a useful alpha channel */
    if (im->has_alpha)
      {
-        fprintf(f, "P8\n" "# PNM File written by Imlib2\n" "%i %i\n" "255\n",
-                im->w, im->h);
+        fprintf(f, fmt_rgba, im->w, im->h);
         for (y = 0; y < im->h; y++)
           {
              bptr = buf;
@@ -641,8 +658,7 @@ _save(ImlibImage * im)
      }
    else
      {
-        fprintf(f, "P6\n" "# PNM File written by Imlib2\n" "%i %i\n" "255\n",
-                im->w, im->h);
+        fprintf(f, fmt_rgb, im->w, im->h);
         for (y = 0; y < im->h; y++)
           {
              bptr = buf;
