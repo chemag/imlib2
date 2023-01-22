@@ -3,8 +3,6 @@
 #include "config.h"
 #include <Imlib2.h>
 
-#include <zlib.h>
-
 #include "test.h"
 
 #define FILE_REF1	"icon-64"       // RGB
@@ -34,7 +32,6 @@ test_scale(int no)
    unsigned int        i, crc;
    Imlib_Image         imi, imo;
    int                 err;
-   unsigned char      *data;
 
 #ifdef DO_MMX_ASM
    // Hmm.. MMX functions appear to produce a slightly different result
@@ -48,12 +45,7 @@ test_scale(int no)
    imi = imlib_load_image(filei);
    ASSERT_TRUE(imi);
 
-   imlib_context_set_image(imi);
-   w = imlib_image_get_width();
-   h = imlib_image_get_height();
-
-   data = (unsigned char *)imlib_image_get_data_for_reading_only();
-   crc = crc32(0, data, w * h * sizeof(uint32_t));
+   crc = image_get_crc32(imi);
    EXPECT_EQ(crc, ptd->crcs[0]);
 
    for (i = 0; i < 4; i++)
@@ -69,8 +61,7 @@ test_scale(int no)
         w = imlib_image_get_width();
         h = imlib_image_get_height();
 
-        data = (unsigned char *)imlib_image_get_data_for_reading_only();
-        crc = crc32(0, data, w * h * sizeof(uint32_t));
+        crc = image_get_crc32(imo);
         EXPECT_EQ(crc, ptd->crcs[i]);
 
         snprintf(fileo, sizeof(fileo), "%s/scale-%s-%dx%d.%s",

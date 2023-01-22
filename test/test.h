@@ -4,9 +4,13 @@
 #define IMG_SRC		SRC_DIR "/images"
 #define IMG_GEN		BLD_DIR "/generated"
 
-#define D(...)  if (debug) printf(__VA_ARGS__)
-#define D2(...) if (debug > 1) printf(__VA_ARGS__)
+#define D(...)  do{ if (debug)     printf(__VA_ARGS__); }while(0)
+#define D2(...) do{ if (debug > 1) printf(__VA_ARGS__); }while(0)
+
+#include <Imlib2.h>
 
 extern int          debug;
+
+unsigned int        image_get_crc32(Imlib_Image im);
 
 #endif /* TEST_H */

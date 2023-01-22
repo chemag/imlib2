@@ -3,8 +3,6 @@
 #include "config.h"
 #include <Imlib2.h>
 
-#include <zlib.h>
-
 #include "test.h"
 
 #define FILE_REF1	"icon-64"       // RGB
@@ -55,7 +53,6 @@ test_rotate(int no, int aa)
    unsigned int        i, ic, crc;
    Imlib_Image         imi, imo;
    int                 err;
-   unsigned char      *data;
 
    ptd = &td[no];
 
@@ -97,8 +94,7 @@ test_rotate(int no, int aa)
         if (err)
            D("Error %d saving '%s'\n", err, fileo);
 
-        data = (unsigned char *)imlib_image_get_data_for_reading_only();
-        crc = crc32(0, data, wo * ho * sizeof(uint32_t));
+        crc = image_get_crc32(imo);
         EXPECT_EQ(crc, ptd->tv[i].crc[ic]);
 
         imlib_context_set_image(imo);

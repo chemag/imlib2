@@ -34,6 +34,7 @@ endif
 # Must have proper -lImlib2 on all progs
  LIBS  = -L$(top_builddir)/src/lib -lImlib2
  LIBS += $(GTEST_LIBS)
+ LIBS += -lz
 
 %.c: $(top_srcdir)/src/lib/%.c
 	ln -s $< $@
@@ -58,7 +59,7 @@ test_load_SOURCES = $(TEST_COMMON) test_load.cpp
 test_load_LDADD = $(LIBS)
 
 test_load_2_SOURCES = $(TEST_COMMON) test_load_2.cpp
-test_load_2_LDADD = $(LIBS) -lz
+test_load_2_LDADD = $(LIBS)
 
 test_save_SOURCES = $(TEST_COMMON) test_save.cpp
 test_save_LDADD = $(LIBS)
@@ -67,10 +68,10 @@ test_grab_SOURCES = $(TEST_COMMON) test_grab.cpp
 test_grab_LDADD = $(LIBS)
 
 test_scale_SOURCES = $(TEST_COMMON) test_scale.cpp
-test_scale_LDADD = $(LIBS) -lz
+test_scale_LDADD = $(LIBS)
 
 test_rotate_SOURCES = $(TEST_COMMON) test_rotate.cpp
-test_rotate_LDADD = $(LIBS) -lz
+test_rotate_LDADD = $(LIBS)
 
  TESTS_RUN = $(addprefix run-, $(GTESTS))
 
