@@ -1,16 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "config.h"
-#define IMLIB2_DEPRECATED       // Suppress deprecation warnings
 #include <Imlib2.h>
 
 #include "test.h"
 
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
-
-#define FILE_REF1	"icon-64"       // RGB
-#define FILE_REF2	"xeyes" // ARGB (shaped)
 
 static const char  *const pfxs[] = {
    "argb",
@@ -41,7 +37,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
 }
 
 static void
-test_save_1(const char *file, const char *ext, int prog)
+test_save_1(const char *file, int prog)
 {
    char                filei[256];
    char                fileo[256];
@@ -56,7 +52,7 @@ test_save_1(const char *file, const char *ext, int prog)
         imlib_context_set_progress_granularity(10);
      }
 
-   snprintf(filei, sizeof(filei), "%s/%s.%s", IMG_SRC, file, ext);
+   snprintf(filei, sizeof(filei), "%s/%s", IMG_SRC, file);
    D("Load '%s'\n", filei);
    im = imlib_load_image(filei);
    ASSERT_TRUE(im);
@@ -137,27 +133,26 @@ test_save_1(const char *file, const char *ext, int prog)
 
 TEST(SAVE, save_1n_rgb)
 {
-   test_save_1(FILE_REF1, "png", 0);
+   test_save_1("icon-64.png", 0);
 }
 
 TEST(SAVE, save_1p_rgb)
 {
-   test_save_1(FILE_REF1, "png", 1);
+   test_save_1("icon-64.png", 1);
 }
 
 TEST(SAVE, save_1n_argb)
 {
-   test_save_1(FILE_REF2, "png", 0);
+   test_save_1("xeyes.png", 0);
 }
 
 TEST(SAVE, save_1p_argb)
 {
-   test_save_1(FILE_REF2, "png", 1);
+   test_save_1("xeyes.png", 1);
 }
 
 static void
-test_save_2(const char *file, const char *ext, const char *fmt,
-            bool load_imm, bool sok)
+test_save_2(const char *file, const char *fmt, bool load_imm, bool sok)
 {
    char                filei[256];
    char                fileo[256];
@@ -166,7 +161,7 @@ test_save_2(const char *file, const char *ext, const char *fmt,
 
    imlib_flush_loaders();
 
-   snprintf(filei, sizeof(filei), "%s/%s.%s", IMG_SRC, file, ext);
+   snprintf(filei, sizeof(filei), "%s/%s", IMG_SRC, file);
 
    D("Load '%s'\n", filei);
    err = 0;
@@ -179,7 +174,7 @@ test_save_2(const char *file, const char *ext, const char *fmt,
 
    imlib_context_set_image(im);
 
-   snprintf(fileo, sizeof(fileo), "%s/save-%s-%s.%s", IMG_GEN, file, ext, fmt);
+   snprintf(fileo, sizeof(fileo), "%s/save-%s.%s", IMG_GEN, file, fmt);
 
    D("Save '%s'\n", fileo);
    imlib_image_set_format(fmt);
@@ -205,20 +200,20 @@ TEST(SAVE, save_2a_immed)
 {
    bool                immed = true;
 
-   test_save_2(FILE_REF1, "png", "png", immed, true);
-   test_save_2(FILE_REF1, "png", "ppm", immed, true);
-   test_save_2(FILE_REF1, "ppm", "ppm", immed, true);
-   test_save_2(FILE_REF1, "ppm", "png", immed, true);
+   test_save_2("icon-64.png", "png", immed, true);
+   test_save_2("icon-64.png", "ppm", immed, true);
+   test_save_2("icon-64.ppm", "ppm", immed, true);
+   test_save_2("icon-64.ppm", "png", immed, true);
 }
 
 TEST(SAVE, save_2a_defer)
 {
    bool                immed = false;
 
-   test_save_2(FILE_REF1, "png", "png", immed, true);
-   test_save_2(FILE_REF1, "png", "ppm", immed, true);
-   test_save_2(FILE_REF1, "ppm", "ppm", immed, true);
-   test_save_2(FILE_REF1, "ppm", "png", immed, true);
+   test_save_2("icon-64.png", "png", immed, true);
+   test_save_2("icon-64.png", "ppm", immed, true);
+   test_save_2("icon-64.ppm", "ppm", immed, true);
+   test_save_2("icon-64.ppm", "png", immed, true);
 }
 
 // No gif saver
@@ -226,14 +221,14 @@ TEST(SAVE, save_2b_immed)
 {
    bool                immed = true;
 
-   test_save_2(FILE_REF1, "gif", "svg", immed, false);
-   test_save_2(FILE_REF1, "gif", "png", immed, true);
+   test_save_2("icon-64.gif", "svg", immed, false);
+   test_save_2("icon-64.gif", "png", immed, true);
 }
 
 TEST(SAVE, save_2b_defer)
 {
    bool                immed = false;
 
-   test_save_2(FILE_REF1, "gif", "svg", immed, false);
-   test_save_2(FILE_REF1, "gif", "png", immed, true);
+   test_save_2("icon-64.gif", "svg", immed, false);
+   test_save_2("icon-64.gif", "png", immed, true);
 }
