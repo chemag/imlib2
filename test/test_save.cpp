@@ -8,23 +8,40 @@
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
 
-static const char  *const pfxs[] = {
-   "argb",
-   "bmp",
-   "ff",
-// "gif",
-// "ico",
-   "jpeg",
-// "lbm",
-   "png",
-   "pnm",
-   "tga",
-   "tiff",
-   "webp",
-   "xbm",
-// "xpm",
+typedef struct {
+   const char         *ext;
+   unsigned int        crc[2];
+} test_rec_t;
+
+/**INDENT-OFF**/
+static const test_rec_t exts[] = {
+// { "ani",  { 0, 0 } },
+   { "argb", { 1153555547, 2937827957 } },
+   { "bmp",  { 1153555547, 1920678052 } },
+// { "bz2",  { 0, 0 } },
+   { "ff",   { 1153555547, 2937827957 } },
+// { "gif",  { 0, 0 } },
+// { "heif", { 0, 0 } },
+// { "ico",  { 0, 0 } },
+// { "id3",  { 0, 0 } },
+// { "j2k",  { 0, 0 } },
+   { "jpeg", { 2458451111, 3483232328 } },
+// { "jxl",  { 0, 0 } },
+// { "lbm",  { 0, 0 } },
+// { "lzma", { 0, 0 } },
+   { "png",  { 1153555547, 2937827957 } },
+   { "pnm",  { 1153555547, 2937827957 } },
+// { "ps",   { 0, 0 } },
+// { "svg",  { 0, 0 } },
+   { "tga",  { 1153555547, 2937827957 } },
+   { "tiff", { 1153555547, 2937827957 } },
+   { "webp", { 1698406918, 1844000264 } },
+   { "xbm",  { 4292907803,  914370483 } },
+// { "xpm",  { 0, 0 } },
+// { "zlib", { 0, 0 } },
 };
-#define N_PFX (sizeof(pfxs) / sizeof(char*))
+#define N_PFX (sizeof(exts) / sizeof(exts[0]))
+/**INDENT-ON**/
 
 static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
@@ -37,13 +54,14 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
 }
 
 static void
-test_save_1(const char *file, int prog)
+test_save_1(const char *file, int prog, int check = 0)
 {
    char                filei[256];
    char                fileo[256];
-   unsigned int        i;
+   unsigned int        i, crc;
+   const char         *ext;
    int                 w, h, err;
-   Imlib_Image         im, im1, im2, im3;
+   Imlib_Image         im, im1, im2, im3, imr;
    Imlib_Load_Error    lerr;
 
    if (prog)
@@ -70,24 +88,40 @@ test_save_1(const char *file, int prog)
 
    for (i = 0; i < N_PFX; i++)
      {
+        ext = exts[i].ext;
+
         imlib_context_set_image(im);
-        imlib_image_set_format(pfxs[i]);
+        imlib_image_set_format(ext);
         w = imlib_image_get_width();
         h = imlib_image_get_height();
         snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
-                 IMG_GEN, file, w, h, pfxs[i]);
+                 IMG_GEN, file, w, h, ext);
         D("Save '%s'\n", fileo);
         imlib_save_image_with_errno_return(fileo, &err);
         EXPECT_EQ(err, 0);
         if (err)
-           D("Error %d saving '%s'\n", err, fileo);
+          {
+             D("Error %d saving '%s'\n", err, fileo);
+             continue;
+          }
+
+        if (check)
+          {
+             /* Check saved image */
+             imr = imlib_load_image(fileo);
+             ASSERT_TRUE(imr);
+             crc = image_get_crc32(imr);
+             EXPECT_EQ(exts[i].crc[check - 1], crc);
+             imlib_context_set_image(imr);
+             imlib_free_image_and_decache();
+          }
 
         imlib_context_set_image(im1);
-        imlib_image_set_format(pfxs[i]);
+        imlib_image_set_format(ext);
         w = imlib_image_get_width();
         h = imlib_image_get_height();
         snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
-                 IMG_GEN, file, w, h, pfxs[i]);
+                 IMG_GEN, file, w, h, ext);
         D("Save '%s'\n", fileo);
         imlib_save_image_with_error_return(fileo, &lerr);
         EXPECT_EQ(lerr, 0);
@@ -95,11 +129,11 @@ test_save_1(const char *file, int prog)
            D("Error %d saving '%s'\n", lerr, fileo);
 
         imlib_context_set_image(im2);
-        imlib_image_set_format(pfxs[i]);
+        imlib_image_set_format(ext);
         w = imlib_image_get_width();
         h = imlib_image_get_height();
         snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
-                 IMG_GEN, file, w, h, pfxs[i]);
+                 IMG_GEN, file, w, h, ext);
         D("Save '%s'\n", fileo);
         imlib_save_image_with_errno_return(fileo, &err);
         EXPECT_EQ(err, 0);
@@ -107,11 +141,11 @@ test_save_1(const char *file, int prog)
            D("Error %d saving '%s'\n", err, fileo);
 
         imlib_context_set_image(im3);
-        imlib_image_set_format(pfxs[i]);
+        imlib_image_set_format(ext);
         w = imlib_image_get_width();
         h = imlib_image_get_height();
         snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
-                 IMG_GEN, file, w, h, pfxs[i]);
+                 IMG_GEN, file, w, h, ext);
         D("Save '%s'\n", fileo);
         imlib_save_image_with_error_return(fileo, &lerr);
         EXPECT_EQ(lerr, 0);
@@ -133,7 +167,7 @@ test_save_1(const char *file, int prog)
 
 TEST(SAVE, save_1n_rgb)
 {
-   test_save_1("icon-64.png", 0);
+   test_save_1("icon-64.png", 0, 1);
 }
 
 TEST(SAVE, save_1p_rgb)
@@ -143,7 +177,7 @@ TEST(SAVE, save_1p_rgb)
 
 TEST(SAVE, save_1n_argb)
 {
-   test_save_1("xeyes.png", 0);
+   test_save_1("xeyes.png", 0, 2);
 }
 
 TEST(SAVE, save_1p_argb)
@@ -152,12 +186,14 @@ TEST(SAVE, save_1p_argb)
 }
 
 static void
-test_save_2(const char *file, const char *fmt, bool load_imm, bool sok)
+test_save_2(const char *file, const char *fmt, bool load_imm, bool sok,
+            unsigned int crc_exp = 0)
 {
    char                filei[256];
    char                fileo[256];
    int                 err;
    Imlib_Image         im;
+   unsigned int        crc;
 
    imlib_flush_loaders();
 
@@ -193,6 +229,16 @@ test_save_2(const char *file, const char *fmt, bool load_imm, bool sok)
      }
 
    imlib_free_image_and_decache();
+
+   if (!sok)
+      return;
+
+   D("Check '%s' ... ", fileo);
+   im = imlib_load_image(fileo);
+   ASSERT_TRUE(im);
+   crc = image_get_crc32(im);
+   EXPECT_EQ(crc_exp, crc);
+   D("ok\n");
 }
 
 // png and ppm(pnm) have savers
@@ -200,29 +246,28 @@ TEST(SAVE, save_2a_immed)
 {
    bool                immed = true;
 
-   test_save_2("icon-64.png", "png", immed, true);
-   test_save_2("icon-64.png", "ppm", immed, true);
-   test_save_2("icon-64.ppm", "ppm", immed, true);
-   test_save_2("icon-64.ppm", "png", immed, true);
+   test_save_2("icon-64.png", "png", immed, true, 1153555547);
+   test_save_2("icon-64.png", "ppm", immed, true, 1153555547);
+   test_save_2("icon-64.ppm", "ppm", immed, true, 1153555547);
+   test_save_2("icon-64.ppm", "png", immed, true, 1153555547);
 }
 
 TEST(SAVE, save_2a_defer)
 {
    bool                immed = false;
 
-   test_save_2("icon-64.png", "png", immed, true);
-   test_save_2("icon-64.png", "ppm", immed, true);
-   test_save_2("icon-64.ppm", "ppm", immed, true);
-   test_save_2("icon-64.ppm", "png", immed, true);
+   test_save_2("icon-64.png", "png", immed, true, 1153555547);
+   test_save_2("icon-64.png", "ppm", immed, true, 1153555547);
+   test_save_2("icon-64.ppm", "ppm", immed, true, 1153555547);
+   test_save_2("icon-64.ppm", "png", immed, true, 1153555547);
 }
 
-// No gif saver
 TEST(SAVE, save_2b_immed)
 {
    bool                immed = true;
 
    test_save_2("icon-64.gif", "svg", immed, false);
-   test_save_2("icon-64.gif", "png", immed, true);
+   test_save_2("icon-64.gif", "png", immed, true, 4016720483);
 }
 
 TEST(SAVE, save_2b_defer)
@@ -230,5 +275,5 @@ TEST(SAVE, save_2b_defer)
    bool                immed = false;
 
    test_save_2("icon-64.gif", "svg", immed, false);
-   test_save_2("icon-64.gif", "png", immed, true);
+   test_save_2("icon-64.gif", "png", immed, true, 4016720483);
 }
