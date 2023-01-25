@@ -20,6 +20,9 @@ Tmp_HandleXError(Display * d, XErrorEvent * ev)
    return 0;
 }
 
+/* xim->data is properly aligned (malloc'ed), assuming bytes_per_line behaves */
+#define PTR(T, im_, y_) (T*)(void*)(im_->data + (im_->bytes_per_line * y_))
+
 void
 __imlib_GrabXImageToRGBA(uint32_t * data,
                          int x_dst, int y_dst, int w_dst, int h_dst,
@@ -81,10 +84,9 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
           case 16:
              for (y = 0; y < h_src; y++)
                {
-                  unsigned short     *tmp;
+                  uint16_t           *tmp;
 
-                  tmp =
-                     (unsigned short *)(xim->data + (xim->bytes_per_line * y));
+                  tmp = PTR(uint16_t, xim, y);
                   for (x = 0; x < w_src; x++)
                     {
                        *tmp = SWAP16(*tmp);
@@ -98,9 +100,9 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
           case 32:
              for (y = 0; y < h_src; y++)
                {
-                  unsigned int       *tmp;
+                  uint32_t           *tmp;
 
-                  tmp = (unsigned int *)(xim->data + (xim->bytes_per_line * y));
+                  tmp = PTR(uint32_t, xim, y);
                   for (x = 0; x < w_src; x++)
                     {
                        *tmp = SWAP32(*tmp);
@@ -179,7 +181,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
           {
              for (y = 0; y < h_src; y++)
                {
-                  s16 = (uint16_t *) (xim->data + (xim->bytes_per_line * y));
+                  s16 = PTR(uint16_t, xim, y);
                   ptr = data + ((y + iny) * w_dst) + inx;
                   for (x = 0; x < w_src; x++)
                     {
@@ -193,7 +195,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
           {
              for (y = 0; y < h_src; y++)
                {
-                  s16 = (uint16_t *) (xim->data + (xim->bytes_per_line * y));
+                  s16 = PTR(uint16_t, xim, y);
                   ptr = data + ((y + iny) * w_dst) + inx;
                   for (x = 0; x < w_src; x++)
                     {
@@ -226,7 +228,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
           {
              for (y = 0; y < h_src; y++)
                {
-                  s16 = (uint16_t *) (xim->data + (xim->bytes_per_line * y));
+                  s16 = PTR(uint16_t, xim, y);
                   ptr = data + ((y + iny) * w_dst) + inx;
                   for (x = 0; x < w_src; x++)
                     {
@@ -240,7 +242,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
           {
              for (y = 0; y < h_src; y++)
                {
-                  s16 = (uint16_t *) (xim->data + (xim->bytes_per_line * y));
+                  s16 = PTR(uint16_t, xim, y);
                   ptr = data + ((y + iny) * w_dst) + inx;
                   for (x = 0; x < w_src; x++)
                     {
@@ -324,8 +326,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -342,8 +343,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -361,8 +361,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -378,8 +377,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -397,8 +395,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -416,8 +413,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -436,8 +432,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -455,8 +450,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -477,8 +471,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -494,8 +487,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -511,8 +503,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
@@ -527,8 +518,7 @@ __imlib_GrabXImageToRGBA(uint32_t * data,
                {
                   for (y = 0; y < h_src; y++)
                     {
-                       src =
-                          (uint32_t *) (xim->data + (xim->bytes_per_line * y));
+                       src = PTR(uint32_t, xim, y);
                        ptr = data + ((y + iny) * w_dst) + inx;
                        for (x = 0; x < w_src; x++)
                          {
