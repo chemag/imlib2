@@ -28,7 +28,8 @@ static const char  *const _formats[] = { "ani" };
 typedef struct {
    unsigned char       nest;
    int                 nframes, nfsteps;
-   uint32_t           *rates, *seq;
+   const uint32_t     *rates;
+   const uint32_t     *seq;
 } riff_ctx_t;
 
 typedef struct {
@@ -119,7 +120,8 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
              break;
           }
 
-        chunk = (const ani_chunk_t *)fptr;
+        chunk = PCAST(const ani_chunk_t *, fptr);
+
         type = SWAP_LE_32(chunk->hdr.type);
         size = SWAP_LE_32(chunk->hdr.size);
 
@@ -202,7 +204,8 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
              pf->frame_delay = (1000 * SWAP_LE_32(AH.rate)) / 60;
              break;
           case RIFF_TYPE_rate:
-             ctx->rates = (uint32_t *) (fptr + 8);
+             ctx->rates = PCAST(const uint32_t *, fptr + 8);
+
              if ((int)size != 4 * ctx->nfsteps)
                {
                   D("rate chunk size mismatch: %d != %d\n", size,
@@ -216,7 +219,8 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
              Dx("\n");
              break;
           case RIFF_TYPE_seq:
-             ctx->seq = (uint32_t *) (fptr + 8);
+             ctx->seq = PCAST(const uint32_t *, fptr + 8);
+
              if ((int)size != 4 * ctx->nfsteps)
                {
                   D("seq chunk size mismatch: %d != %d\n", size,

@@ -681,7 +681,7 @@ _load(ImlibImage * im, int load_data)
           {
              for (x = 0; x < w && buffer_ptr < buffer_end_safe; x++)
                {
-                  pixel = *(unsigned short *)buffer_ptr;
+                  pixel = *PCAST(const unsigned short *, buffer_ptr);
 
                   if (im->has_alpha)
                      a = SCALE(a, pixel);
@@ -730,7 +730,7 @@ _load(ImlibImage * im, int load_data)
           {
              for (x = 0; x < w && buffer_ptr < buffer_end_safe; x++)
                {
-                  pixel = *(unsigned int *)buffer_ptr;
+                  pixel = *PCAST(const unsigned int *, buffer_ptr);
 
                   if (im->has_alpha)
                      a = SCALE(a, pixel);

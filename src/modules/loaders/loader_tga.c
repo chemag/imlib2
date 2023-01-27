@@ -94,7 +94,8 @@ _load(ImlibImage * im, int load_data)
 
    if (im->fi->fsize > (int)(sizeof(tga_footer)))
      {
-        footer = (tga_footer *) (fptr + im->fi->fsize - sizeof(tga_footer));
+        footer =
+           PCAST(const tga_footer *, fptr + im->fi->fsize - sizeof(tga_footer));
 
         /* check the footer to see if we have a v2.0 TGA file */
         footer_present = memcmp(footer->signature, TGA_SIGNATURE,

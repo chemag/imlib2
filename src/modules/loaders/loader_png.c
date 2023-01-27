@@ -244,7 +244,8 @@ row_callback(png_struct * png_ptr, png_byte * new_row,
            PNG_PASS_COLS(im->w, pass), PNG_PASS_ROWS(im->h, pass));
         y = y0 + dy * row_num;
 
-        sptr = (const uint32_t *)new_row;       /* Assuming aligned */
+        sptr = PCAST(const uint32_t *, new_row);        /* Assuming aligned */
+
         dptr = im->data + y * im->w;
         for (x = x0; x < im->w; x += dx)
           {
@@ -341,7 +342,8 @@ _load(ImlibImage * im, int load_data)
 
    for (ic = 0;; ic++, fptr += 8 + len + 4)
      {
-        chunk = (const png_chunk_t *)fptr;
+        chunk = PCAST(const png_chunk_t *, fptr);
+
         len = htonl(chunk->hdr.len);
         D("Scan %3d: %06lx: %6d: %.4s: ", ic,
           fptr - (unsigned char *)im->fi->fdata, len, chunk->hdr.name);
@@ -429,7 +431,8 @@ _load(ImlibImage * im, int load_data)
 
    for (ic = 0;; ic++, fptr += 8 + len + 4)
      {
-        chunk = (const png_chunk_t *)fptr;
+        chunk = PCAST(const png_chunk_t *, fptr);
+
         len = htonl(chunk->hdr.len);
         D("Chunk %3d: %06lx: %6d: %.4s: ", ic,
           fptr - (unsigned char *)im->fi->fdata, len, chunk->hdr.name);

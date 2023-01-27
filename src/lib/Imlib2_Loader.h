@@ -224,4 +224,6 @@ int                 decompress_load(ImlibImage * im, int load_data,
 
 #define QUIT_WITH_RC(_err) { rc = _err; goto quit; }
 
+#define PCAST(T, p) ((T)(const void *)(p))
+
 #endif /* IMLIB2_LOADER_H */
