@@ -2864,7 +2864,7 @@ __imlib_RGBA_init(void *rd, void *gd, void *bd, int depth, int palette_type)
 }
 
 static void
-__imlib_RGBA_to_RGB565_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB565_fast(const uint32_t * src, int src_jump,
                             uint8_t * dst, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -2931,7 +2931,7 @@ __imlib_RGBA_to_RGB565_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB565_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB565_dither(const uint32_t * src, int src_jump,
                               uint8_t * dst, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -3000,7 +3000,7 @@ __imlib_RGBA_to_RGB565_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_BGR565_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_BGR565_fast(const uint32_t * src, int src_jump,
                             uint8_t * dst, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -3067,7 +3067,7 @@ __imlib_RGBA_to_BGR565_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_BGR565_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_BGR565_dither(const uint32_t * src, int src_jump,
                               uint8_t * dst, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -3136,7 +3136,7 @@ __imlib_RGBA_to_BGR565_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB555_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB555_fast(const uint32_t * src, int src_jump,
                             uint8_t * dst, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -3203,7 +3203,7 @@ __imlib_RGBA_to_RGB555_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB555_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB555_dither(const uint32_t * src, int src_jump,
                               uint8_t * dst, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -3272,7 +3272,7 @@ __imlib_RGBA_to_RGB555_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_BGR555_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_BGR555_fast(const uint32_t * src, int src_jump,
                             uint8_t * dst, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -3339,7 +3339,7 @@ __imlib_RGBA_to_BGR555_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_BGR555_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_BGR555_dither(const uint32_t * src, int src_jump,
                               uint8_t * dst, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -3408,7 +3408,7 @@ __imlib_RGBA_to_BGR555_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB332_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB332_fast(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -3503,7 +3503,7 @@ __imlib_RGBA_to_RGB332_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB332_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB332_dither(const uint32_t * src, int src_jump,
                               uint8_t * dest, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -3580,7 +3580,7 @@ __imlib_RGBA_to_RGB332_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB666_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB666_fast(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -3675,7 +3675,7 @@ __imlib_RGBA_to_RGB666_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB666_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB666_dither(const uint32_t * src, int src_jump,
                               uint8_t * dest, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -3752,7 +3752,7 @@ __imlib_RGBA_to_RGB666_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB232_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB232_fast(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -3847,7 +3847,7 @@ __imlib_RGBA_to_RGB232_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB232_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB232_dither(const uint32_t * src, int src_jump,
                               uint8_t * dest, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -3924,7 +3924,7 @@ __imlib_RGBA_to_RGB232_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB222_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB222_fast(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -4019,7 +4019,7 @@ __imlib_RGBA_to_RGB222_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB222_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB222_dither(const uint32_t * src, int src_jump,
                               uint8_t * dest, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -4096,7 +4096,7 @@ __imlib_RGBA_to_RGB222_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB221_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB221_fast(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -4191,7 +4191,7 @@ __imlib_RGBA_to_RGB221_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB221_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB221_dither(const uint32_t * src, int src_jump,
                               uint8_t * dest, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -4268,7 +4268,7 @@ __imlib_RGBA_to_RGB221_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB121_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB121_fast(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -4363,7 +4363,7 @@ __imlib_RGBA_to_RGB121_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB121_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB121_dither(const uint32_t * src, int src_jump,
                               uint8_t * dest, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -4440,7 +4440,7 @@ __imlib_RGBA_to_RGB121_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB111_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB111_fast(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -4535,7 +4535,7 @@ __imlib_RGBA_to_RGB111_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB111_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB111_dither(const uint32_t * src, int src_jump,
                               uint8_t * dest, int dow,
                               int width, int height, int dx, int dy)
 {
@@ -4612,7 +4612,7 @@ __imlib_RGBA_to_RGB111_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB1_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB1_fast(const uint32_t * src, int src_jump,
                           uint8_t * dest, int dow,
                           int width, int height, int dx, int dy)
 {
@@ -4634,7 +4634,7 @@ __imlib_RGBA_to_RGB1_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB1_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB1_dither(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -4656,7 +4656,7 @@ __imlib_RGBA_to_RGB1_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_A1_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_A1_fast(const uint32_t * src, int src_jump,
                         uint8_t * dest, int dow,
                         int width, int height, int dx, int dy, int threshold)
 {
@@ -4678,7 +4678,7 @@ __imlib_RGBA_to_A1_fast(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_A1_dither(uint32_t * src, int src_jump,
+__imlib_RGBA_to_A1_dither(const uint32_t * src, int src_jump,
                           uint8_t * dest, int dow,
                           int width, int height, int dx, int dy, int threshold)
 {
@@ -4700,7 +4700,7 @@ __imlib_RGBA_to_A1_dither(uint32_t * src, int src_jump,
 }
 
 static void
-__imlib_RGBA_to_RGB8888_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB8888_fast(const uint32_t * src, int src_jump,
                              uint8_t * dst, int dow,
                              int width, int height, int dx, int dy)
 {
@@ -4726,7 +4726,7 @@ __imlib_RGBA_to_RGB8888_fast(uint32_t * src, int src_jump,
 
 #if 0                           /* Unused */
 static void
-__imlib_RGBA_to_BGR8888_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_BGR8888_fast(const uint32_t * src, int src_jump,
                              uint8_t * dst, int dow,
                              int width, int height, int dx, int dy)
 {
@@ -4750,7 +4750,7 @@ __imlib_RGBA_to_BGR8888_fast(uint32_t * src, int src_jump,
 #endif
 
 static void
-__imlib_RGBA_to_RGB888_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_RGB888_fast(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -4773,7 +4773,7 @@ __imlib_RGBA_to_RGB888_fast(uint32_t * src, int src_jump,
 
 #if 0                           /* Unused */
 static void
-__imlib_RGBA_to_BGR888_fast(uint32_t * src, int src_jump,
+__imlib_RGBA_to_BGR888_fast(const uint32_t * src, int src_jump,
                             uint8_t * dest, int dow,
                             int width, int height, int dx, int dy)
 {
@@ -4797,7 +4797,7 @@ __imlib_RGBA_to_BGR888_fast(uint32_t * src, int src_jump,
 
 #if 0                           /* Unused */
 static void
-__imlib_RGBA_to_Nothing(uint32_t * src, int src_jump,
+__imlib_RGBA_to_Nothing(const uint32_t * src, int src_jump,
                         uint8_t * dest, int dow,
                         int width, int height, int dx, int dy)
 {
