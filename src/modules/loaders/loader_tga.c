@@ -49,7 +49,7 @@ typedef struct {
    unsigned char       descriptor;
 } tga_header;
 
-typedef struct {
+typedef struct __PACKED__ {
    unsigned int        extensionAreaOffset;
    unsigned int        developerDirectoryOffset;
    char                signature[16];

@@ -32,7 +32,7 @@ typedef struct {
    const uint32_t     *seq;
 } riff_ctx_t;
 
-typedef struct {
+typedef struct __PACKED__ {
    struct {
       uint32_t            type; // Chunk type
       uint32_t            size; // Chunk size

@@ -32,7 +32,7 @@ static const char  *const _formats[] = { "png" };
 
 #define mm_check(p) ((const char *)(p) <= (const char *)im->fi->fdata + im->fi->fsize)
 
-typedef struct {
+typedef struct __PACKED__ {
    uint32_t            len;
    union {
       uint32_t            type;
@@ -41,7 +41,7 @@ typedef struct {
 } png_chunk_hdr_t;
 
 /* IHDR */
-typedef struct {
+typedef struct __PACKED__ {
    uint32_t            w;       // Width
    uint32_t            h;       // Height
    uint8_t             depth;   // Bit depth  (1, 2, 4, 8, or 16)
@@ -54,13 +54,13 @@ typedef struct {
 #define _PNG_IHDR_SIZE	(4 + 4 + 13 + 4)
 
 /* acTL */
-typedef struct {
+typedef struct __PACKED__ {
    uint32_t            num_frames;      // Number of frames
    uint32_t            num_plays;       // Number of times to loop this APNG.  0 indicates infinite looping.
 } png_actl_t;
 
 /* fcTL */
-typedef struct {
+typedef struct __PACKED__ {
    uint32_t            frame;   // --   // Sequence number of the animation chunk, starting from 0
    uint32_t            w;       // --   // Width of the following frame
    uint32_t            h;       // --   // Height of the following frame
@@ -73,12 +73,12 @@ typedef struct {
 } png_fctl_t;
 
 /* fdAT */
-typedef struct {
+typedef struct __PACKED__ {
    uint32_t            frame;   // --   // Sequence number of the animation chunk, starting from 0
    uint8_t             data[];
 } png_fdat_t;
 
-typedef struct {
+typedef struct __PACKED__ {
    png_chunk_hdr_t     hdr;
    union {
       png_ihdr_t          ihdr;
