@@ -32,16 +32,27 @@ typedef struct {
 } riff_ctx_t;
 
 typedef struct {
-   uint32_t            size;    // Size of chunk data (=36)
-   uint32_t            frames;  // Number of frames in file
-   uint32_t            steps;   // Number of steps in animation sequence
-   uint32_t            width;   // Image width (raw data only?)
-   uint32_t            height;  // Image height (raw data only?)
-   uint32_t            bpp;     // Bits per pixel (raw data only?)
-   uint32_t            planes;  // N. planes (raw data only?)
-   uint32_t            rate;    // Default rate in 1/60s
-   uint32_t            flags;   // Flags: ANIH_FLAG_...
-} anih_data_t;
+   struct {
+      uint32_t            type; // Chunk type
+      uint32_t            size; // Chunk size
+   } hdr;
+   union {
+      struct {
+         uint32_t            name;      // List name
+      } list;
+      struct {
+         uint32_t            size;      // Size of chunk data (=36)
+         uint32_t            frames;    // Number of frames in file
+         uint32_t            steps;     // Number of steps in animation sequence
+         uint32_t            width;     // Image width (raw data only?)
+         uint32_t            height;    // Image height (raw data only?)
+         uint32_t            bpp;       // Bits per pixel (raw data only?)
+         uint32_t            planes;    // N. planes (raw data only?)
+         uint32_t            rate;      // Default rate in 1/60s
+         uint32_t            flags;     // Flags: ANIH_FLAG_...
+      } anih;
+   };
+} ani_chunk_t;
 
 #define ANIH_FLAG_ICO	0x01    // Frames are icons or cursors (otherwiwe raw - bmp?)
 #define ANIH_FLAG_SEQ	0x02    // Image contains seq chunk
@@ -76,7 +87,6 @@ _load_embedded(ImlibImage * im, int load_data, const char *data,
    return rc;
 }
 
-#define LE32(p) (SWAP_LE_32(*((const uint32_t*)(p))))
 #define OFFS(p) ((const char*)(p) - (const char*)im->fi->fdata)
 
 static int
@@ -88,6 +98,7 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
    int                 size, avail;
    int                 fcount, i;
    ImlibImageFrame    *pf;
+   const ani_chunk_t  *chunk;
 
    rc = LOAD_FAIL;
    ctx->nest += 1;
@@ -108,8 +119,9 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
              break;
           }
 
-        type = LE32(fptr);
-        size = LE32(fptr + 4);
+        chunk = (const ani_chunk_t *)fptr;
+        type = SWAP_LE_32(chunk->hdr.type);
+        size = SWAP_LE_32(chunk->hdr.size);
 
         D("%5lu: %*s Chunk: %.4s size %u: ",
           OFFS(fptr), ctx->nest, "", fptr, size);
@@ -118,7 +130,8 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
           {
              Dx("\n");
              /* First chunk of file */
-             if (type != RIFF_TYPE_RIFF || (LE32(fptr + 8)) != RIFF_NAME_ACON)
+             if (type != RIFF_TYPE_RIFF ||
+                 (SWAP_LE_32(chunk->list.name)) != RIFF_NAME_ACON)
                 return LOAD_FAIL;
              size = 4;
              continue;
@@ -161,16 +174,16 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
              rc = _load_embedded(im, 1, fptr + 8, size);
              break;
           case RIFF_TYPE_anih:
-#define AH ((const anih_data_t*)(fptr + 8))
+#define AH (chunk->anih)
 /**INDENT-OFF**/
              Dx("sz=%u nf=%u/%u WxH=%ux%u bc=%u np=%u dr=%u fl=%u\n",
-	        SWAP_LE_32(AH->size), SWAP_LE_32(AH->frames), SWAP_LE_32(AH->steps),
-	        SWAP_LE_32(AH->width), SWAP_LE_32(AH->height),
-	        SWAP_LE_32(AH->bpp), SWAP_LE_32(AH->planes),
-	        SWAP_LE_32(AH->rate), SWAP_LE_32(AH->flags));
+	        SWAP_LE_32(AH.size), SWAP_LE_32(AH.frames), SWAP_LE_32(AH.steps),
+	        SWAP_LE_32(AH.width), SWAP_LE_32(AH.height),
+	        SWAP_LE_32(AH.bpp), SWAP_LE_32(AH.planes),
+	        SWAP_LE_32(AH.rate), SWAP_LE_32(AH.flags));
 /**INDENT-ON**/
-             ctx->nframes = SWAP_LE_32(AH->frames);
-             ctx->nfsteps = SWAP_LE_32(AH->steps);
+             ctx->nframes = SWAP_LE_32(AH.frames);
+             ctx->nfsteps = SWAP_LE_32(AH.steps);
              if (im->frame <= 0)
                 break;
              if (ctx->nfsteps < ctx->nframes)
@@ -186,7 +199,7 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
              pf->frame_count = ctx->nfsteps;
              if (ctx->nframes > 1)
                 pf->frame_flags = FF_IMAGE_ANIMATED;
-             pf->frame_delay = (1000 * SWAP_LE_32(AH->rate)) / 60;
+             pf->frame_delay = (1000 * SWAP_LE_32(AH.rate)) / 60;
              break;
           case RIFF_TYPE_rate:
              ctx->rates = (uint32_t *) (fptr + 8);
