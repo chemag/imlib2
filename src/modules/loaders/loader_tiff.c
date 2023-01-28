@@ -8,7 +8,7 @@
 
 static const char  *const _formats[] = { "tiff", "tif" };
 
-#define DD(fmt...)  DC(0x80, fmt)
+#define DD(fmt...)  DC(DBG_PFX, 0x80, fmt)
 
 static struct {
    const unsigned char *data, *dptr;

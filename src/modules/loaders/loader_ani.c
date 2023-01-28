@@ -8,12 +8,6 @@
 #include "config.h"
 #include "Imlib2_Loader.h"
 
-#if IMLIB2_DEBUG
-#define Dx(fmt...) if (__imlib_debug & DBG_LDR) __imlib_printf(NULL, fmt)
-#else
-#define Dx(fmt...)
-#endif
-
 #define DBG_PFX "LDR-ani"
 
 #define T(a,b,c,d) ((a << 0) | (b << 8) | (c << 16) | (d << 24))

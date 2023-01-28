@@ -69,15 +69,16 @@ typedef struct _ImlibImage ImlibImage;
 
 #if IMLIB2_DEBUG
 
-#define DC(M, fmt...) if (__imlib_debug & M) __imlib_printf(DBG_PFX, fmt)
+#define DC(PFX, M, fmt...) if (__imlib_debug & M) __imlib_printf(PFX, fmt)
 
 #define DBG_FILE	0x0001
 #define DBG_LOAD	0x0002
 #define DBG_LDR 	0x0004
 #define DBG_LDR2	0x0008
 
-#define D(fmt...)  DC(DBG_LDR, fmt)
-#define DL(fmt...) DC(DBG_LDR2, fmt)
+#define D(fmt...)  DC(DBG_PFX, DBG_LDR, fmt)
+#define Dx(fmt...) DC(NULL, DBG_LDR, fmt)
+#define DL(fmt...) DC(DBG_PFX, DBG_LDR2, fmt)
 
 extern unsigned int __imlib_debug;
 
@@ -87,8 +88,9 @@ unsigned int        __imlib_time_us(void);
 
 #else
 
-#define D(fmt...)
 #define DC(fmt...)
+#define D(fmt...)
+#define Dx(fmt...)
 #define DL(fmt...)
 
 #endif /* IMLIB2_DEBUG */

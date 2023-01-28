@@ -11,7 +11,7 @@
 #include "Imlib2_Loader.h"
 
 #define DBG_PFX "LDR-bmp"
-#define Dx(fmt...)
+#define DD(fmt...)
 
 static const char  *const _formats[] = { "bmp" };
 
@@ -459,7 +459,7 @@ _load(ImlibImage * im, int load_data)
                   byte1 = buffer_ptr[0];
                   byte2 = buffer_ptr[1];
                   buffer_ptr += 2;
-                  Dx("%3d %3d: %02x %02x (%d %d)\n",
+                  DD("%3d %3d: %02x %02x (%d %d)\n",
                      x, y, byte1, byte2, byte2 >> 4, byte2 & 0xf);
                   if (byte1)
                     {
@@ -520,7 +520,7 @@ _load(ImlibImage * im, int load_data)
                             for (j = 0; j < l; j++)
                               {
                                  byte = *buffer_ptr++;
-                                 Dx("%3d %3d:   %d/%d: %2d %2d\n",
+                                 DD("%3d %3d:   %d/%d: %2d %2d\n",
                                     x, y, j, l, byte >> 4, byte & 0xf);
                                  *ptr++ = argbCmap[byte >> 4];
                                  if (++j < l)
@@ -583,7 +583,7 @@ _load(ImlibImage * im, int load_data)
                   byte1 = buffer_ptr[0];
                   byte2 = buffer_ptr[1];
                   buffer_ptr += 2;
-                  Dx("%3d %3d: %02x %02x\n", x, y, byte1, byte2);
+                  DD("%3d %3d: %02x %02x\n", x, y, byte1, byte2);
                   if (byte1)
                     {
                        pixel = argbCmap[byte2];
@@ -632,7 +632,7 @@ _load(ImlibImage * im, int load_data)
                             for (j = 0; j < l; j++)
                               {
                                  byte = *buffer_ptr++;
-                                 Dx("%3d %3d:   %d/%d: %2d\n",
+                                 DD("%3d %3d:   %d/%d: %2d\n",
                                     x, y, j, l, byte);
                                  *ptr++ = argbCmap[byte];
                               }
