@@ -259,6 +259,7 @@ AM_CONDITIONAL(BUILD_DOC, test "$enable_doc_build" = "yes")
 
 EC_C_WARNINGS()
 EC_C_VISIBILITY(yes)
+EC_C_PACKING()
 EC_C_ASAN()
 
 VERSION_MAJOR=`echo $VERSION | awk -F. '{print $1}'`
@@ -328,6 +329,7 @@ echo
 echo "Include filters...........: $enable_filters"
 echo "Include text functions....: $enable_text"
 echo "Use visibility hiding.....: $enable_visibility_hiding"
+echo "Use struct packing........: $enable_packing"
 echo
 echo "Installation path.........: $prefix"
 echo
