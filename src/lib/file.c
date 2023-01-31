@@ -207,26 +207,27 @@ __imlib_FileDir(const char *dir, int *num)
    struct dirent      *dp;
 
    if ((!dir) || (!*dir))
-      return 0;
+      return NULL;
+
    dirp = opendir(dir);
    if (!dirp)
-     {
-        *num = 0;
-        return NULL;
-     }
+      return NULL;
+
    /* count # of entries in dir (worst case) */
    for (dirlen = 0; readdir(dirp) != NULL; dirlen++)
       ;
    if (!dirlen)
      {
         closedir(dirp);
-        *num = dirlen;
         return NULL;
      }
-   names = (char **)malloc(dirlen * sizeof(char *));
 
+   names = malloc(dirlen * sizeof(char *));
    if (!names)
-      return NULL;
+     {
+        closedir(dirp);
+        return NULL;
+     }
 
    rewinddir(dirp);
    for (i = 0; i < dirlen;)
@@ -234,17 +235,19 @@ __imlib_FileDir(const char *dir, int *num)
         dp = readdir(dirp);
         if (!dp)
            break;
+
         if ((strcmp(dp->d_name, ".")) && (strcmp(dp->d_name, "..")))
           {
              names[i] = strdup(dp->d_name);
              i++;
           }
      }
+   closedir(dirp);
 
    if (i < dirlen)
       dirlen = i;               /* dir got shorter... */
-   closedir(dirp);
    *num = dirlen;
+
    /* do a simple bubble sort here to alphanumberic it */
    while (!done)
      {
@@ -262,6 +265,7 @@ __imlib_FileDir(const char *dir, int *num)
                }
           }
      }
+
    return names;
 }
 
