@@ -351,8 +351,8 @@ _test_grab_2(const char *test, int depth, int func, int opt, int mask)
    Pixmap              pmap;
    int                 w, h, d, d2;
 
-   D("%s: %s: depth=%d func=%d opt=%d mask=%d", __func__,
-     test, depth, func, opt, mask);
+   pr_info("%s: %s: depth=%d func=%d opt=%d mask=%d", __func__,
+           test, depth, func, opt, mask);
 
    snprintf(buf, sizeof(buf), "%s_d%02d_f%d_o%d_m%d",
             test, depth, func, opt, mask);

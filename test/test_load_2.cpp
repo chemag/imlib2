@@ -113,7 +113,7 @@ TEST(LOAD2, load_1)
              snprintf(buf, sizeof(buf), "%s/%s", IMG_SRC, fn);
              fn = buf;
           }
-        D("Load '%s'\n", fn);
+        pr_info("Load '%s'", fn);
 
         im = imlib_load_image(fn);
         ASSERT_TRUE(im);

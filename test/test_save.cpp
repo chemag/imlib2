@@ -97,7 +97,8 @@ test_save_1(const char *file, int prog, int check = 0)
         h = imlib_image_get_height();
         snprintf(fileo, sizeof(fileo), "%s/save-%s-%dx%d.%s",
                  IMG_GEN, file, w, h, ext);
-        D("Save '%s'\n", fileo);
+        pr_info("Save '%s'", fileo);
+
         imlib_save_image_with_errno_return(fileo, &err);
         EXPECT_EQ(err, 0);
         if (err)

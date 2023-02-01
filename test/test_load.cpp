@@ -117,6 +117,7 @@ test_load(void)
      {
         // Load files of all types
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
+        pr_info("Load '%s'", fileo);
 
         D("Load '%s' (deferred)\n", fileo);
         im = imlib_load_image(fileo);
