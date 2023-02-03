@@ -104,7 +104,7 @@ __imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp,
      }
    else
      {
-        fi->fp = fopen(fi->name, "rb");
+        fi->fp = __imlib_FileOpen(fi->name, "rb");
         if (!fi->fp)
            return -1;
      }
@@ -884,7 +884,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
         return;
      }
 
-   fp = fopen(file, "wb");
+   fp = __imlib_FileOpen(file, "wb");
    if (!fp)
      {
         ila->err = errno;

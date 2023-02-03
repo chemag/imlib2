@@ -320,3 +320,22 @@ __imlib_ItemInList(char **list, int size, char *item)
      }
    return 0;
 }
+
+#include <errno.h>
+
+FILE               *
+__imlib_FileOpen(const char *path, const char *mode)
+{
+   FILE               *fp;
+
+   for (;;)
+     {
+        fp = fopen(path, mode);
+        if (fp)
+           break;
+        if (errno != EINTR)
+           break;
+     }
+
+   return fp;
+}
