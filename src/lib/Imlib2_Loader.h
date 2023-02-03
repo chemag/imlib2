@@ -215,13 +215,6 @@ typedef struct {
         .save = _svr, \
     }
 
-typedef int         (imlib_decompress_load_f) (const void *fdata,
-                                               unsigned int fsize, int dest);
-
-int                 decompress_load(ImlibImage * im, int load_data,
-                                    const char *const *pext, int next,
-                                    imlib_decompress_load_f * fdec);
-
 #define QUIT_WITH_RC(_err) { rc = _err; goto quit; }
 
 #define PCAST(T, p) ((T)(const void *)(p))
