@@ -254,7 +254,7 @@ _save(ImlibImage * im)
              y += 1;
           }
         k++;
-        D("x, y = %2d,%2d: %d/%d\n", x, y, k, nval);
+        DL("x, y = %2d,%2d: %d/%d\n", x, y, k, nval);
         fprintf(f, " 0x%02x%s%s", bits, k < nval ? "," : "",
                 (k == nval) || ((k % 12) == 0) ? "\n" : "");
      }
