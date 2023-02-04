@@ -466,7 +466,7 @@ _save(ImlibImage * im)
    int                 i;
    ImlibImageTag      *tag;
 
-   tif = TIFFOpen(im->fi->name, "w");
+   tif = TIFFFdOpen(fileno(im->fi->fp), im->fi->name, "w");
    if (!tif)
       return LOAD_FAIL;
 

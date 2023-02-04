@@ -195,7 +195,7 @@ int                 __imlib_LoadProgressRows(ImlibImage * im,
 
 /* loader.h */
 
-#define IMLIB2_LOADER_VERSION 1
+#define IMLIB2_LOADER_VERSION 2
 
 typedef struct {
    unsigned char       ldr_version;     /* Module ABI version */

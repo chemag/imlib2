@@ -498,15 +498,11 @@ static int
 _save(ImlibImage * im)
 {
    int                 rc;
-   FILE               *f;
+   FILE               *f = im->fi->fp;
    uint32_t           *dataptr;
    unsigned char      *buf, *bufptr;
    int                 y;
    tga_header          header;
-
-   f = fopen(im->fi->name, "wb");
-   if (!f)
-      return LOAD_FAIL;
 
    rc = LOAD_FAIL;
 
@@ -577,7 +573,6 @@ _save(ImlibImage * im)
 
  quit:
    free(buf);
-   fclose(f);
 
    return rc;
 }

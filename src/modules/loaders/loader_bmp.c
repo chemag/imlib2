@@ -761,13 +761,9 @@ static int
 _save(ImlibImage * im)
 {
    int                 rc;
-   FILE               *f;
+   FILE               *f = im->fi->fp;
    int                 i, j, pad;
    uint32_t            pixel;
-
-   f = fopen(im->fi->name, "wb");
-   if (!f)
-      return LOAD_FAIL;
 
    rc = LOAD_SUCCESS;
 
@@ -805,8 +801,6 @@ _save(ImlibImage * im)
         for (j = 0; j < pad; j++)
            WriteleByte(f, 0);
      }
-
-   fclose(f);
 
    return rc;
 }

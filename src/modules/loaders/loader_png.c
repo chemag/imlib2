@@ -595,7 +595,7 @@ static int
 _save(ImlibImage * im)
 {
    int                 rc;
-   FILE               *f;
+   FILE               *f = im->fi->fp;
    png_structp         png_ptr;
    png_infop           info_ptr;
    uint32_t           *ptr;
@@ -606,10 +606,6 @@ _save(ImlibImage * im)
    int                 quality = 75, compression = 3;
    int                 pass, n_passes = 1;
    int                 has_alpha;
-
-   f = fopen(im->fi->name, "wb");
-   if (!f)
-      return LOAD_FAIL;
 
    rc = LOAD_FAIL;
    info_ptr = NULL;
@@ -749,8 +745,6 @@ _save(ImlibImage * im)
       png_destroy_info_struct(png_ptr, (png_infopp) & info_ptr);
    if (png_ptr)
       png_destroy_write_struct(&png_ptr, (png_infopp) NULL);
-
-   fclose(f);
 
    return rc;
 }

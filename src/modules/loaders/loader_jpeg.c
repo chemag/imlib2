@@ -256,7 +256,7 @@ _save(ImlibImage * im)
    int                 rc;
    struct jpeg_compress_struct jcs;
    ImLib_JPEG_data     jdata;
-   FILE               *f;
+   FILE               *f = im->fi->fp;
    uint8_t            *buf;
    uint32_t           *ptr;
    JSAMPROW           *jbuf;
@@ -270,10 +270,6 @@ _save(ImlibImage * im)
       return LOAD_FAIL;
 
    rc = LOAD_FAIL;
-
-   f = fopen(im->fi->name, "wb");
-   if (!f)
-      goto quit;
 
    /* set up error handling */
    jcs.err = _jdata_init(&jdata);
@@ -353,7 +349,6 @@ _save(ImlibImage * im)
    jpeg_finish_compress(&jcs);
    jpeg_destroy_compress(&jcs);
    free(buf);
-   fclose(f);
 
    return rc;
 }
