@@ -274,7 +274,7 @@ _save(ImlibImage * im)
    /* set up error handling */
    jcs.err = _jdata_init(&jdata);
    if (sigsetjmp(jdata.setjmp_buffer, 1))
-      goto quit;
+      QUIT_WITH_RC(LOAD_FAIL);
 
    /* setup compress params */
    jpeg_create_compress(&jcs);
