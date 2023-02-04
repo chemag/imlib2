@@ -181,22 +181,6 @@ __imlib_FileModDateFd(int fd)
    return (st.st_mtime > st.st_ctime) ? st.st_mtime : st.st_ctime;
 }
 
-int
-__imlib_FileCanRead(const char *s)
-{
-   struct stat         st;
-
-   DP("%s: '%s'\n", __func__, s);
-
-   if (__imlib_FileStat(s, &st))
-      return 0;
-
-   if (!(st.st_mode & (S_IRUSR | S_IRGRP | S_IROTH)))
-      return 0;
-
-   return access(s, R_OK) == 0 ? 1 : 0; // ??? TBD
-}
-
 char              **
 __imlib_FileDir(const char *dir, int *num)
 {

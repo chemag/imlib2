@@ -117,33 +117,6 @@ TEST(FILE, file_is_dir)
    EXPECT_EQ(rc, 0);
 }
 
-TEST(FILE, file_can_read)
-{
-   int                 rc;
-
-   rc = __imlib_FileCanRead("./Makefile");
-   EXPECT_EQ(rc, 1);
-
-   rc = __imlib_FileCanRead(".");
-   EXPECT_EQ(rc, 1);
-
-   rc = __imlib_FileCanRead("./foob");
-   EXPECT_EQ(rc, 0);
-
-   rc = system("touch gylle");
-   EXPECT_EQ(rc, 0);
-   rc = __imlib_FileCanRead("gylle");
-   EXPECT_EQ(rc, 1);
-
-   rc = system("chmod 000 gylle");
-   EXPECT_EQ(rc, 0);
-   rc = __imlib_FileCanRead("gylle");
-   EXPECT_EQ(rc, 0);
-
-   rc = unlink("gylle");
-   EXPECT_EQ(rc, 0);
-}
-
 TEST(FILE, file_is_real_file)
 {
    int                 rc;
