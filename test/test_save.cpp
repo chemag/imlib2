@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "config.h"
+#include <fcntl.h>
 #include <Imlib2.h>
 
 #include "test.h"
@@ -191,7 +192,7 @@ test_save_2(const char *file, const char *fmt, bool load_imm, bool sok,
 {
    char                filei[256];
    char                fileo[256];
-   int                 err;
+   int                 err, fd;
    Imlib_Image         im;
    unsigned int        crc;
 
@@ -227,6 +228,39 @@ test_save_2(const char *file, const char *fmt, bool load_imm, bool sok,
         if (err != IMLIB_ERR_NO_SAVER)
            D("Error %d saving '%s'\n", err, fileo);
      }
+
+   imlib_free_image_and_decache();
+
+   if (!sok)
+      return;
+
+   D("Check '%s' ... ", fileo);
+   im = imlib_load_image(fileo);
+   ASSERT_TRUE(im);
+   crc = image_get_crc32(im);
+   EXPECT_EQ(crc_exp, crc);
+   D("ok\n");
+   unlink(fileo);
+
+   D("Save to fd '%s'\n", fileo);
+   imlib_image_set_format(fmt);
+   fd = open(fileo, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+   imlib_save_image_fd(fd, NULL);
+   err = imlib_get_error();
+   if (sok)
+     {
+        EXPECT_EQ(err, 0);
+        if (err)
+           D("Error %d saving '%s'\n", err, fileo);
+     }
+   else
+     {
+        EXPECT_EQ(err, IMLIB_ERR_NO_SAVER);
+        if (err != IMLIB_ERR_NO_SAVER)
+           D("Error %d saving '%s'\n", err, fileo);
+     }
+   err = close(fd);
+   EXPECT_NE(err, 0);
 
    imlib_free_image_and_decache();
 

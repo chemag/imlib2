@@ -866,10 +866,10 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
 {
    ImlibLoader        *l;
    ImlibLoaderCtx      ilc;
-   FILE               *fp;
+   FILE               *fp = ila->fp;
    int                 loader_ret;
 
-   if (!file)
+   if (!file && !fp)
      {
         ila->err = ENOENT;
         return;
@@ -884,23 +884,27 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
         return;
      }
 
-   fp = __imlib_FileOpen(file, "wb");
    if (!fp)
      {
-        ila->err = errno;
-        return;
+        fp = __imlib_FileOpen(file, "wb");
+        if (!fp)
+          {
+             ila->err = errno;
+             return;
+          }
      }
 
    if (ila->pfunc)
       __imlib_LoadCtxInit(im, &ilc, ila->pfunc, ila->pgran);
 
-   __imlib_ImageFileContextPush(im, strdup(file));
+   __imlib_ImageFileContextPush(im, file ? strdup(file) : NULL);
    im->fi->fp = fp;
 
    /* call the saver */
    loader_ret = l->module->save(im);
 
-   fclose(fp);
+   if (!ila->fp)
+      fclose(fp);
 
    __imlib_ImageFileContextPop(im);
 

@@ -1879,7 +1879,7 @@ imlib_image_remove_and_free_attached_data_value(const char *key)
 }
 
 static void
-_imlib_save_image(const char *file)
+_imlib_save_image(const char *file, FILE * fp)
 {
    ImlibImage         *im;
    ImlibLoadArgs       ila = { ILA0(ctx, 0, 0) };
@@ -1891,6 +1891,7 @@ _imlib_save_image(const char *file)
    if (ctx->error)
       return;
 
+   ila.fp = fp;
    __imlib_SaveImage(im, file, &ila);
    ctx->error = ila.err;
 }
@@ -1900,7 +1901,7 @@ imlib_save_image(const char *file)
 {
    CHECK_PARAM_POINTER("file", file);
 
-   _imlib_save_image(file);
+   _imlib_save_image(file, NULL);
 }
 
 EAPI void
@@ -1909,7 +1910,7 @@ imlib_save_image_with_error_return(const char *file,
 {
    CHECK_PARAM_POINTER("file", file);
 
-   _imlib_save_image(file);
+   _imlib_save_image(file, NULL);
 
    if (error_return)
       *error_return = __imlib_ErrorFromErrno(ctx->error, 1);
@@ -1920,10 +1921,29 @@ imlib_save_image_with_errno_return(const char *file, int *error_return)
 {
    CHECK_PARAM_POINTER("file", file);
 
-   _imlib_save_image(file);
+   _imlib_save_image(file, NULL);
 
    if (error_return)
       *error_return = ctx->error;
+}
+
+EAPI void
+imlib_save_image_fd(int fd, const char *file)
+{
+   FILE               *fp;
+
+   fp = fdopen(fd, "wb");
+   if (!fp)
+     {
+        ctx->error = errno;
+        close(fd);
+        printf("Boo\n");
+        return;
+     }
+
+   _imlib_save_image(file, fp);
+
+   fclose(fp);
 }
 
 EAPI                Imlib_Image
