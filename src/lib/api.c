@@ -1888,8 +1888,6 @@ _imlib_save_image(const char *file, int *err)
    CHECK_PARAM_POINTER("file", file);
    CAST_IMAGE(im, ctx->image);
 
-   ctx->error = 0;
-
    ctx->error = __imlib_LoadImageData(im);
    if (ctx->error)
       return;
