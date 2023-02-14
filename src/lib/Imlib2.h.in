@@ -2553,11 +2553,12 @@ EAPI void           imlib_image_remove_and_free_attached_data_value(const char
  * Save image to file
  *
  * Saves the current image in the format specified by the current
- * image's format settings to the filename @p filename.
+ * image's format setting to the filename @p file.
+ * If the image's format is not set, the format is derived from @p file.
  *
- * @param filename      The file name
+ * @param file          The file name
  */
-EAPI void           imlib_save_image(const char *filename);
+EAPI void           imlib_save_image(const char *file);
 
 /**
  * Save image to file with error return
@@ -2569,10 +2570,10 @@ EAPI void           imlib_save_image(const char *filename);
  *   positive: Regular errnos,
  *   negative: IMLIB_ERR_... values, see above
  *
- * @param filename      The file name
+ * @param file          The file name
  * @param error_return  The returned error
  */
-EAPI void           imlib_save_image_with_errno_return(const char *filename,
+EAPI void           imlib_save_image_with_errno_return(const char *file,
                                                        int *error_return);
 
 /*--------------------------------
@@ -2948,13 +2949,13 @@ EAPI Imlib_Image    imlib_load_image_with_error_return(const char *file,
  * Works the same way imlib_save_image() works, but will set the
  * @p error_return to an error value if the save fails.
  *
- * @param filename      The file name
+ * @param file          The file name
  * @param error_return  The returned error
  *
  * @deprecated Use imlib_save_image_with_errno_return()
  */
 /* IMLIB2_DEPRECATED */
-EAPI void           imlib_save_image_with_error_return(const char *filename,
+EAPI void           imlib_save_image_with_error_return(const char *file,
                                                        Imlib_Load_Error *
                                                        error_return);
 
