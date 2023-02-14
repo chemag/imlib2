@@ -322,11 +322,6 @@ _test_grab_1(const int wsrc, const int hsrc, const int xsrc, const int ysrc,
                  x - xo < xi || y - yo < yi ||
                  x - xo >= xi + wimg || y - yo >= yi + himg)
                {
-#if 1
-                  // FIXME - Pixels outside source drawable are not properly initialized
-                  if (xo != 0 || yo != 0)
-                     continue;
-#endif
                   col = 0x00000000;
                }
              else if (x < xo + bw || y < yo + bw ||

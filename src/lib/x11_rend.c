@@ -319,7 +319,7 @@ __imlib_RenderImage(const ImlibContextX11 * x11, ImlibImage * im,
      {
         back = malloc(dw * dh * sizeof(uint32_t));
         if (__imlib_GrabDrawableToRGBA(x11, back, 0, 0, dw, dh,
-                                       w, 0, dx, dy, dw, dh, 0, 1))
+                                       w, 0, dx, dy, dw, dh, 0, 1, false))
           {
              free(back);
              back = NULL;
@@ -568,7 +568,7 @@ __imlib_RenderImageSkewed(const ImlibContextX11 * x11, ImlibImage * im,
    __imlib_GetContext(x11);
 
    __imlib_GrabDrawableToRGBA(x11, back->data, 0, 0, dw, dh,
-                              w, 0, dx1, dy1, dw, dh, 0, 1);
+                              w, 0, dx1, dy1, dw, dh, 0, 1, false);
 
    __imlib_BlendImageToImageSkewed(im, back, antialias, 1, 0, sx, sy, sw, sh,
                                    dx - dx1, dy - dy1, hsx, hsy, vsx, vsy,

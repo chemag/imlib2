@@ -604,12 +604,12 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
                            int w_dst, int h_dst,
                            Drawable draw, Pixmap mask_,
                            int x_src, int y_src, int w_src, int h_src,
-                           char *pdomask, int grab)
+                           char *pdomask, int grab, bool clear)
 {
    XWindowAttributes   xatt;
    bool                is_pixmap, is_shm, is_mshm;
    char                domask;
-   int                 i;
+   int                 i, j;
    int                 width, height;
    Pixmap              mask = mask_;
    XShmSegmentInfo     shminfo, mshminfo;
@@ -786,6 +786,21 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
           }
      }
 
+#define CLEAR(x0, x1, y0, y1) \
+   do { \
+   for (j = y0; j < y1; j++) \
+      for (i = x0; i < x1; i++) \
+         data[j * w_dst + i] = 0; \
+   } while(0)
+
+   if (clear)
+     {
+        CLEAR(0, w_dst, 0, y_dst);
+        CLEAR(0, w_dst, y_dst + h_src, h_dst);
+        CLEAR(0, x_dst, y_dst, y_dst + h_src);
+        CLEAR(x_dst + w_src, w_dst, y_dst, y_dst + h_src);
+     }
+
    __imlib_GrabXImageToRGBA(x11, data, x_dst, y_dst, w_dst, h_dst,
                             xim, mxim, x_src, y_src, w_src, h_src, 0);
 
@@ -829,7 +844,7 @@ __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 * x11, uint32_t * data,
                                  int w_dst, int h_dst,
                                  Drawable draw, Pixmap mask_,
                                  int x_src, int y_src, int w_src, int h_src,
-                                 char *pdomask, int grab)
+                                 char *pdomask, int grab, bool clear)
 {
    int                 rc;
    int                 h_tmp, i, xx;
@@ -897,7 +912,7 @@ __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 * x11, uint32_t * data,
      }
 
    rc = __imlib_GrabDrawableToRGBA(x11, data, 0, 0, w_dst, h_dst, psc, msc,
-                                   0, 0, w_dst, h_dst, pdomask, grab);
+                                   0, 0, w_dst, h_dst, pdomask, grab, clear);
 
    if (mgc)
       XFreeGC(x11->dpy, mgc);

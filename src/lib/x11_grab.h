@@ -11,7 +11,8 @@ int                 __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11,
                                                Drawable p, Pixmap m,
                                                int x_src, int y_src,
                                                int w_src, int h_src,
-                                               char *domask, int grab);
+                                               char *domask, int grab,
+                                               bool clear);
 
 int                 __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 *
                                                      x11, uint32_t * data,
@@ -20,7 +21,8 @@ int                 __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 *
                                                      Drawable p, Pixmap m,
                                                      int x_src, int y_src,
                                                      int w_src, int h_src,
-                                                     char *domask, int grab);
+                                                     char *domask, int grab,
+                                                     bool clear);
 
 void                __imlib_GrabXImageToRGBA(const ImlibContextX11 * x11,
                                              uint32_t * data,
