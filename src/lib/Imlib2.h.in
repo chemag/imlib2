@@ -741,8 +741,8 @@ EAPI void           imlib_flush_loaders(void);
 /**
  * Get error code from previous imlib function call
  *
- * For now an error code is only meaningful when an image loading
- * function (imlib_load_image...()) has failed (returned NULL).
+ * The error code is set in function calls that involve direct or indirect
+ * image loading or saving.
  *
  * @return error code
  *          0: Success,
