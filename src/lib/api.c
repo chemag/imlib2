@@ -1937,7 +1937,6 @@ imlib_save_image_fd(int fd, const char *file)
      {
         ctx->error = errno;
         close(fd);
-        printf("Boo\n");
         return;
      }
 
