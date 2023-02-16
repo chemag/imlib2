@@ -18,7 +18,7 @@ typedef struct {
 
    const char         *test;
    int                 scale;
-   bool                do_mask;
+   int                 do_mask;
 
    unsigned int        color;
 } xd_t;
@@ -201,7 +201,16 @@ _test_grab_1(int w, int h, int x0, int y0)
    D("%s: %3dx%3d(%3d,%3d) -> %3dx%3d(%d,%d)\n", __func__,
      w, h, x0, y0, ws, hs, xs, ys);
 
-   mask = xd.do_mask ? _pmap_mk_mask(w, h, 0, 0) : None;
+   switch (xd.do_mask)
+     {
+     default:
+     case 0:                   // Without mask
+        mask = None;
+        break;
+     case 1:                   // With mask
+        mask = _pmap_mk_mask(w, h, 0, 0);
+        break;
+     }
 
    if (xd.scale == 0)
       im = imlib_create_image_from_drawable(mask, x0, y0, w, h, 0);
@@ -251,12 +260,17 @@ _test_grab_1(int w, int h, int x0, int y0)
 }
 
 static void
-_test_grab_2(const char *test, int depth, int scale, int opt)
+_test_grab_2(const char *test, int depth, int scale, int opt, int mask)
 {
+   char                buf[64];
    Pixmap              pmap;
    int                 w, h, d;
 
-   D("%s: %s\n", __func__, test);
+   D("%s: %s: depth=%d scale=%d opt=%d mask=%d\n", __func__, test,
+     depth, scale, opt, mask);
+
+   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d_m%d",
+            test, depth, scale, opt, mask);
 
    xd.color = 0xff0000ff;       // B ok
    xd.color = 0xff00ff00;       // G ok
@@ -266,7 +280,8 @@ _test_grab_2(const char *test, int depth, int scale, int opt)
       return;
 
    xd.scale = scale;
-   xd.test = test;
+   xd.test = buf;
+   xd.do_mask = mask;
 
    w = 32;
    h = 45;
@@ -304,39 +319,38 @@ _test_grab_2(const char *test, int depth, int scale, int opt)
 static void
 _test_grab(const char *test, int scale, int opt)
 {
-   char                buf[64];
-   int                 depth;
+   _test_grab_2(test, 24, scale, opt, 0);
+   _test_grab_2(test, 32, scale, opt, 0);
 
-   xd.do_mask = false;
-
-   depth = 24;
-   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d", test, depth, scale, opt);
-   _test_grab_2(buf, depth, scale, opt);
-
-   depth = 32;
-   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d", test, depth, scale, opt);
-   _test_grab_2(buf, 32, scale, opt);
-
-   xd.do_mask = true;
-
-   depth = 24;
-   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d_m", test, depth, scale, opt);
-   _test_grab_2(buf, depth, scale, opt);
-
-   depth = 32;
-   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d_m", test, depth, scale, opt);
-   _test_grab_2(buf, 32, scale, opt);
+   _test_grab_2(test, 24, scale, opt, 1);
+   _test_grab_2(test, 32, scale, opt, 1);
 }
+
+// No scaling - imlib_create_image_from_drawable
 
 TEST(GRAB, grab_noof_s0)
 {
    _test_grab("grab_noof", 0, 0);
 }
 
+TEST(GRAB, grab_offs_s0)
+{
+   _test_grab("grab_offs", 0, 1);
+}
+
+// No scaling - imlib_create_scaled_image_from_drawable
+
 TEST(GRAB, grab_noof_s1)
 {
    _test_grab("grab_noof", 1, 0);
 }
+
+TEST(GRAB, grab_offs_s1)
+{
+   _test_grab("grab_offs", 1, 1);
+}
+
+// Scaling - imlib_create_scaled_image_from_drawable
 
 TEST(GRAB, grab_noof_su2)
 {
@@ -346,16 +360,6 @@ TEST(GRAB, grab_noof_su2)
 TEST(GRAB, grab_noof_sd2)
 {
    _test_grab("grab_noof", -2, 0);
-}
-
-TEST(GRAB, grab_offs_s0)
-{
-   _test_grab("grab_offs", 0, 1);
-}
-
-TEST(GRAB, grab_offs_s1)
-{
-   _test_grab("grab_offs", 1, 1);
 }
 
 TEST(GRAB, grab_offs_su2)
