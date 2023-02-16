@@ -206,6 +206,7 @@ _test_grab_1(const int wsrc, const int hsrc, const int xsrc, const int ysrc,
    int                 x, y, err;
    int                 wimg, himg;
    int                 xi, yi, xo, yo, wo, ho, fac, bw;
+   int                 mask_from_shape;
    char                buf[128];
    Pixmap              mask;
 
@@ -227,6 +228,9 @@ _test_grab_1(const int wsrc, const int hsrc, const int xsrc, const int ysrc,
         break;
      case 1:                   // With mask
         mask = _pmap_mk_mask(wsrc, hsrc, 0, 0);
+        break;
+     case 2:                   // Mask from shape
+        mask = 1;
         break;
      }
 
@@ -264,9 +268,13 @@ _test_grab_1(const int wsrc, const int hsrc, const int xsrc, const int ysrc,
                 yi = (ysrc * himg - (hsrc - 1)) / hsrc;
              bw = (bw + fac - 1) / fac;
           }
+        mask_from_shape = mask == 1;
+        if (mask_from_shape)
+           mask = None;
         im = imlib_create_scaled_image_from_drawable(mask,
                                                      xsrc, ysrc, wsrc, hsrc,
-                                                     wimg, himg, 0, 0);
+                                                     wimg, himg, 0,
+                                                     mask_from_shape);
         xo = -xi;
         yo = -yi;
         wo = wimg;
@@ -287,7 +295,7 @@ _test_grab_1(const int wsrc, const int hsrc, const int xsrc, const int ysrc,
         break;
      }
 
-   if (mask != None)
+   if (mask != None && mask != 1)
       XFreePixmap(xd.dpy, mask);
 
    D("%s: %3dx%3d(%d,%d) -> %3dx%3d(%d,%d -> %d,%d)\n", __func__,
@@ -445,8 +453,14 @@ _test_grab(const char *test, int func, int opt)
    _test_grab_2(test, 24, func, opt, 0);
    _test_grab_2(test, 32, func, opt, 0);
 
-   _test_grab_2(test, 24, func, opt, 1);
-   _test_grab_2(test, 32, func, opt, 1);
+   if (opt == 0)
+     {
+        _test_grab_2(test, 24, func, opt, 1);
+        _test_grab_2(test, 32, func, opt, 1);
+
+        _test_grab_2(test, 24, func, opt, 2);
+        _test_grab_2(test, 32, func, opt, 2);
+     }
 }
 
 // No scaling - imlib_create_image_from_drawable
