@@ -831,59 +831,50 @@ __imlib_GrabDrawableScaledToRGBA(uint32_t * data, int nu_x_dst, int nu_y_dst,
            *pdomask = 0;
      }
 
-   if (w_dst == w_src && h_dst == h_src)
+   psc = XCreatePixmap(d, p, w_dst, h_tmp, depth);
+
+   if (*pdomask)
      {
-        psc = p;
-        msc = m;
+        msc = XCreatePixmap(d, p, w_dst, h_tmp, 1);
+        mgc = XCreateGC(d, msc, GCForeground | GCGraphicsExposures, &gcv);
+     }
+   else
+      msc = None;
+
+   for (i = 0; i < w_dst; i++)
+     {
+        xx = (w_src * i) / w_dst;
+        XCopyArea(d, p, psc, gc, x_src + xx, y_src, 1, h_src, i, 0);
+        if (msc != None)
+           XCopyArea(d, m, msc, mgc, xx, 0, 1, h_src, i, 0);
+     }
+   if (h_dst > h_src)
+     {
+        for (i = h_dst - 1; i > 0; i--)
+          {
+             xx = (h_src * i) / h_dst;
+             if (xx == i)
+                continue;       /* Don't copy onto self */
+             XCopyArea(d, psc, psc, gc, 0, xx, w_dst, 1, 0, i);
+             if (msc != None)
+                XCopyArea(d, msc, msc, mgc, 0, xx, w_dst, 1, 0, i);
+          }
      }
    else
      {
-        psc = XCreatePixmap(d, p, w_dst, h_tmp, depth);
-
-        if (*pdomask)
+        for (i = 0; i < h_dst; i++)
           {
-             msc = XCreatePixmap(d, p, w_dst, h_tmp, 1);
-             mgc = XCreateGC(d, msc, GCForeground | GCGraphicsExposures, &gcv);
-          }
-        else
-           msc = None;
-
-        for (i = 0; i < w_dst; i++)
-          {
-             xx = (w_src * i) / w_dst;
-             XCopyArea(d, p, psc, gc, x_src + xx, y_src, 1, h_src, i, 0);
+             xx = (h_src * i) / h_dst;
+             if (xx == i)
+                continue;       /* Don't copy onto self */
+             XCopyArea(d, psc, psc, gc, 0, xx, w_dst, 1, 0, i);
              if (msc != None)
-                XCopyArea(d, m, msc, mgc, xx, 0, 1, h_src, i, 0);
+                XCopyArea(d, msc, msc, mgc, 0, xx, w_dst, 1, 0, i);
           }
-        if (h_dst > h_src)
-          {
-             for (i = h_dst - 1; i > 0; i--)
-               {
-                  xx = (h_src * i) / h_dst;
-                  if (xx == i)
-                     continue;  /* Don't copy onto self */
-                  XCopyArea(d, psc, psc, gc, 0, xx, w_dst, 1, 0, i);
-                  if (msc != None)
-                     XCopyArea(d, msc, msc, mgc, 0, xx, w_dst, 1, 0, i);
-               }
-          }
-        else
-          {
-             for (i = 0; i < h_dst; i++)
-               {
-                  xx = (h_src * i) / h_dst;
-                  if (xx == i)
-                     continue;  /* Don't copy onto self */
-                  XCopyArea(d, psc, psc, gc, 0, xx, w_dst, 1, 0, i);
-                  if (msc != None)
-                     XCopyArea(d, msc, msc, mgc, 0, xx, w_dst, 1, 0, i);
-               }
-          }
-        x_src = y_src = 0;
      }
 
    rc = __imlib_GrabDrawableToRGBA(data, 0, 0, w_dst, h_dst, d, psc, msc,
-                                   v, cm, depth, x_src, y_src, w_dst, h_dst,
+                                   v, cm, depth, 0, 0, w_dst, h_dst,
                                    pdomask, grab);
 
    if (mgc)
