@@ -833,15 +833,7 @@ __imlib_GrabDrawableScaledToRGBA(uint32_t * data, int nu_x_dst, int nu_y_dst,
 
    if (w_dst == w_src && h_dst == h_src)
      {
-        if (x_src == 0 && y_src == 0)
-          {
-             psc = p;
-          }
-        else
-          {
-             psc = XCreatePixmap(d, p, w_src, h_tmp, depth);
-             XCopyArea(d, p, psc, gc, x_src, y_src, w_src, h_src, 0, 0);
-          }
+        psc = p;
         msc = m;
      }
    else
@@ -887,10 +879,11 @@ __imlib_GrabDrawableScaledToRGBA(uint32_t * data, int nu_x_dst, int nu_y_dst,
                      XCopyArea(d, msc, msc, mgc, 0, xx, w_dst, 1, 0, i);
                }
           }
+        x_src = y_src = 0;
      }
 
    rc = __imlib_GrabDrawableToRGBA(data, 0, 0, w_dst, h_dst, d, psc, msc,
-                                   v, cm, depth, 0, 0, w_dst, h_dst,
+                                   v, cm, depth, x_src, y_src, w_dst, h_dst,
                                    pdomask, grab);
 
    if (mgc)
