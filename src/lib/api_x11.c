@@ -18,47 +18,47 @@
 EAPI void
 imlib_context_set_display(Display * display)
 {
-   ctx->display = display;
+   ctx->x11.dpy = display;
 }
 
 EAPI Display       *
 imlib_context_get_display(void)
 {
-   return ctx->display;
+   return ctx->x11.dpy;
 }
 
 EAPI void
 imlib_context_disconnect_display(void)
 {
-   if (!ctx->display)
+   if (!ctx->x11.dpy)
       return;
-   __imlib_RenderDisconnect(ctx->display);
-   ctx->display = NULL;
+   __imlib_RenderDisconnect(ctx->x11.dpy);
+   ctx->x11.dpy = NULL;
 }
 
 EAPI void
 imlib_context_set_visual(Visual * visual)
 {
-   ctx->visual = visual;
-   ctx->depth = imlib_get_visual_depth(ctx->display, ctx->visual);
+   ctx->x11.vis = visual;
+   ctx->x11.depth = imlib_get_visual_depth(ctx->x11.dpy, ctx->x11.vis);
 }
 
 EAPI Visual        *
 imlib_context_get_visual(void)
 {
-   return ctx->visual;
+   return ctx->x11.vis;
 }
 
 EAPI void
 imlib_context_set_colormap(Colormap colormap)
 {
-   ctx->colormap = colormap;
+   ctx->x11.cmap = colormap;
 }
 
 EAPI                Colormap
 imlib_context_get_colormap(void)
 {
-   return ctx->colormap;
+   return ctx->x11.cmap;
 }
 
 EAPI void
@@ -112,37 +112,37 @@ imlib_context_get_mask_alpha_threshold(void)
 EAPI int
 imlib_get_ximage_cache_count_used(void)
 {
-   return __imlib_GetXImageCacheCountUsed(ctx->display);
+   return __imlib_GetXImageCacheCountUsed(&ctx->x11);
 }
 
 EAPI int
 imlib_get_ximage_cache_count_max(void)
 {
-   return __imlib_GetXImageCacheCountMax(ctx->display);
+   return __imlib_GetXImageCacheCountMax(&ctx->x11);
 }
 
 EAPI void
 imlib_set_ximage_cache_count_max(int count)
 {
-   __imlib_SetXImageCacheCountMax(ctx->display, count);
+   __imlib_SetXImageCacheCountMax(&ctx->x11, count);
 }
 
 EAPI int
 imlib_get_ximage_cache_size_used(void)
 {
-   return __imlib_GetXImageCacheSizeUsed(ctx->display);
+   return __imlib_GetXImageCacheSizeUsed(&ctx->x11);
 }
 
 EAPI int
 imlib_get_ximage_cache_size_max(void)
 {
-   return __imlib_GetXImageCacheSizeMax(ctx->display);
+   return __imlib_GetXImageCacheSizeMax(&ctx->x11);
 }
 
 EAPI void
 imlib_set_ximage_cache_size_max(int bytes)
 {
-   __imlib_SetXImageCacheSizeMax(ctx->display, bytes);
+   __imlib_SetXImageCacheSizeMax(&ctx->x11, bytes);
 }
 
 EAPI int
@@ -189,10 +189,9 @@ imlib_render_pixmaps_for_whole_image(Pixmap * pixmap_return,
    ctx->error = __imlib_LoadImageData(im);
    if (ctx->error)
       return;
-   __imlib_CreatePixmapsForImage(ctx->display, ctx->drawable, ctx->visual,
-                                 ctx->depth, ctx->colormap, im, pixmap_return,
-                                 mask_return, 0, 0, im->w, im->h, im->w,
-                                 im->h, 0, ctx->dither, ctx->dither_mask,
+   __imlib_CreatePixmapsForImage(&ctx->x11, ctx->drawable, im, pixmap_return,
+                                 mask_return, 0, 0, im->w, im->h, im->w, im->h,
+                                 0, ctx->dither, ctx->dither_mask,
                                  ctx->mask_alpha_threshold,
                                  ctx->color_modifier);
 }
@@ -210,8 +209,7 @@ imlib_render_pixmaps_for_whole_image_at_size(Pixmap * pixmap_return,
    ctx->error = __imlib_LoadImageData(im);
    if (ctx->error)
       return;
-   __imlib_CreatePixmapsForImage(ctx->display, ctx->drawable, ctx->visual,
-                                 ctx->depth, ctx->colormap, im, pixmap_return,
+   __imlib_CreatePixmapsForImage(&ctx->x11, ctx->drawable, im, pixmap_return,
                                  mask_return, 0, 0, im->w, im->h, width,
                                  height, ctx->anti_alias, ctx->dither,
                                  ctx->dither_mask, ctx->mask_alpha_threshold,
@@ -221,7 +219,7 @@ imlib_render_pixmaps_for_whole_image_at_size(Pixmap * pixmap_return,
 EAPI void
 imlib_free_pixmap_and_mask(Pixmap pixmap)
 {
-   __imlib_FreePixmap(ctx->display, pixmap);
+   __imlib_FreePixmap(ctx->x11.dpy, pixmap);
 }
 
 EAPI void
@@ -234,9 +232,9 @@ imlib_render_image_on_drawable(int x, int y)
    ctx->error = __imlib_LoadImageData(im);
    if (ctx->error)
       return;
-   __imlib_RenderImage(ctx->display, im, ctx->drawable, ctx->mask,
-                       ctx->visual, ctx->colormap, ctx->depth, 0, 0, im->w,
-                       im->h, x, y, im->w, im->h, 0, ctx->dither, ctx->blend,
+   __imlib_RenderImage(&ctx->x11, im, ctx->drawable, ctx->mask,
+                       0, 0, im->w, im->h, x, y, im->w, im->h,
+                       0, ctx->dither, ctx->blend,
                        ctx->dither_mask, ctx->mask_alpha_threshold,
                        ctx->color_modifier, ctx->operation);
 }
@@ -251,8 +249,7 @@ imlib_render_image_on_drawable_at_size(int x, int y, int width, int height)
    ctx->error = __imlib_LoadImageData(im);
    if (ctx->error)
       return;
-   __imlib_RenderImage(ctx->display, im, ctx->drawable, ctx->mask,
-                       ctx->visual, ctx->colormap, ctx->depth,
+   __imlib_RenderImage(&ctx->x11, im, ctx->drawable, ctx->mask,
                        0, 0, im->w, im->h, x, y, width, height,
                        ctx->anti_alias, ctx->dither, ctx->blend,
                        ctx->dither_mask, ctx->mask_alpha_threshold,
@@ -272,8 +269,7 @@ imlib_render_image_part_on_drawable_at_size(int src_x, int src_y,
    ctx->error = __imlib_LoadImageData(im);
    if (ctx->error)
       return;
-   __imlib_RenderImage(ctx->display, im, ctx->drawable, 0,
-                       ctx->visual, ctx->colormap, ctx->depth,
+   __imlib_RenderImage(&ctx->x11, im, ctx->drawable, 0,
                        src_x, src_y, src_width, src_height,
                        dst_x, dst_y, dst_width, dst_height,
                        ctx->anti_alias, ctx->dither, ctx->blend, 0, 0,
@@ -283,8 +279,7 @@ imlib_render_image_part_on_drawable_at_size(int src_x, int src_y,
 EAPI                uint32_t
 imlib_render_get_pixel_color(void)
 {
-   return __imlib_RenderGetPixel(ctx->display, ctx->drawable, ctx->visual,
-                                 ctx->colormap, ctx->depth,
+   return __imlib_RenderGetPixel(&ctx->x11, ctx->drawable,
                                  (uint8_t) ctx->color.red,
                                  (uint8_t) ctx->color.green,
                                  (uint8_t) ctx->color.blue);
@@ -309,9 +304,8 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
    if (!im)
       return NULL;
 
-   err = __imlib_GrabDrawableToRGBA(im->data, 0, 0, width, height,
-                                    ctx->display, ctx->drawable, mask,
-                                    ctx->visual, ctx->colormap, ctx->depth,
+   err = __imlib_GrabDrawableToRGBA(&ctx->x11, im->data, 0, 0, width, height,
+                                    ctx->drawable, mask,
                                     x, y, width, height,
                                     &domask, need_to_grab_x);
    if (err)
@@ -335,9 +329,8 @@ imlib_create_image_from_ximage(XImage * image, XImage * mask, int x, int y,
    if (!im)
       return NULL;
 
-   __imlib_GrabXImageToRGBA(im->data, 0, 0, width, height,
-                            ctx->display, image, mask, ctx->visual,
-                            ctx->depth, x, y, width, height, need_to_grab_x);
+   __imlib_GrabXImageToRGBA(&ctx->x11, im->data, 0, 0, width, height,
+                            image, mask, x, y, width, height, need_to_grab_x);
    return im;
 }
 
@@ -362,19 +355,15 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int src_x, int src_y,
    domask = mask != 0 || get_mask_from_shape;
 
    if (src_width == dst_width && src_height == dst_height)
-      err = __imlib_GrabDrawableToRGBA(im->data,
+      err = __imlib_GrabDrawableToRGBA(&ctx->x11, im->data,
                                        0, 0, dst_width, dst_height,
-                                       ctx->display, ctx->drawable, mask,
-                                       ctx->visual, ctx->colormap,
-                                       ctx->depth,
+                                       ctx->drawable, mask,
                                        src_x, src_y, src_width, src_height,
                                        &domask, need_to_grab_x);
    else
-      err = __imlib_GrabDrawableScaledToRGBA(im->data,
+      err = __imlib_GrabDrawableScaledToRGBA(&ctx->x11, im->data,
                                              0, 0, dst_width, dst_height,
-                                             ctx->display, ctx->drawable, mask,
-                                             ctx->visual, ctx->colormap,
-                                             ctx->depth,
+                                             ctx->drawable, mask,
                                              src_x, src_y,
                                              src_width, src_height,
                                              &domask, need_to_grab_x);
@@ -450,9 +439,10 @@ imlib_copy_drawable_to_image(Pixmap mask, int src_x, int src_y, int src_width,
    if ((src_width <= 0) || (src_height <= 0))
       return 0;
    __imlib_DirtyImage(im);
-   return !__imlib_GrabDrawableToRGBA(im->data, dst_x, dst_y, im->w, im->h,
-                                      ctx->display, ctx->drawable, mask,
-                                      ctx->visual, ctx->colormap, ctx->depth,
+
+   return !__imlib_GrabDrawableToRGBA(&ctx->x11, im->data,
+                                      dst_x, dst_y, im->w, im->h,
+                                      ctx->drawable, mask,
                                       src_x, src_y, src_width, src_height,
                                       &domask, need_to_grab_x);
 }
@@ -472,18 +462,18 @@ imlib_render_image_updates_on_drawable(Imlib_Updates updates, int x, int y)
    ctx->error = __imlib_LoadImageData(im);
    if (ctx->error)
       return;
-   ximcs = __imlib_GetXImageCacheCountMax(ctx->display);        /* Save */
+   ximcs = __imlib_GetXImageCacheCountMax(&ctx->x11);   /* Save */
    if (ximcs == 0)              /* Only if we don't set this up elsewhere */
-      __imlib_SetXImageCacheCountMax(ctx->display, 10);
+      __imlib_SetXImageCacheCountMax(&ctx->x11, 10);
    for (; u; u = u->next)
      {
-        __imlib_RenderImage(ctx->display, im, ctx->drawable, 0, ctx->visual,
-                            ctx->colormap, ctx->depth, u->x, u->y, u->w, u->h,
+        __imlib_RenderImage(&ctx->x11, im, ctx->drawable, 0,
+                            u->x, u->y, u->w, u->h,
                             x + u->x, y + u->y, u->w, u->h, 0, ctx->dither, 0,
                             0, 0, ctx->color_modifier, OP_COPY);
      }
    if (ximcs == 0)
-      __imlib_SetXImageCacheCountMax(ctx->display, ximcs);
+      __imlib_SetXImageCacheCountMax(&ctx->x11, ximcs);
 }
 
 EAPI void
@@ -500,12 +490,11 @@ imlib_render_image_on_drawable_skewed(int src_x, int src_y,
    ctx->error = __imlib_LoadImageData(im);
    if (ctx->error)
       return;
-   __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
-                             ctx->visual, ctx->colormap, ctx->depth, src_x,
-                             src_y, src_width, src_height,
-                             dst_x, dst_y, h_angle_x,
-                             h_angle_y, v_angle_x, v_angle_y, ctx->anti_alias,
-                             ctx->dither, ctx->blend, ctx->dither_mask,
+   __imlib_RenderImageSkewed(&ctx->x11, im, ctx->drawable, ctx->mask,
+                             src_x, src_y, src_width, src_height,
+                             dst_x, dst_y, h_angle_x, h_angle_y, v_angle_x,
+                             v_angle_y, ctx->anti_alias, ctx->dither,
+                             ctx->blend, ctx->dither_mask,
                              ctx->mask_alpha_threshold, ctx->color_modifier,
                              ctx->operation);
 }
@@ -523,9 +512,8 @@ imlib_render_image_on_drawable_at_angle(int src_x, int src_y,
    ctx->error = __imlib_LoadImageData(im);
    if (ctx->error)
       return;
-   __imlib_RenderImageSkewed(ctx->display, im, ctx->drawable, ctx->mask,
-                             ctx->visual, ctx->colormap, ctx->depth, src_x,
-                             src_y, src_width, src_height,
+   __imlib_RenderImageSkewed(&ctx->x11, im, ctx->drawable, ctx->mask,
+                             src_x, src_y, src_width, src_height,
                              dst_x, dst_y, angle_x, angle_y,
                              0, 0, ctx->anti_alias, ctx->dither, ctx->blend,
                              ctx->dither_mask, ctx->mask_alpha_threshold,

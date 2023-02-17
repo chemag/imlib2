@@ -2412,13 +2412,13 @@ __imlib_RGBASetupContext(Context * ct)
 {
    _dither_color_lut = ct->palette;
 
-   if ((ct->depth == 16) || (ct->depth == 15))
+   if ((ct->x11.depth == 16) || (ct->x11.depth == 15))
      {
         _dither_r16 = (uint16_t *) ct->r_dither;
         _dither_g16 = (uint16_t *) ct->g_dither;
         _dither_b16 = (uint16_t *) ct->b_dither;
      }
-   else if (ct->depth <= 8)
+   else if (ct->x11.depth <= 8)
      {
         switch (ct->palette_type)
           {
