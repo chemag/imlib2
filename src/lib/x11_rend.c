@@ -318,7 +318,7 @@ __imlib_RenderImage(Display * d, ImlibImage * im,
    if (blend && im->has_alpha)
      {
         back = malloc(dw * dh * sizeof(uint32_t));
-        if (!__imlib_GrabDrawableToRGBA
+        if (__imlib_GrabDrawableToRGBA
             (back, 0, 0, dw, dh, d, w, 0, v, cm, depth, dx, dy, dw, dh, 0, 1))
           {
              free(back);

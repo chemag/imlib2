@@ -295,6 +295,7 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
                                  int height, char need_to_grab_x)
 {
    ImlibImage         *im;
+   int                 err;
    char                domask = 0;
 
    if (mask)
@@ -308,10 +309,12 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
    if (!im)
       return NULL;
 
-   if (!__imlib_GrabDrawableToRGBA(im->data, 0, 0, width, height, ctx->display,
-                                   ctx->drawable, mask, ctx->visual,
-                                   ctx->colormap, ctx->depth, x, y, width,
-                                   height, &domask, need_to_grab_x))
+   err = __imlib_GrabDrawableToRGBA(im->data, 0, 0, width, height,
+                                    ctx->display, ctx->drawable, mask,
+                                    ctx->visual, ctx->colormap, ctx->depth,
+                                    x, y, width, height,
+                                    &domask, need_to_grab_x);
+   if (err)
      {
         __imlib_FreeImage(im);
         return NULL;
@@ -346,6 +349,7 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int src_x, int src_y,
                                         char get_mask_from_shape)
 {
    ImlibImage         *im;
+   int                 err;
    char                domask;
 
    if (!IMAGE_DIMENSIONS_OK(src_width, src_height))
@@ -357,11 +361,13 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int src_x, int src_y,
 
    domask = mask != 0 || get_mask_from_shape;
 
-   if (!__imlib_GrabDrawableScaledToRGBA(im->data, 0, 0, dst_width, dst_height,
-                                         ctx->display, ctx->drawable, mask,
-                                         ctx->visual, ctx->colormap, ctx->depth,
-                                         src_x, src_y, src_width, src_height,
-                                         &domask, need_to_grab_x))
+   err = __imlib_GrabDrawableScaledToRGBA(im->data, 0, 0, dst_width, dst_height,
+                                          ctx->display, ctx->drawable, mask,
+                                          ctx->visual, ctx->colormap,
+                                          ctx->depth,
+                                          src_x, src_y, src_width, src_height,
+                                          &domask, need_to_grab_x);
+   if (err)
      {
         __imlib_FreeImage(im);
         return NULL;
@@ -433,11 +439,11 @@ imlib_copy_drawable_to_image(Pixmap mask, int src_x, int src_y, int src_width,
    if ((src_width <= 0) || (src_height <= 0))
       return 0;
    __imlib_DirtyImage(im);
-   return __imlib_GrabDrawableToRGBA(im->data, dst_x, dst_y, im->w, im->h,
-                                     ctx->display, ctx->drawable, mask,
-                                     ctx->visual, ctx->colormap, ctx->depth,
-                                     src_x, src_y, src_width, src_height,
-                                     &domask, need_to_grab_x);
+   return !__imlib_GrabDrawableToRGBA(im->data, dst_x, dst_y, im->w, im->h,
+                                      ctx->display, ctx->drawable, mask,
+                                      ctx->visual, ctx->colormap, ctx->depth,
+                                      src_x, src_y, src_width, src_height,
+                                      &domask, need_to_grab_x);
 }
 
 EAPI void

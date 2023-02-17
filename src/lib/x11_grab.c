@@ -635,11 +635,7 @@ __imlib_GrabDrawableToRGBA(uint32_t * data, int x_dst, int y_dst, int w_dst,
         src_w = xatt.width;
         src_h = xatt.height;
         if ((xatt.map_state != IsViewable) && (xatt.backing_store == NotUseful))
-          {
-             if (grab)
-                XUngrabServer(d);
-             return 0;
-          }
+           goto bail;
      }
 
    /* clip to the drawable tree and screen */
@@ -691,11 +687,7 @@ __imlib_GrabDrawableToRGBA(uint32_t * data, int x_dst, int y_dst, int w_dst,
      }
 
    if ((width <= 0) || (height <= 0))
-     {
-        if (grab)
-           XUngrabServer(d);
-        return 0;
-     }
+      goto bail;
 
    w_src = width;
    h_src = height;
@@ -712,11 +704,7 @@ __imlib_GrabDrawableToRGBA(uint32_t * data, int x_dst, int y_dst, int w_dst,
    if (!xim)
       xim = XGetImage(d, p, x_src, y_src, w_src, h_src, 0xffffffff, ZPixmap);
    if (!xim)
-     {
-        if (grab)
-           XUngrabServer(d);
-        return 0;
-     }
+      goto bail;
 
    mxim = NULL;
    if ((m) && (domask))
@@ -806,6 +794,11 @@ __imlib_GrabDrawableToRGBA(uint32_t * data, int x_dst, int y_dst, int w_dst,
            *pdomask = 0;
      }
 
+   return 0;
+
+ bail:
+   if (grab)
+      XUngrabServer(d);
    return 1;
 }
 
