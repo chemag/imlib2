@@ -580,6 +580,24 @@ _WindowGetShapeMask(Display * d, Window p,
    return mask;
 }
 
+static bool
+_DrawableCheck(Display * dpy, Drawable draw, XWindowAttributes * patt)
+{
+   XErrorHandler       prev_erh;
+
+   XSync(dpy, False);
+   prev_erh = XSetErrorHandler(Tmp_HandleXError);
+   _x_err = 0;
+
+   /* lets see if its a pixmap or not */
+   XGetWindowAttributes(dpy, draw, patt);
+   XSync(dpy, False);
+
+   XSetErrorHandler(prev_erh);
+
+   return _x_err != 0;
+}
+
 int
 __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
                            int x_dst, int y_dst,
@@ -588,9 +606,8 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
                            int x_src, int y_src, int w_src, int h_src,
                            char *pdomask, int grab)
 {
-   XErrorHandler       prev_erh = NULL;
    XWindowAttributes   xatt, ratt;
-   char                is_pixmap = 0, is_shm = 0, is_mshm = 0;
+   bool                is_pixmap, is_shm, is_mshm;
    char                domask;
    int                 i;
    int                 src_x, src_y, src_w, src_h;
@@ -606,17 +623,8 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
 
    if (grab)
       XGrabServer(x11->dpy);
-   XSync(x11->dpy, False);
-   prev_erh = XSetErrorHandler(Tmp_HandleXError);
-   _x_err = 0;
 
-   /* lets see if its a pixmap or not */
-   XGetWindowAttributes(x11->dpy, draw, &xatt);
-   XSync(x11->dpy, False);
-   if (_x_err)
-      is_pixmap = 1;
-   /* reset our error handler */
-   XSetErrorHandler((XErrorHandler) prev_erh);
+   is_pixmap = _DrawableCheck(x11->dpy, draw, &xatt);
 
    if (is_pixmap)
      {
@@ -711,6 +719,7 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
    if (!xim)
       goto bail;
 
+   is_mshm = false;
    mxim = NULL;
    if ((mask) && (domask))
      {
