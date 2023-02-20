@@ -385,7 +385,6 @@ imlib_copy_drawable_to_image(Pixmap mask, int src_x, int src_y, int src_width,
 {
    ImlibImage         *im;
    char                domask = 0;
-   int                 pre_adj;
 
    CHECK_PARAM_POINTER_RETURN("image", ctx->image, 0);
    if (mask)
@@ -400,44 +399,6 @@ imlib_copy_drawable_to_image(Pixmap mask, int src_x, int src_y, int src_width,
    if (ctx->error)
       return 0;
 
-   pre_adj = 0;
-   if (src_x < 0)
-     {
-        src_width += src_x;
-        pre_adj = src_x;
-        src_x = 0;
-     }
-   if (src_width < 0)
-      src_width = 0;
-   if (dst_x < 0)
-     {
-        src_width += dst_x;
-        src_x -= dst_x - pre_adj;
-        dst_x = 0;
-     }
-   if ((dst_x + src_width) >= im->w)
-      src_width = im->w - dst_x;
-
-   pre_adj = 0;
-   if (src_y < 0)
-     {
-        src_height += src_y;
-        pre_adj = src_y;
-        src_y = 0;
-     }
-   if (src_height < 0)
-      src_height = 0;
-   if (dst_y < 0)
-     {
-        src_height += dst_y;
-        src_y -= dst_y - pre_adj;
-        dst_y = 0;
-     }
-   if ((dst_y + src_height) >= im->h)
-      src_height = im->h - dst_y;
-
-   if ((src_width <= 0) || (src_height <= 0))
-      return 0;
    __imlib_DirtyImage(im);
 
    return !__imlib_GrabDrawableToRGBA(&ctx->x11, im->data,

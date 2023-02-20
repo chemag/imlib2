@@ -606,12 +606,11 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
                            int x_src, int y_src, int w_src, int h_src,
                            char *pdomask, int grab)
 {
-   XWindowAttributes   xatt, ratt;
+   XWindowAttributes   xatt;
    bool                is_pixmap, is_shm, is_mshm;
    char                domask;
    int                 i;
-   int                 src_x, src_y, src_w, src_h;
-   int                 width, height, clipx, clipy;
+   int                 width, height;
    Pixmap              mask = mask_;
    XShmSegmentInfo     shminfo, mshminfo;
    XImage             *xim, *mxim;
@@ -619,85 +618,96 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
 
    domask = (pdomask) ? *pdomask : 0;
 
-   h_dst = 0;                   /* h_dst is not used */
-
    if (grab)
       XGrabServer(x11->dpy);
+
+   width = w_src;
+   height = h_src;
 
    is_pixmap = _DrawableCheck(x11->dpy, draw, &xatt);
 
    if (is_pixmap)
      {
-        Window              dw;
+        Window              rret;
+        unsigned int        bw;
 
-        XGetGeometry(x11->dpy, draw, &dw, &src_x, &src_y,
-                     (unsigned int *)&src_w, (unsigned int *)&src_h,
-                     (unsigned int *)&src_x, (unsigned int *)&xatt.depth);
-        src_x = 0;
-        src_y = 0;
+        XGetGeometry(x11->dpy, draw, &rret, &xatt.x, &xatt.y,
+                     (unsigned int *)&xatt.width, (unsigned int *)&xatt.height,
+                     &bw, (unsigned int *)&xatt.depth);
      }
    else
      {
-        Window              dw;
+        XWindowAttributes   ratt;
+        Window              cret;
 
-        XGetWindowAttributes(x11->dpy, xatt.root, &ratt);
-        XTranslateCoordinates(x11->dpy, draw, xatt.root,
-                              0, 0, &src_x, &src_y, &dw);
-        src_w = xatt.width;
-        src_h = xatt.height;
         if ((xatt.map_state != IsViewable) && (xatt.backing_store == NotUseful))
            goto bail;
+
+        /* Clip source to screen */
+        XGetWindowAttributes(x11->dpy, xatt.root, &ratt);
+        XTranslateCoordinates(x11->dpy, draw, xatt.root,
+                              0, 0, &xatt.x, &xatt.y, &cret);
+
+        if (xatt.x + x_src < 0)
+          {
+             width += xatt.x + x_src;
+             x_src = -xatt.x;
+          }
+        if (xatt.x + x_src + width > ratt.width)
+           width = ratt.width - (xatt.x + x_src);
+
+        if (xatt.y + y_src < 0)
+          {
+             height += xatt.y + y_src;
+             y_src = -xatt.y;
+          }
+        if (xatt.y + y_src + height > ratt.height)
+           height = ratt.height - (xatt.y + y_src);
+
+        /* Is this ever relevant? */
+        if (xatt.colormap == None)
+           xatt.colormap = ratt.colormap;
      }
 
-   /* clip to the drawable tree and screen */
-   clipx = 0;
-   clipy = 0;
-   width = src_w - x_src;
-   height = src_h - y_src;
-   if (width > w_src)
-      width = w_src;
-   if (height > h_src)
-      height = h_src;
-
-   if (!is_pixmap)
-     {
-        if ((src_x + x_src + width) > ratt.width)
-           width = ratt.width - (src_x + x_src);
-        if ((src_y + y_src + height) > ratt.height)
-           height = ratt.height - (src_y + y_src);
-     }
-
+   /* Clip source to drawable */
    if (x_src < 0)
      {
-        clipx = -x_src;
+        x_dst += -x_src;
         width += x_src;
         x_src = 0;
      }
+   if (x_src + width > xatt.width)
+      width = xatt.width - x_src;
 
    if (y_src < 0)
      {
-        clipy = -y_src;
+        y_dst += -y_src;
         height += y_src;
         y_src = 0;
      }
+   if (y_src + height > xatt.height)
+      height = xatt.height - y_src;
 
-   if (!is_pixmap)
+   /* Clip source to destination */
+   if (x_dst < 0)
      {
-        if ((src_x + x_src) < 0)
-          {
-             clipx -= (src_x + x_src);
-             width += (src_x + x_src);
-             x_src = -src_x;
-          }
-        if ((src_y + y_src) < 0)
-          {
-             clipy -= (src_y + y_src);
-             height += (src_y + y_src);
-             y_src = -src_y;
-          }
+        x_src -= x_dst;
+        width += x_dst;
+        x_dst = 0;
      }
+   if (x_dst + width > w_dst)
+      width = w_dst - x_dst;
 
-   if ((width <= 0) || (height <= 0))
+   if (y_dst < 0)
+     {
+        y_src -= y_dst;
+        height += y_dst;
+        y_dst = 0;
+     }
+   else if (y_dst + height > h_dst)
+      height = h_dst - y_dst;
+
+   if (width <= 0 || height <= 0)
       goto bail;
 
    w_src = width;
@@ -757,15 +767,9 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
         if (!cmap)
           {
              if (is_pixmap)
-               {
-                  cmap = DefaultColormap(x11->dpy, DefaultScreen(x11->dpy));
-               }
+                cmap = DefaultColormap(x11->dpy, DefaultScreen(x11->dpy));
              else
-               {
-                  cmap = xatt.colormap;
-                  if (cmap == None)
-                     cmap = ratt.colormap;
-               }
+                cmap = xatt.colormap;
           }
 
         for (i = 0; i < (1 << xatt.depth); i++)
@@ -782,8 +786,7 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
           }
      }
 
-   __imlib_GrabXImageToRGBA(x11, data,
-                            x_dst + clipx, y_dst + clipy, w_dst, h_dst,
+   __imlib_GrabXImageToRGBA(x11, data, x_dst, y_dst, w_dst, h_dst,
                             xim, mxim, x_src, y_src, w_src, h_src, 0);
 
    /* destroy the Ximage */
