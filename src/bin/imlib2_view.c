@@ -38,6 +38,7 @@ static double       opt_scale_x = 1.;
 static double       opt_scale_y = 1.;
 static double       opt_sgrab_x = 1.;
 static double       opt_sgrab_y = 1.;
+static int          opt_cbfs = 8;       /* Background checkerboard field size */
 static char         opt_progress_granularity = 10;
 static char         opt_progress_print = 0;
 static int          opt_progress_delay = 0;
@@ -70,6 +71,7 @@ static int          animloop = 0;       /* Animation loop count          */
    "  -p         : Print info in progress callback (default no)\n" \
    "  -s Sx[,Sy] : Set render x/y scaling factors to Sx,Sy (default 1.0)\n" \
    "  -S Sx[,Sy] : Set grab x/y scaling factors to Sx,Sy (default 1.0)\n" \
+   "  -t N       : Set background checkerboard field size (default 8)\n" \
    "  -v         : Increase verbosity\n"
 
 static void
@@ -92,16 +94,16 @@ bg_im_init(int w, int h)
    bg_im = imlib_create_image(w, h);
 
    imlib_context_set_image(bg_im);
-   for (y = 0; y < h; y += 8)
+   for (y = 0; y < h; y += opt_cbfs)
      {
-        onoff = (y / 8) & 0x1;
-        for (x = 0; x < w; x += 8)
+        onoff = (y / opt_cbfs) & 0x1;
+        for (x = 0; x < w; x += opt_cbfs)
           {
              if (onoff)
                 imlib_context_set_color(144, 144, 144, 255);
              else
                 imlib_context_set_color(100, 100, 100, 255);
-             imlib_image_fill_rectangle(x, y, 8, 8);
+             imlib_image_fill_rectangle(x, y, opt_cbfs, opt_cbfs);
              onoff++;
              if (onoff == 2)
                 onoff = 0;
@@ -593,7 +595,7 @@ main(int argc, char **argv)
 
    verbose = 0;
 
-   while ((opt = getopt(argc, argv, "cdeg:l:ps:S:v")) != -1)
+   while ((opt = getopt(argc, argv, "cdeg:l:ps:S:t:v")) != -1)
      {
         switch (opt)
           {
@@ -628,6 +630,11 @@ main(int argc, char **argv)
              sscanf(optarg, "%lf,%lf", &opt_sgrab_x, &opt_sgrab_y);
              if (opt_sgrab_y == 0.f)
                 opt_sgrab_y = opt_sgrab_x;
+             break;
+          case 't':
+             no = atoi(optarg);
+             if (no > 0)
+                opt_cbfs = no;
              break;
           case 'v':
              verbose += 1;
