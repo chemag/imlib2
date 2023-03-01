@@ -17,10 +17,12 @@ typedef struct {
    int                 depth;
 
    const char         *test;
+   int                 func;
    int                 scale;
    int                 do_mask;
 
-   unsigned int        color;
+   unsigned int        col_bg;
+   unsigned int        col_fg;
 } xd_t;
 
 static xd_t         xd;
@@ -105,33 +107,41 @@ _x11_fini(void)
 }
 
 static              Pixmap
-_pmap_mk_fill_solid(int w, int h, unsigned int color)
+_pmap_mk_fill_solid(int w, int h, unsigned int col_bg, unsigned int col_fg)
 {
    XGCValues           gcv;
    GC                  gc;
    Pixmap              pmap;
    XColor              xc;
+   unsigned int        pix_bg, pix_fg;
 
-   xc.red = ((color >> 16) & 0xff) * 0x101;
-   xc.green = ((color >> 8) & 0xff) * 0x101;
-   xc.blue = ((color >> 0) & 0xff) * 0x101;
+   xc.red = ((col_bg >> 16) & 0xff) * 0x101;
+   xc.green = ((col_bg >> 8) & 0xff) * 0x101;
+   xc.blue = ((col_bg >> 0) & 0xff) * 0x101;
    XAllocColor(xd.dpy, xd.cmap, &xc);
-   D("color RGB = %#06x %#06x %#06x  %#08lx\n",
-     xc.red, xc.green, xc.blue, xc.pixel);
-#if 0
-   xc.red = xc.green = xc.blue = 0;
-   XQueryColor(xd.dpy, xd.cmap, &xc);
-   D("color RGB = %#06x %#06x %#06x  %#08lx\n",
-     xc.red, xc.green, xc.blue, xc.pixel);
-#endif
+   pix_bg = xc.pixel;
+   D("BG color RGB = %#06x %#06x %#06x  %#08x\n",
+     xc.red, xc.green, xc.blue, pix_bg);
+
+   xc.red = ((col_fg >> 16) & 0xff) * 0x101;
+   xc.green = ((col_fg >> 8) & 0xff) * 0x101;
+   xc.blue = ((col_fg >> 0) & 0xff) * 0x101;
+   XAllocColor(xd.dpy, xd.cmap, &xc);
+   pix_fg = xc.pixel;
+   D("FG color RGB = %#06x %#06x %#06x  %#08x\n",
+     xc.red, xc.green, xc.blue, pix_fg);
 
    pmap = XCreatePixmap(xd.dpy, xd.root, w, h, xd.depth);
 
-   gcv.foreground = xc.pixel;
+   gcv.foreground = pix_bg;
    gcv.graphics_exposures = False;
    gc = XCreateGC(xd.dpy, pmap, GCForeground | GCGraphicsExposures, &gcv);
 
    XFillRectangle(xd.dpy, pmap, gc, 0, 0, w, h);
+
+   XSetForeground(xd.dpy, gc, pix_fg);
+   XDrawRectangle(xd.dpy, pmap, gc, 0, 0, w - 1, h - 1);
+   XDrawRectangle(xd.dpy, pmap, gc, 1, 1, w - 3, h - 3);
 
    XFreeGC(xd.dpy, gc);
 
@@ -165,41 +175,32 @@ _img_dump(Imlib_Image im, const char *file)
    char                buf[1024];
 
    snprintf(buf, sizeof(buf), file, seqn++);
+   D("%s: '%s'\n", __func__, buf);
    imlib_context_set_image(im);
    imlib_save_image(buf);
 }
 
 static void
-_test_grab_1(int w, int h, int x0, int y0)
+_test_grab_1(const int wsrc, const int hsrc, const int xsrc, const int ysrc,
+             const int xdst, const int ydst)
 {
    Imlib_Image         im;
    uint32_t           *dptr, pix, col;
    int                 x, y, err;
-   int                 xs, ys, ws, hs;
+   int                 wimg, himg;
+   int                 xi, yi, xo, yo, wo, ho, fac, bw;
    char                buf[128];
    Pixmap              mask;
 
-   xs = x0;
-   ws = w;
-   ys = y0;
-   hs = h;
-   if (xd.scale > 0)
-     {
-        xs *= xd.scale;
-        ws *= xd.scale;
-        ys *= xd.scale;
-        hs *= xd.scale;
-     }
-   if (xd.scale < 0)
-     {
-        xs = (xs & ~1) / -xd.scale;
-        ws /= -xd.scale;
-        ys = (ys & ~1) / -xd.scale;
-        hs /= -xd.scale;
-     }
-
-   D("%s: %3dx%3d(%3d,%3d) -> %3dx%3d(%d,%d)\n", __func__,
-     w, h, x0, y0, ws, hs, xs, ys);
+   bw = 2;                      // Output border width
+   wimg = wsrc;                 // Produced Imlib_Image size
+   himg = hsrc;
+   xi = xsrc;                   // Source coord equivalent after scaling
+   yi = ysrc;
+   xo = xdst;                   // Dest coord of input pixel 0
+   yo = ydst;
+   wo = wsrc;                   // Grabbed drawable size after scaling
+   ho = hsrc;
 
    switch (xd.do_mask)
      {
@@ -208,48 +209,102 @@ _test_grab_1(int w, int h, int x0, int y0)
         mask = None;
         break;
      case 1:                   // With mask
-        mask = _pmap_mk_mask(w, h, 0, 0);
+        mask = _pmap_mk_mask(wsrc, hsrc, 0, 0);
         break;
      }
 
-   if (xd.scale == 0)
-      im = imlib_create_image_from_drawable(mask, x0, y0, w, h, 0);
-   else
-      im = imlib_create_scaled_image_from_drawable(mask, x0, y0, w, h,
-                                                   ws, hs, 0, 0);
+   switch (xd.func)
+     {
+     default:
+     case 0:
+        im = imlib_create_image_from_drawable(mask, xsrc, ysrc, wsrc, hsrc, 0);
+        xo = -xsrc;
+        yo = -ysrc;
+        break;
+     case 1:
+     case -2:
+     case 2:
+        if (xd.scale > 0)
+          {
+             wimg = wsrc * xd.scale;
+             xi = xsrc * xd.scale;
+             himg = hsrc * xd.scale;
+             yi = ysrc * xd.scale;
+             bw = bw * xd.scale;
+          }
+        if (xd.scale < 0)
+          {
+             fac = -xd.scale;
+             wimg = wsrc / fac;
+             if (xsrc >= 0)
+                xi = (xsrc * wimg + (wsrc - 1)) / wsrc;
+             else
+                xi = (xsrc * wimg - (wsrc - 1)) / wsrc;
+             himg = hsrc / fac;
+             if (ysrc >= 0)
+                yi = (ysrc * himg + (hsrc - 1)) / hsrc;
+             else
+                yi = (ysrc * himg - (hsrc - 1)) / hsrc;
+             bw = (bw + fac - 1) / fac;
+          }
+        im = imlib_create_scaled_image_from_drawable(mask,
+                                                     xsrc, ysrc, wsrc, hsrc,
+                                                     wimg, himg, 0, 0);
+        xo = -xi;
+        yo = -yi;
+        wo = wimg;
+        ho = himg;
+        break;
+     }
 
    if (mask != None)
       XFreePixmap(xd.dpy, mask);
 
+   D("%s: %3dx%3d(%d,%d) -> %3dx%3d(%d,%d -> %d,%d)\n", __func__,
+     wsrc, hsrc, xsrc, ysrc, wimg, himg, xi, yi, xdst, ydst);
+
    imlib_context_set_image(im);
+   imlib_image_set_has_alpha(1);
    snprintf(buf, sizeof(buf), "%s/%s-%%d.png", IMG_GEN, xd.test);
    _img_dump(im, buf);
 
+   D("%s: %3dx%3d(%d,%d -> %d,%d) in %dx%d bw=%d\n", __func__,
+     wo, ho, xi, yi, xo, yo, wimg, himg, bw);
+
    dptr = imlib_image_get_data_for_reading_only();
    err = 0;
-   for (y = 0; y < hs; y++)
+   for (y = 0; y < himg; y++)
      {
-        for (x = 0; x < ws; x++)
+        for (x = 0; x < wimg; x++)
           {
              pix = *dptr++;
-             if (xs + x < 0 || ys + y < 0 || xs + x >= ws || ys + y >= hs)
+             if (x < xo || y < yo ||
+                 x >= xo + wo || y >= yo + ho ||
+                 x - xo >= xi + wo || y - yo >= yi + ho ||
+                 x - xo < xi || y - yo < yi ||
+                 x - xo >= xi + wimg || y - yo >= yi + himg)
                {
 #if 1
                   // FIXME - Pixels outside source drawable are not properly initialized
-                  if (x0 != 0 || y0 != 0)
+                  if (xo != 0 || yo != 0)
                      continue;
 #endif
-                  col = 0x00000000;     // Use 0xff000000 if non-alpa
+                  col = 0x00000000;
+               }
+             else if (x < xo + bw || y < yo + bw ||
+                      x >= xo + wo - bw || y >= yo + ho - bw)
+               {
+                  col = xd.col_fg;
                }
              else
                {
-                  col = xd.color;
+                  col = xd.col_bg;
                }
-             if (pix != col)
+             if (pix != col && err < 20)
                {
                   D2("%3d,%3d (%3d,%3d): %08x != %08x\n",
-                     x, y, x0, y0, pix, col);
-                  err = 1;
+                     x, y, xi, yi, pix, col);
+                  err += 1;
                }
           }
      }
@@ -260,53 +315,68 @@ _test_grab_1(int w, int h, int x0, int y0)
 }
 
 static void
-_test_grab_2(const char *test, int depth, int scale, int opt, int mask)
+_test_grab_2(const char *test, int depth, int func, int opt, int mask)
 {
    char                buf[64];
    Pixmap              pmap;
    int                 w, h, d;
 
-   D("%s: %s: depth=%d scale=%d opt=%d mask=%d\n", __func__, test,
-     depth, scale, opt, mask);
+   D("%s: %s: depth=%d func=%d opt=%d mask=%d", __func__,
+     test, depth, func, opt, mask);
 
-   snprintf(buf, sizeof(buf), "%s_d%02d_s%d_o%d_m%d",
-            test, depth, scale, opt, mask);
+   snprintf(buf, sizeof(buf), "%s_d%02d_f%d_o%d_m%d",
+            test, depth, func, opt, mask);
 
-   xd.color = 0xff0000ff;       // B ok
-   xd.color = 0xff00ff00;       // G ok
-   xd.color = 0xffff0000;       // R ok
+   xd.col_bg = 0xff0000ff;      // B ok
+   xd.col_bg = 0xff00ff00;      // G ok
+   xd.col_bg = 0xffff0000;      // R ok
+
+   xd.col_fg = 0xff0000ff;      // B
 
    if (_x11_init(depth))
       return;
 
-   xd.scale = scale;
+   xd.func = func;
+   xd.scale = 0;
+   switch (func)
+     {
+     default:
+        break;
+     case 2:
+     case -2:
+        xd.scale = func;
+        break;
+     }
    xd.test = buf;
    xd.do_mask = mask;
 
-   w = 32;
-   h = 45;
+   w = 16;
+   h = 22;
 
-   pmap = _pmap_mk_fill_solid(w, h, xd.color);
+   pmap = _pmap_mk_fill_solid(w, h, xd.col_bg, xd.col_fg);
    imlib_context_set_drawable(pmap);
 
    switch (opt)
      {
      case 0:
-        _test_grab_1(w, h, 0, 0);
+        _test_grab_1(w, h, 0, 0, 0, 0);
         break;
      case 1:
-        d = 1;
-        _test_grab_1(w, h, -d, -d);
-        _test_grab_1(w, h, -d, d);
-        _test_grab_1(w, h, d, d);
-        _test_grab_1(w, h, d, -d);
-        if (scale < 0)
+        if (xd.scale >= 0)
+          {
+             d = 1;
+             _test_grab_1(w, h, -d, -d, 0, 0);
+             _test_grab_1(w, h, -d, d, 0, 0);
+             _test_grab_1(w, h, d, d, 0, 0);
+             _test_grab_1(w, h, d, -d, 0, 0);
+          }
+        if (xd.scale < 0)
           {
              d = 2;
-             _test_grab_1(w, h, -d, -d);
-             _test_grab_1(w, h, -d, d);
-             _test_grab_1(w, h, d, d);
-             _test_grab_1(w, h, d, -d);
+             _test_grab_1(w, h, -d, -d, 0, 0);
+             _test_grab_1(w, h, -d, d, 0, 0);
+             _test_grab_1(w, h, d, d, 0, 0);
+             _test_grab_1(w, h, d, -d, 0, 0);
           }
         break;
      }
@@ -317,13 +387,13 @@ _test_grab_2(const char *test, int depth, int scale, int opt, int mask)
 }
 
 static void
-_test_grab(const char *test, int scale, int opt)
+_test_grab(const char *test, int func, int opt)
 {
-   _test_grab_2(test, 24, scale, opt, 0);
-   _test_grab_2(test, 32, scale, opt, 0);
+   _test_grab_2(test, 24, func, opt, 0);
+   _test_grab_2(test, 32, func, opt, 0);
 
-   _test_grab_2(test, 24, scale, opt, 1);
-   _test_grab_2(test, 32, scale, opt, 1);
+   _test_grab_2(test, 24, func, opt, 1);
+   _test_grab_2(test, 32, func, opt, 1);
 }
 
 // No scaling - imlib_create_image_from_drawable
