@@ -181,6 +181,23 @@ _img_dump(Imlib_Image im, const char *file)
 }
 
 static void
+_img_fill_solid(Imlib_Image im, uint32_t color)
+{
+   uint32_t           *dptr;
+   int                 x, y, w, h;
+
+   imlib_context_set_image(im);
+
+   w = imlib_image_get_width();
+   h = imlib_image_get_height();
+   dptr = imlib_image_get_data();
+
+   for (y = 0; y < h; y++)
+      for (x = 0; x < w; x++)
+         dptr[y * w + x] = color;
+}
+
+static void
 _test_grab_1(const int wsrc, const int hsrc, const int xsrc, const int ysrc,
              const int xdst, const int ydst)
 {
@@ -255,6 +272,19 @@ _test_grab_1(const int wsrc, const int hsrc, const int xsrc, const int ysrc,
         wo = wimg;
         ho = himg;
         break;
+     case 4:
+        wimg += 8;
+        himg += 8;
+        // fallthrough
+     case 3:
+        im = imlib_create_image(wimg, himg);
+        imlib_context_set_image(im);
+        _img_fill_solid(im, 0);
+        err = !imlib_copy_drawable_to_image(mask, xsrc, ysrc, wsrc, hsrc,
+                                            xdst, ydst, 0);
+        xo = xdst - xsrc;
+        yo = ydst - ysrc;
+        break;
      }
 
    if (mask != None)
@@ -319,7 +349,7 @@ _test_grab_2(const char *test, int depth, int func, int opt, int mask)
 {
    char                buf[64];
    Pixmap              pmap;
-   int                 w, h, d;
+   int                 w, h, d, d2;
 
    D("%s: %s: depth=%d func=%d opt=%d mask=%d", __func__,
      test, depth, func, opt, mask);
@@ -378,6 +408,29 @@ _test_grab_2(const char *test, int depth, int func, int opt, int mask)
              _test_grab_1(w, h, d, d, 0, 0);
              _test_grab_1(w, h, d, -d, 0, 0);
           }
+        break;
+     case 2:
+        d = 2;
+        d2 = 3;
+        _test_grab_1(w, h, -d, -d, -d2, -d2);
+        _test_grab_1(w, h, -d, -d, -d2, d2);
+        _test_grab_1(w, h, -d, -d, d2, d2);
+        _test_grab_1(w, h, -d, -d, d2, -d2);
+
+        _test_grab_1(w, h, -d, d, -d2, -d2);
+        _test_grab_1(w, h, -d, d, -d2, d2);
+        _test_grab_1(w, h, -d, d, d2, d2);
+        _test_grab_1(w, h, -d, d, d2, -d2);
+
+        _test_grab_1(w, h, d, d, -d2, -d2);
+        _test_grab_1(w, h, d, d, -d2, d2);
+        _test_grab_1(w, h, d, d, d2, d2);
+        _test_grab_1(w, h, d, d, d2, -d2);
+
+        _test_grab_1(w, h, d, -d, -d2, -d2);
+        _test_grab_1(w, h, d, -d, -d2, -d2);
+        _test_grab_1(w, h, d, -d, d2, d2);
+        _test_grab_1(w, h, d, -d, d2, -d2);
         break;
      }
 
@@ -440,4 +493,36 @@ TEST(GRAB, grab_offs_su2)
 TEST(GRAB, grab_offs_sd2)
 {
    _test_grab("grab_offs", -2, 1);
+}
+
+// No scaling - imlib_copy_drawable_to_image
+
+TEST(GRAB, grab_noof_t3)
+{
+   _test_grab("grab_noof", 3, 0);
+}
+
+TEST(GRAB, grab_offs_t3a)
+{
+   _test_grab("grab_noof", 3, 1);
+}
+
+TEST(GRAB, grab_offs_t3b)
+{
+   _test_grab("grab_offs", 3, 2);
+}
+
+TEST(GRAB, grab_noof_t4)
+{
+   _test_grab("grab_noof", 4, 0);
+}
+
+TEST(GRAB, grab_offs_t4a)
+{
+   _test_grab("grab_noof", 4, 1);
+}
+
+TEST(GRAB, grab_offs_t4b)
+{
+   _test_grab("grab_offs", 4, 2);
 }
