@@ -847,7 +847,10 @@ __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 * x11, uint32_t * data,
                                  char *pdomask, int grab, bool clear)
 {
    int                 rc;
+   XWindowAttributes   xatt;
+   bool                is_pixmap;
    int                 h_tmp, i, xx;
+   int                 x_src_, y_src_, width, height, x_dst_, y_dst_;
    XGCValues           gcv;
    GC                  gc, mgc = NULL;
    Pixmap              mask = mask_;
@@ -860,17 +863,63 @@ __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 * x11, uint32_t * data,
    gcv.graphics_exposures = False;
    gc = XCreateGC(x11->dpy, draw, GCSubwindowMode | GCGraphicsExposures, &gcv);
 
-   if (*pdomask && mask == None)
+   is_pixmap = _DrawableCheck(x11->dpy, draw, &xatt);
+
+   width = w_dst;
+   height = h_dst;
+
+   if (is_pixmap)
      {
-        mask = _WindowGetShapeMask(x11->dpy, draw,
-                                   0, 0, w_src, h_src, w_src, h_src);
-        if (mask == None)
-           *pdomask = 0;
+        Window              rret;
+        unsigned int        bw;
+
+        XGetGeometry(x11->dpy, draw, &rret, &xatt.x, &xatt.y,
+                     (unsigned int *)&xatt.width, (unsigned int *)&xatt.height,
+                     &bw, (unsigned int *)&xatt.depth);
+     }
+   else
+     {
+        XWindowAttributes   ratt;
+        Window              cret;
+
+        if ((xatt.map_state != IsViewable) && (xatt.backing_store == NotUseful))
+           return 1;
+
+        /* Clip source to screen */
+        XGetWindowAttributes(x11->dpy, xatt.root, &ratt);
+        XTranslateCoordinates(x11->dpy, draw, xatt.root,
+                              0, 0, &xatt.x, &xatt.y, &cret);
+
+#if 0
+        if (xatt.x + x_src < 0)
+          {
+             width += xatt.x + x_src;
+             x_src = -xatt.x;
+          }
+        if (xatt.x + x_src + width > ratt.width)
+           width = ratt.width - (xatt.x + x_src);
+
+        if (xatt.y + y_src < 0)
+          {
+             height += xatt.y + y_src;
+             y_src = -xatt.y;
+          }
+        if (xatt.y + y_src + height > ratt.height)
+           height = ratt.height - (xatt.y + y_src);
+#endif
+
+        if (*pdomask && mask == None)
+          {
+             mask = _WindowGetShapeMask(x11->dpy, draw,
+                                        0, 0, w_src, h_src, w_src, h_src);
+             if (mask == None)
+                *pdomask = 0;
+          }
      }
 
-   psc = XCreatePixmap(x11->dpy, draw, w_dst, h_tmp, x11->depth);
+   psc = XCreatePixmap(x11->dpy, draw, w_dst, h_tmp, xatt.depth);
 
-   if (*pdomask)
+   if (!is_pixmap && *pdomask)
      {
         msc = XCreatePixmap(x11->dpy, draw, w_dst, h_tmp, 1);
         mgc =
@@ -879,6 +928,7 @@ __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 * x11, uint32_t * data,
    else
       msc = None;
 
+   /* Copy source height vertical lines from input to intermediate */
    for (i = 0; i < w_dst; i++)
      {
         xx = (w_src * i) / w_dst;
@@ -886,6 +936,8 @@ __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 * x11, uint32_t * data,
         if (msc != None)
            XCopyArea(x11->dpy, mask, msc, mgc, xx, 0, 1, h_src, i, 0);
      }
+
+   /* Copy destination width horzontal lines from/to intermediate */
    if (h_dst > h_src)
      {
         for (i = h_dst - 1; i > 0; i--)
@@ -911,8 +963,39 @@ __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 * x11, uint32_t * data,
           }
      }
 
-   rc = __imlib_GrabDrawableToRGBA(x11, data, 0, 0, w_dst, h_dst, psc, msc,
-                                   0, 0, w_dst, h_dst, pdomask, grab, clear);
+   x_dst_ = y_dst_ = 0;         /* Clipped x_dst, y_dst */
+   x_src_ = y_src_ = 0;         /* Clipped, scaled x_src, y_src */
+
+   /* Adjust offsets and areas to not touch "non-existing" pixels */
+   if (x_src < 0)
+     {
+        xx = (-x_src * w_dst + w_src - 1) / w_src;
+        width -= xx;
+        x_src_ = x_dst_ = xx;
+     }
+   if (x_src + w_src > xatt.width)
+     {
+        xx = x_src + w_src - xatt.width;
+        xx = (xx * w_dst + w_src - 1) / w_src;
+        width -= xx;
+     }
+
+   if (y_src < 0)
+     {
+        xx = (-y_src * h_dst + h_src - 1) / h_src;
+        height -= xx;
+        y_src_ = y_dst_ = xx;
+     }
+   if (y_src + h_src > xatt.height)
+     {
+        xx = y_src + h_src - xatt.height;
+        xx = (xx * h_dst + h_src - 1) / h_src;
+        height -= xx;
+     }
+
+   rc = __imlib_GrabDrawableToRGBA(x11, data, x_dst_, y_dst_, w_dst, h_dst,
+                                   psc, msc, x_src_, y_src_, width, height,
+                                   pdomask, grab, clear);
 
    if (mgc)
       XFreeGC(x11->dpy, mgc);
