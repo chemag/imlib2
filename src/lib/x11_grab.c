@@ -604,7 +604,8 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
                            int w_dst, int h_dst,
                            Drawable draw, Pixmap mask_,
                            int x_src, int y_src, int w_src, int h_src,
-                           char *pdomask, int grab, bool clear)
+                           char *pdomask, int grab, bool clear,
+                           const XWindowAttributes * attr)
 {
    XWindowAttributes   xatt;
    bool                is_pixmap, is_shm, is_mshm;
@@ -624,49 +625,61 @@ __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11, uint32_t * data,
    width = w_src;
    height = h_src;
 
-   is_pixmap = _DrawableCheck(x11->dpy, draw, &xatt);
-
-   if (is_pixmap)
+   if (attr)
      {
-        Window              rret;
-        unsigned int        bw;
-
-        XGetGeometry(x11->dpy, draw, &rret, &xatt.x, &xatt.y,
-                     (unsigned int *)&xatt.width, (unsigned int *)&xatt.height,
-                     &bw, (unsigned int *)&xatt.depth);
+        is_pixmap = true;
+        xatt.width = attr->width;
+        xatt.height = attr->height;
+        xatt.depth = attr->depth;
      }
    else
      {
-        XWindowAttributes   ratt;
-        Window              cret;
+        is_pixmap = _DrawableCheck(x11->dpy, draw, &xatt);
 
-        if ((xatt.map_state != IsViewable) && (xatt.backing_store == NotUseful))
-           goto bail;
-
-        /* Clip source to screen */
-        XGetWindowAttributes(x11->dpy, xatt.root, &ratt);
-        XTranslateCoordinates(x11->dpy, draw, xatt.root,
-                              0, 0, &xatt.x, &xatt.y, &cret);
-
-        if (xatt.x + x_src < 0)
+        if (is_pixmap)
           {
-             width += xatt.x + x_src;
-             x_src = -xatt.x;
-          }
-        if (xatt.x + x_src + width > ratt.width)
-           width = ratt.width - (xatt.x + x_src);
+             Window              rret;
+             unsigned int        bw;
 
-        if (xatt.y + y_src < 0)
+             XGetGeometry(x11->dpy, draw, &rret, &xatt.x, &xatt.y,
+                          (unsigned int *)&xatt.width,
+                          (unsigned int *)&xatt.height,
+                          &bw, (unsigned int *)&xatt.depth);
+          }
+        else
           {
-             height += xatt.y + y_src;
-             y_src = -xatt.y;
-          }
-        if (xatt.y + y_src + height > ratt.height)
-           height = ratt.height - (xatt.y + y_src);
+             XWindowAttributes   ratt;
+             Window              cret;
 
-        /* Is this ever relevant? */
-        if (xatt.colormap == None)
-           xatt.colormap = ratt.colormap;
+             if (xatt.map_state != IsViewable &&
+                 xatt.backing_store == NotUseful)
+                goto bail;
+
+             /* Clip source to screen */
+             XGetWindowAttributes(x11->dpy, xatt.root, &ratt);
+             XTranslateCoordinates(x11->dpy, draw, xatt.root,
+                                   0, 0, &xatt.x, &xatt.y, &cret);
+
+             if (xatt.x + x_src < 0)
+               {
+                  width += xatt.x + x_src;
+                  x_src = -xatt.x;
+               }
+             if (xatt.x + x_src + width > ratt.width)
+                width = ratt.width - (xatt.x + x_src);
+
+             if (xatt.y + y_src < 0)
+               {
+                  height += xatt.y + y_src;
+                  y_src = -xatt.y;
+               }
+             if (xatt.y + y_src + height > ratt.height)
+                height = ratt.height - (xatt.y + y_src);
+
+             /* Is this ever relevant? */
+             if (xatt.colormap == None)
+                xatt.colormap = ratt.colormap;
+          }
      }
 
    /* Clip source to drawable */
@@ -993,9 +1006,11 @@ __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 * x11, uint32_t * data,
         height -= xx;
      }
 
+   xatt.width = w_dst;          /* Not the actual pixmap size but the scaled size */
+   xatt.height = h_dst;
    rc = __imlib_GrabDrawableToRGBA(x11, data, x_dst_, y_dst_, w_dst, h_dst,
                                    psc, msc, x_src_, y_src_, width, height,
-                                   pdomask, grab, clear);
+                                   pdomask, grab, clear, &xatt);
 
    if (mgc)
       XFreeGC(x11->dpy, mgc);

@@ -12,7 +12,8 @@ int                 __imlib_GrabDrawableToRGBA(const ImlibContextX11 * x11,
                                                int x_src, int y_src,
                                                int w_src, int h_src,
                                                char *domask, int grab,
-                                               bool clear);
+                                               bool clear,
+                                               const XWindowAttributes * attr);
 
 int                 __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 *
                                                      x11, uint32_t * data,

@@ -307,7 +307,7 @@ imlib_create_image_from_drawable(Pixmap mask, int x, int y, int width,
    err = __imlib_GrabDrawableToRGBA(&ctx->x11, im->data, 0, 0, width, height,
                                     ctx->drawable, mask,
                                     x, y, width, height,
-                                    &domask, need_to_grab_x, true);
+                                    &domask, need_to_grab_x, true, NULL);
    if (err)
      {
         __imlib_FreeImage(im);
@@ -359,7 +359,7 @@ imlib_create_scaled_image_from_drawable(Pixmap mask, int src_x, int src_y,
                                        0, 0, dst_width, dst_height,
                                        ctx->drawable, mask,
                                        src_x, src_y, src_width, src_height,
-                                       &domask, need_to_grab_x, true);
+                                       &domask, need_to_grab_x, true, NULL);
    else
       err = __imlib_GrabDrawableScaledToRGBA(&ctx->x11, im->data,
                                              0, 0, dst_width, dst_height,
@@ -405,7 +405,7 @@ imlib_copy_drawable_to_image(Pixmap mask, int src_x, int src_y, int src_width,
                                       dst_x, dst_y, im->w, im->h,
                                       ctx->drawable, mask,
                                       src_x, src_y, src_width, src_height,
-                                      &domask, need_to_grab_x, false);
+                                      &domask, need_to_grab_x, false, NULL);
 }
 
 EAPI void
