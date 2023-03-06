@@ -298,16 +298,13 @@ _test_grab_1(const int wsrc, const int hsrc, const int xsrc, const int ysrc,
    if (mask != None && mask != 1)
       XFreePixmap(xd.dpy, mask);
 
-   D("%s: %3dx%3d(%d,%d) -> %3dx%3d(%d,%d -> %d,%d)\n", __func__,
-     wsrc, hsrc, xsrc, ysrc, wimg, himg, xi, yi, xdst, ydst);
+   D("%s: %dx%d(%d,%d) -> %dx%d(%d,%d) to %dx%d(%d,%d) bw=%d\n", __func__,
+     wsrc, hsrc, xsrc, ysrc, wo, ho, xdst, ydst, wimg, himg, xo, yo, bw);
 
    imlib_context_set_image(im);
    imlib_image_set_has_alpha(1);
    snprintf(buf, sizeof(buf), "%s/%s-%%d.png", IMG_GEN, xd.test);
    _img_dump(im, buf);
-
-   D("%s: %3dx%3d(%d,%d -> %d,%d) in %dx%d bw=%d\n", __func__,
-     wo, ho, xi, yi, xo, yo, wimg, himg, bw);
 
    dptr = imlib_image_get_data_for_reading_only();
    err = 0;
