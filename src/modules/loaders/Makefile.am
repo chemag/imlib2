@@ -21,6 +21,9 @@ endif
 if BUILD_HEIF_LOADER
 pkg_LTLIBRARIES += heif.la
 endif
+if BUILD_Y4M_LOADER
+pkg_LTLIBRARIES += y4m.la
+endif
 if BUILD_JPEG_LOADER
 pkg_LTLIBRARIES += jpeg.la
 endif
@@ -90,6 +93,12 @@ heif_la_CPPFLAGS     = $(HEIF_CFLAGS) $(AM_CPPFLAGS)
 heif_la_LDFLAGS      = -module -avoid-version -Wl,-z,nodelete
 heif_la_LIBADD       = $(HEIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
 heif_la_LIBTOOLFLAGS = --tag=disable-static
+
+y4m_la_SOURCES       = loader_y4m.c
+y4m_la_CPPFLAGS      = $(Y4M_CFLAGS) $(AM_CPPFLAGS)
+y4m_la_LDFLAGS       = -module -avoid-version -Wl,-z,nodelete
+y4m_la_LIBADD        = $(Y4M_LIBS) $(top_builddir)/src/lib/libImlib2.la
+y4m_la_LIBTOOLFLAGS  = --tag=disable-static
 
 ico_la_SOURCES       = loader_ico.c
 ico_la_LDFLAGS       = -module -avoid-version
