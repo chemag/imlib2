@@ -55,6 +55,10 @@ static const char  *const pfxs[] = {
 #endif
    "xbm",
    "xpm",
+#ifdef BUILD_Y4M_LOADER
+   "y4m",
+#endif
+
 #ifdef BUILD_BZ2_LOADER
    "ff.bz2",                    // bz2
 #endif
@@ -217,6 +221,8 @@ test_load(void)
         err = close(fd);
         EXPECT_NE(err, 0);
 
+        if (!strcmp(pfxs[i], "y4m"))    // y4m cannot do mem
+           continue;
         if (!strcmp(pfxs[i], "jpg.mp3"))        // id3 cannot do mem
            continue;
 

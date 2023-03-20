@@ -84,6 +84,11 @@ static tii_t        tii[] = {
 #endif
    { "icon-64.xbm",		3936773892 },
    { "icon-64.xpm",		4016720483 },
+#ifdef BUILD_Y4M_LOADER
+   { "icon-64.yuv420p.y4m",	3810593176 },
+   { "icon-64.yuv422p.y4m",	2809447983 },
+   { "icon-64.yuv444p.y4m",	2400380696 },
+#endif
 
    { "icon-128.ico",		 218415319 },
    { "icon-128-d1.ico",		3776822558 },
