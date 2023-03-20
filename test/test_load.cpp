@@ -18,13 +18,16 @@ static const char  *const pfxs[] = {
    "argb",
    "bmp",
    "ff",
+#ifdef BUILD_GIF_LOADER
    "gif",
+#endif
 #ifdef BUILD_HEIF_LOADER
    "heif",
 #endif
    "ico",
-   "jpg.mp3",                   // id3
+#ifdef BUILD_JPEG_LOADER
    "jpg",
+#endif
 #ifdef BUILD_J2K_LOADER
    "jp2",
    "j2k",
@@ -33,7 +36,9 @@ static const char  *const pfxs[] = {
    "jxl",
 #endif
    "ilbm",                      // lbm
+#ifdef BUILD_PNG_LOADER
    "png",
+#endif
    "ppm",                       // pnm
    "pgm",                       // pnm
    "pbm",                       // pnm
@@ -42,8 +47,12 @@ static const char  *const pfxs[] = {
 #ifdef BUILD_SVG_LOADER
    "svg",
 #endif
+#ifdef BUILD_TIFF_LOADER
    "tiff",
+#endif
+#ifdef BUILD_WEBP_LOADER
    "webp",
+#endif
    "xbm",
    "xpm",
 #ifdef BUILD_BZ2_LOADER
@@ -54,6 +63,10 @@ static const char  *const pfxs[] = {
 #endif
 #ifdef BUILD_LZMA_LOADER
    "ff.xz",                     // lzma
+#endif
+
+#ifdef BUILD_ID3_LOADER
+   "jpg.mp3",                   // id3
 #endif
 };
 #define N_PFX (sizeof(pfxs) / sizeof(char*))

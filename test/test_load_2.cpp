@@ -30,14 +30,20 @@ static tii_t        tii[] = {
 #ifdef BUILD_LZMA_LOADER
    { "icon-64.ff.xz",		1153555547 },
 #endif
+#ifdef BUILD_GIF_LOADER
    { "icon-64.gif",		4016720483 },
+#endif
 #ifdef BUILD_HEIF_LOADER
    { "icon-64.heif",		1346959048 },
 #endif
    { "icon-64.ico",		1153555547 },
    { "icon-64.ilbm",		1153555547 },
+#ifdef BUILD_JPEG_LOADER
    { "icon-64.jpg",		4132154843 },
+#endif
+#ifdef BUILD_ID3_LOADER
    { "icon-64.jpg.mp3",		4132154843 },
+#endif
 #ifdef BUILD_J2K_LOADER
    { "icon-64.jp2",		 451428725 },
    { "icon-64.j2k",		 451428725 },
@@ -51,8 +57,10 @@ static tii_t        tii[] = {
 #ifdef BUILD_JXL_LOADER
    { "icon-64.jxl",		2534597492 },
 #endif
+#ifdef BUILD_PNG_LOADER
    { "icon-64.png",		1153555547 },
    { "xeyes-gray.png",		3493264608 },
+#endif
    { "icon-64.ppm",		1153555547 },
    { "icon-64.pgm",		 140949526 },
    { "icon-64.pbm",		3936773892 },
@@ -68,8 +76,12 @@ static tii_t        tii[] = {
    { "xeyes-gray.pam",		1280677270 },
    { "xeyes-mono.pam",		  17480910 },
    { "icon-64.tga",		1153555547 },
+#ifdef BUILD_TIFF_LOADER
    { "icon-64.tiff",		1153555547 },
+#endif
+#ifdef BUILD_WEBP_LOADER
    { "icon-64.webp",		1698406918 },
+#endif
    { "icon-64.xbm",		3936773892 },
    { "icon-64.xpm",		4016720483 },
 
