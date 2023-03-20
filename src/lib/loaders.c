@@ -64,6 +64,9 @@ static const char  *const ext_webp[] = { "webp", NULL };
 #endif
 static const char  *const ext_xbm[] = { "xbm", NULL };
 static const char  *const ext_xpm[] = { "xpm", NULL };
+#ifdef BUILD_Y4M_LOADER
+static const char  *const ext_y4m[] = { "y4m", NULL };
+#endif
 
 #ifdef BUILD_BZ2_LOADER
 static const char  *const ext_bz2[] = { "bz2", NULL };
@@ -120,6 +123,10 @@ static const KnownLoader loaders_known[] = {
 #endif
    {"xbm", ext_xbm},
    {"xpm", ext_xpm},
+#ifdef BUILD_Y4M_LOADER
+   {"y4m", ext_y4m},
+#endif
+
 #ifdef BUILD_BZ2_LOADER
    {"bz2", ext_bz2},
 #endif
@@ -129,6 +136,7 @@ static const KnownLoader loaders_known[] = {
 #ifdef BUILD_ZLIB_LOADER
    {"zlib", ext_zlib},
 #endif
+
 #ifdef BUILD_ID3_LOADER
    {"id3", ext_id3},
 #endif

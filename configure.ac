@@ -181,6 +181,7 @@ if test "x$have_clock_gettime" != xno; then
 fi
 
 
+# Regular image loaders
 loader_check_gif() {
   AC_CHECK_LIB(gif, DGifOpenFileName, gif_libs="-lgif" gif_ok=yes, gif_ok=no)
   if test "$gif_ok" = yes; then
@@ -194,7 +195,6 @@ loader_check_gif() {
 
 EC_LOADER_CHECK(GIF,  auto, , loader_check_gif)
 EC_LOADER_CHECK(HEIF, auto, libheif)
-EC_LOADER_CHECK(Y4M,  auto, liby4m libyuv)
 EC_LOADER_CHECK(JPEG, auto, libjpeg)
 EC_LOADER_CHECK(J2K,  auto, libopenjp2)
 EC_LOADER_CHECK(JXL,  auto, libjxl libjxl_threads)
@@ -203,7 +203,9 @@ EC_LOADER_CHECK(PS,   auto, libspectre)
 EC_LOADER_CHECK(SVG,  auto, librsvg-2.0 >= 2.46)
 EC_LOADER_CHECK(TIFF, auto, libtiff-4)
 EC_LOADER_CHECK(WEBP, auto, libwebpdemux)
+EC_LOADER_CHECK(Y4M,  auto, liby4m libyuv)
 
+# Decompressors
 loader_check_bz2() {
   AC_CHECK_LIB(bz2, BZ2_bzRead, bz2_ok=yes, bz2_ok=no)
   if test "$bz2_ok" = yes; then
@@ -218,6 +220,7 @@ EC_LOADER_CHECK(BZ2,  auto, bzip2, loader_check_bz2)
 EC_LOADER_CHECK(LZMA, auto, liblzma)
 EC_LOADER_CHECK(ZLIB, auto, zlib)
 
+# Containers
 EC_LOADER_CHECK(ID3,  auto, id3tag)
 
 
@@ -306,7 +309,6 @@ echo "Image loaders:"
 echo " Regular image loaders"
 echo "  GIF.....................: $gif_ok"
 echo "  HEIF....................: $heif_ok"
-echo "  Y4M.....................: $y4m_ok"
 echo "  JPEG....................: $jpeg_ok"
 echo "  J2K.....................: $j2k_ok"
 echo "  JXL.....................: $jxl_ok"
@@ -315,6 +317,7 @@ echo "  PS......................: $ps_ok"
 echo "  SVG.....................: $svg_ok"
 echo "  TIFF....................: $tiff_ok"
 echo "  WEBP....................: $webp_ok"
+echo "  Y4M.....................: $y4m_ok"
 echo " Decompressors"
 echo "  BZIP2...................: $bz2_ok"
 echo "  LZMA(XZ)................: $lzma_ok"
