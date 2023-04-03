@@ -91,7 +91,7 @@ gif_la_LIBTOOLFLAGS  = --tag=disable-static
 
 heif_la_SOURCES      = loader_heif.c
 heif_la_CPPFLAGS     = $(HEIF_CFLAGS) $(AM_CPPFLAGS)
-heif_la_LDFLAGS      = -module -avoid-version -Wl,-z,nodelete
+heif_la_LDFLAGS      = -module -avoid-version
 heif_la_LIBADD       = $(HEIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
 heif_la_LIBTOOLFLAGS = --tag=disable-static
 
@@ -142,7 +142,7 @@ ps_la_LIBTOOLFLAGS  = --tag=disable-static
 
 svg_la_SOURCES       = loader_svg.c
 svg_la_CPPFLAGS      = $(SVG_CFLAGS) $(AM_CPPFLAGS)
-svg_la_LDFLAGS       = -module -avoid-version -Wl,-z,nodelete
+svg_la_LDFLAGS       = -module -avoid-version
 svg_la_LIBADD        = $(SVG_LIBS) $(top_builddir)/src/lib/libImlib2.la
 svg_la_LIBTOOLFLAGS  = --tag=disable-static
 

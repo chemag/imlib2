@@ -15,6 +15,7 @@
 #define DP(fmt...) DC(DBG_LOAD, fmt)
 
 static ImlibLoader *loaders = NULL;
+static ImlibLoader *loaders_unloaded = NULL;
 static char         loaders_loaded = 0;
 
 typedef struct {
@@ -161,10 +162,23 @@ __imlib_LookupLoaderByModulePath(const char *file)
 static ImlibLoader *
 __imlib_ProduceLoader(const char *file)
 {
-   ImlibLoader        *l;
+   ImlibLoader        *l, *l_prev;
    ImlibLoaderModule  *m;
 
    DP("%s: %s\n", __func__, file);
+
+   /* Check unloaded loaders */
+   for (l = loaders_unloaded, l_prev = NULL; l; l_prev = l, l = l->next)
+     {
+        if (strcmp(file, l->file) != 0)
+           continue;
+
+        if (l == loaders_unloaded)
+           loaders_unloaded = l->next;
+        else
+           l_prev->next = l->next;
+        goto found;
+     }
 
    l = malloc(sizeof(ImlibLoader));
 
@@ -187,6 +201,7 @@ __imlib_ProduceLoader(const char *file)
    l->file = strdup(file);
    l->name = m->formats[0];
 
+ found:
    l->next = loaders;
    loaders = l;
 
@@ -201,9 +216,18 @@ __imlib_ProduceLoader(const char *file)
 static void
 __imlib_ConsumeLoader(ImlibLoader * l)
 {
-   free(l->file);
+   if (l->module->ldr_flags & LDR_FLAG_KEEP)
+     {
+        /* Not un/re-loadable - Move to unloaded loaders list */
+        l->next = loaders_unloaded;
+        loaders_unloaded = l;
+        return;
+     }
+
    if (l->handle)
       dlclose(l->handle);
+
+   free(l->file);
    free(l);
 }
 
