@@ -142,18 +142,18 @@ static const KnownLoader loaders_known[] = {
 #endif
 };
 
-static int
-__imlib_IsLoaderLoaded(const char *file)
+static ImlibLoader *
+__imlib_LookupLoaderByModulePath(const char *file)
 {
    ImlibLoader        *l;
 
    for (l = loaders; l; l = l->next)
      {
         if (strcmp(file, l->file) == 0)
-           return 1;
+           return l;
      }
 
-   return 0;
+   return NULL;
 }
 
 /* try dlopen()ing the file if we succeed finish filling out the malloced */
@@ -228,7 +228,7 @@ static void
 __imlib_LoadAllLoaders(void)
 {
    int                 i, num;
-   char              **list;
+   char              **list, *dso;
 
    DP("%s\n", __func__);
 
@@ -242,9 +242,10 @@ __imlib_LoadAllLoaders(void)
    /* (or try) and if it succeeds, append to our loader list */
    for (i = num - 1; i >= 0; i--)
      {
-        if (!__imlib_IsLoaderLoaded(list[i]))
-           __imlib_ProduceLoader(list[i]);
-        free(list[i]);
+        dso = list[i];
+        if (!__imlib_LookupLoaderByModulePath(dso))
+           __imlib_ProduceLoader(dso);
+        free(dso);
      }
    free(list);
 
@@ -285,7 +286,9 @@ __imlib_LookupKnownLoader(const char *format)
    if (kl)
      {
         dso = __imlib_ModuleFind(__imlib_PathToLoaders(), kl->dso);
-        l = __imlib_ProduceLoader(dso);
+        l = __imlib_LookupLoaderByModulePath(dso);
+        if (!l)
+           l = __imlib_ProduceLoader(dso);
         free(dso);
      }
    DP("%s: '%s' -> '%s': %p\n", __func__, format, kl ? kl->dso : "-", l);
