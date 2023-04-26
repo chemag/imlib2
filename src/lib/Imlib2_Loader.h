@@ -65,6 +65,18 @@ typedef struct _ImlibImage ImlibImage;
 #define PIXEL_G(argb)  (((argb) >>  8) & 0xff)
 #define PIXEL_B(argb)  (((argb)      ) & 0xff)
 
+#ifndef WORDS_BIGENDIAN
+#define A_VAL(p) ((uint8_t *)(p))[3]
+#define R_VAL(p) ((uint8_t *)(p))[2]
+#define G_VAL(p) ((uint8_t *)(p))[1]
+#define B_VAL(p) ((uint8_t *)(p))[0]
+#else
+#define A_VAL(p) ((uint8_t *)(p))[0]
+#define R_VAL(p) ((uint8_t *)(p))[1]
+#define G_VAL(p) ((uint8_t *)(p))[2]
+#define B_VAL(p) ((uint8_t *)(p))[3]
+#endif
+
 /* debug.h */
 
 #if IMLIB2_DEBUG
