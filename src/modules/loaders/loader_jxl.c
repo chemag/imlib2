@@ -19,16 +19,16 @@ _scanline_cb(void *opaque, size_t x, size_t y,
 {
    ImlibImage         *im = opaque;
    const uint8_t      *pix = pixels;
-   uint32_t           *ptr;
+   uint32_t           *imdata;
    size_t              i;
 
    DL("%s: x,y=%ld,%ld len=%lu\n", __func__, x, y, num_pixels);
 
-   ptr = im->data + (im->w * y) + x;
+   imdata = im->data + (im->w * y) + x;
 
    /* libjxl outputs ABGR pixels (stream order RGBA) - convert to ARGB */
    for (i = 0; i < num_pixels; i++, pix += 4)
-      *ptr++ = PIXEL_ARGB(pix[3], pix[0], pix[1], pix[2]);
+      *imdata++ = PIXEL_ARGB(pix[3], pix[0], pix[1], pix[2]);
 
    /* Due to possible multithreading it's probably best not do do
     * progress calbacks here. */
@@ -230,7 +230,7 @@ _save(ImlibImage * im)
       .endianness = JXL_NATIVE_ENDIAN,
    };
    ImlibImageTag      *tag;
-   const uint32_t     *ptr;
+   const uint32_t     *imdata;
    uint8_t            *buffer = NULL, *buf_ptr;
    size_t              buf_len, i, npix;
 
@@ -321,25 +321,25 @@ _save(ImlibImage * im)
       QUIT_WITH_RC(LOAD_OOM);
 
    // Convert format for libjxl
-   ptr = im->data;
+   imdata = im->data;
    buf_ptr = buffer;
    if (pbuf_fmt.num_channels == 3)
      {
-        for (i = 0; i < npix; i++, ptr++, buf_ptr += 3)
+        for (i = 0; i < npix; i++, imdata++, buf_ptr += 3)
           {
-             buf_ptr[0] = R_VAL(ptr);
-             buf_ptr[1] = G_VAL(ptr);
-             buf_ptr[2] = B_VAL(ptr);
+             buf_ptr[0] = R_VAL(imdata);
+             buf_ptr[1] = G_VAL(imdata);
+             buf_ptr[2] = B_VAL(imdata);
           }
      }
    else
      {
-        for (i = 0; i < npix; i++, ptr++, buf_ptr += 4)
+        for (i = 0; i < npix; i++, imdata++, buf_ptr += 4)
           {
-             buf_ptr[0] = R_VAL(ptr);
-             buf_ptr[1] = G_VAL(ptr);
-             buf_ptr[2] = B_VAL(ptr);
-             buf_ptr[3] = A_VAL(ptr);
+             buf_ptr[0] = R_VAL(imdata);
+             buf_ptr[1] = G_VAL(imdata);
+             buf_ptr[2] = B_VAL(imdata);
+             buf_ptr[3] = A_VAL(imdata);
           }
      }
 
