@@ -205,6 +205,9 @@ __imlib_ProduceLoader(const char *file)
    l->next = loaders;
    loaders = l;
 
+   if (l->module->inex)
+      l->module->inex(1);
+
    return l;
 
  bail:
@@ -223,6 +226,9 @@ __imlib_ConsumeLoader(ImlibLoader * l)
         loaders_unloaded = l;
         return;
      }
+
+   if (l->module->inex)
+      l->module->inex(0);
 
    if (l->handle)
       dlclose(l->handle);
