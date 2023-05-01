@@ -19,7 +19,7 @@ $(X_BASED_PROGS)
 SRCS_X11  = prog_x11.c  prog_x11.h
 SRCS_UTIL = prog_util.c prog_util.h
 
-imlib2_conv_SOURCES = imlib2_conv.c
+imlib2_conv_SOURCES = imlib2_conv.c $(SRCS_UTIL)
 imlib2_conv_LDADD   = $(top_builddir)/src/lib/libImlib2.la
 
 imlib2_load_SOURCES = imlib2_load.c $(SRCS_UTIL)
