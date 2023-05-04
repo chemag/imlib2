@@ -223,25 +223,31 @@ __imlib_CalcScaleInfo(ImlibImage * im, int sw, int sh, int dw, int dh, bool aa)
    isi->xpoints = __imlib_CalcPoints(im->w, scw,
                                      im->border.left, im->border.right);
    if (!isi->xpoints)
-      return __imlib_FreeScaleInfo(isi);
+      goto bail;
+
    isi->ypoints = __imlib_CalcPoints(im->h, sch,
                                      im->border.top, im->border.bottom);
    if (!isi->ypoints)
-      return __imlib_FreeScaleInfo(isi);
+      goto bail;
+
    if (aa)
      {
         isi->xapoints = __imlib_CalcApoints(im->w, scw, im->border.left,
                                             im->border.right, isi->xup_yup & 1);
         if (!isi->xapoints)
-           return __imlib_FreeScaleInfo(isi);
+           goto bail;
+
         isi->yapoints = __imlib_CalcApoints(im->h, sch, im->border.top,
                                             im->border.bottom,
                                             isi->xup_yup & 2);
         if (!isi->yapoints)
-           return __imlib_FreeScaleInfo(isi);
+           goto bail;
      }
 
    return isi;
+
+ bail:
+   return __imlib_FreeScaleInfo(isi);
 }
 
 /* scale by pixel sampling only */
