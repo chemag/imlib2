@@ -245,7 +245,7 @@ __imlib_FreeScaleInfo(ImlibScaleInfo * isi)
 }
 
 ImlibScaleInfo     *
-__imlib_CalcScaleInfo(ImlibImage * im, int sw, int sh, int dw, int dh, char aa)
+__imlib_CalcScaleInfo(ImlibImage * im, int sw, int sh, int dw, int dh, bool aa)
 {
    ImlibScaleInfo     *isi;
    int                 scw, sch;
@@ -286,7 +286,7 @@ __imlib_CalcScaleInfo(ImlibImage * im, int sw, int sh, int dw, int dh, char aa)
 }
 
 /* scale by pixel sampling only */
-void
+static void
 __imlib_ScaleSampleRGBA(ImlibScaleInfo * isi, uint32_t * dest, int dxx, int dyy,
                         int dx, int dy, int dw, int dh, int dow)
 {
@@ -313,7 +313,7 @@ __imlib_ScaleSampleRGBA(ImlibScaleInfo * isi, uint32_t * dest, int dxx, int dyy,
 /* FIXME: NEED to optimise ScaleAARGBA - currently its "ok" but needs work*/
 
 /* scale by area sampling */
-void
+static void
 __imlib_ScaleAARGBA(ImlibScaleInfo * isi, uint32_t * dest, int dxx, int dyy,
                     int dx, int dy, int dw, int dh, int dow, int sow)
 {
@@ -723,7 +723,7 @@ __imlib_ScaleAARGBA(ImlibScaleInfo * isi, uint32_t * dest, int dxx, int dyy,
 }
 
 /* scale by area sampling - IGNORE the ALPHA byte*/
-void
+static void
 __imlib_ScaleAARGB(ImlibScaleInfo * isi, uint32_t * dest, int dxx, int dyy,
                    int dx, int dy, int dw, int dh, int dow, int sow)
 {
@@ -1084,4 +1084,20 @@ __imlib_ScaleAARGB(ImlibScaleInfo * isi, uint32_t * dest, int dxx, int dyy,
                }
           }
      }
+}
+
+void
+__imlib_Scale(ImlibScaleInfo * isi, bool aa, bool alpha,
+              uint32_t * dest, int dxx, int dyy, int dx, int dy,
+              int dw, int dh, int dow, int sow)
+{
+   if (aa)
+     {
+        if (alpha)
+           __imlib_ScaleAARGBA(isi, dest, dxx, dyy, dx, dy, dw, dh, dow, sow);
+        else
+           __imlib_ScaleAARGB(isi, dest, dxx, dyy, dx, dy, dw, dh, dow, sow);
+     }
+   else
+      __imlib_ScaleSampleRGBA(isi, dest, dxx, dyy, dx, dy, dw, dh, dow);
 }
