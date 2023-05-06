@@ -156,7 +156,7 @@ _load(ImlibImage * im, int load_data)
                   while (data)
                     {
                        if (DGifGetCodeNext(gif, &data) == GIF_ERROR)
-                          goto quit;
+                          goto done;
                        DL(" DGifGetCodeNext: size=%d data=%p\n", size, data);
                     }
                   continue;
@@ -258,6 +258,7 @@ _load(ImlibImage * im, int load_data)
              DL(" Unknown record type(%d)\n", rec);
           }
      }
+ done:
 
    im->has_alpha = transp >= 0;
    multiframe = false;
