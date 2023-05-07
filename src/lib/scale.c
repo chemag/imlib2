@@ -26,7 +26,7 @@ static uint32_t   **
 __imlib_CalcYPoints(uint32_t * src, int sw, int sh, int dh, int b1, int b2)
 {
    uint32_t          **p;
-   int                 i, j = 0;
+   int                 i;
    int                 val, inc, rv = 0;
 
    if (dh < 0)
@@ -52,7 +52,7 @@ __imlib_CalcYPoints(uint32_t * src, int sw, int sh, int dh, int b1, int b2)
    inc = 1 << 16;
    for (i = 0; i < b1; i++)
      {
-        p[j++] = src + ((val >> 16) * sw);
+        p[i] = src + (val >> 16) * sw;
         val += inc;
      }
 
@@ -61,9 +61,9 @@ __imlib_CalcYPoints(uint32_t * src, int sw, int sh, int dh, int b1, int b2)
      {
         val = (b1 << 16);
         inc = ((sh - b1 - b2) << 16) / (dh - (b1 + b2));
-        for (i = 0; i < (dh - b1 - b2); i++)
+        for (; i < dh - b2; i++)
           {
-             p[j++] = src + ((val >> 16) * sw);
+             p[i] = src + (val >> 16) * sw;
              val += inc;
           }
      }
@@ -71,9 +71,9 @@ __imlib_CalcYPoints(uint32_t * src, int sw, int sh, int dh, int b1, int b2)
    /* Border 2 */
    val = (sh - b2) << 16;
    inc = 1 << 16;
-   for (i = 0; i < b2; i++)
+   for (; i < b2; i++)
      {
-        p[j++] = src + ((val >> 16) * sw);
+        p[i] = src + (val >> 16) * sw;
         val += inc;
      }
 
@@ -92,7 +92,7 @@ __imlib_CalcYPoints(uint32_t * src, int sw, int sh, int dh, int b1, int b2)
 static int         *
 __imlib_CalcXPoints(int sw, int dw, int b1, int b2)
 {
-   int                *p, i, j = 0;
+   int                *p, i;
    int                 val, inc, rv = 0;
 
    if (dw < 0)
@@ -118,18 +118,18 @@ __imlib_CalcXPoints(int sw, int dw, int b1, int b2)
    inc = 1 << 16;
    for (i = 0; i < b1; i++)
      {
-        p[j++] = (val >> 16);
+        p[i] = val >> 16;
         val += inc;
      }
 
    /* Center */
-   if (dw > (b1 + b2))
+   if (i < dw - b2)
      {
         val = (b1 << 16);
         inc = ((sw - b1 - b2) << 16) / (dw - (b1 + b2));
-        for (i = 0; i < (dw - b1 - b2); i++)
+        for (; i < dw - b2; i++)
           {
-             p[j++] = (val >> 16);
+             p[i] = val >> 16;
              val += inc;
           }
      }
@@ -137,9 +137,9 @@ __imlib_CalcXPoints(int sw, int dw, int b1, int b2)
    /* Border 2 */
    val = (sw - b2) << 16;
    inc = 1 << 16;
-   for (i = 0; i < b2; i++)
+   for (; i < dw; i++)
      {
-        p[j++] = (val >> 16);
+        p[i] = val >> 16;
         val += inc;
      }
 
@@ -158,7 +158,7 @@ __imlib_CalcXPoints(int sw, int dw, int b1, int b2)
 static int         *
 __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
 {
-   int                *p, i, j = 0, rv = 0;
+   int                *p, i, rv = 0;
    int                 val, inc;
 
    if (d < 0)
@@ -185,7 +185,7 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
 
         /* Border 1 */
         for (i = 0; i < b1; i++)
-           p[j++] = 0;
+           p[i] = 0;
 
         /* Center */
         if (d > (b1 + b2))
@@ -196,18 +196,18 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
              dd = d - b1 - b2;
              val = 0;
              inc = (ss << 16) / dd;
-             for (i = 0; i < dd; i++)
+             for (; i < d - b2; i++)
                {
-                  p[j++] = (val >> 8) - ((val >> 8) & 0xffffff00);
+                  p[i] = (val >> 8) - ((val >> 8) & 0xffffff00);
                   if (((val >> 16) + b1) >= (s - 1))
-                     p[j - 1] = 0;
+                     p[i] = 0;
                   val += inc;
                }
           }
 
         /* Border 2 */
-        for (i = 0; i < b2; i++)
-           p[j++] = 0;
+        for (; i < d; i++)
+           p[i] = 0;
      }
    else
      {
@@ -215,7 +215,7 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
 
         /* Border 1 */
         for (i = 0; i < b1; i++)
-           p[j++] = (1 << (16 + 14)) + (1 << 14);
+           p[i] = (1 << (16 + 14)) + (1 << 14);
 
         /* Center */
         if (d > (b1 + b2))
@@ -227,18 +227,17 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
              val = 0;
              inc = (ss << 16) / dd;
              Cp = ((dd << 14) / ss) + 1;
-             for (i = 0; i < dd; i++)
+             for (; i < d - b2; i++)
                {
                   ap = ((0x100 - ((val >> 8) & 0xff)) * Cp) >> 8;
-                  p[j] = ap | (Cp << 16);
-                  j++;
+                  p[i] = ap | (Cp << 16);
                   val += inc;
                }
           }
 
         /* Border 2 */
-        for (i = 0; i < b2; i++)
-           p[j++] = (1 << (16 + 14)) + (1 << 14);
+        for (; i < d; i++)
+           p[i] = (1 << (16 + 14)) + (1 << 14);
      }
 
    if (rv)
