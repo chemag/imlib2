@@ -107,6 +107,9 @@ unsigned int        __imlib_time_us(void);
 
 #endif /* IMLIB2_DEBUG */
 
+#define E(fmt...) __imlib_perror(DBG_PFX, fmt)
+__PRINTF_2__ void   __imlib_perror(const char *pfx, const char *fmt, ...);
+
 /* image.h */
 
 /* 32767 is the maximum pixmap dimension and ensures that
