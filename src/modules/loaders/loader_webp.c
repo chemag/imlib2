@@ -133,20 +133,9 @@ _save(ImlibImage * im)
      {
         quality = quality_tag->val;
         if (quality < 0)
-          {
-             fprintf(stderr,
-                     "Warning: 'quality' setting %f too low for WebP, using 0\n",
-                     quality);
-             quality = 0;
-          }
-
-        if (quality > 100)
-          {
-             fprintf(stderr,
-                     "Warning, 'quality' setting %f too high for WebP, using 100\n",
-                     quality);
-             quality = 100;
-          }
+           quality = 0;
+        else if (quality > 100)
+           quality = 100;
      }
 
    encoded_size = WebPEncodeBGRA((uint8_t *) im->data, im->w, im->h,

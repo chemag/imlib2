@@ -378,7 +378,7 @@ _load(ImlibImage * im, int load_data)
 
    if (!rgba_image.rgba.put.any)
      {
-        fprintf(stderr, "imlib2-tiffloader: No put function");
+        E("No put function\n");
         goto quit;
      }
 
@@ -415,10 +415,7 @@ _load(ImlibImage * im, int load_data)
 
    rast = _TIFFmalloc(sizeof(uint32_t) * im->w * im->h);
    if (!rast)
-     {
-        fprintf(stderr, "imlib2-tiffloader: Out of memory\n");
-        QUIT_WITH_RC(LOAD_OOM);
-     }
+      QUIT_WITH_RC(LOAD_OOM);
 
    if (rgba_image.rgba.isContig)
      {
