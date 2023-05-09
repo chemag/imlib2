@@ -380,7 +380,7 @@ __imlib_RenderImage(const ImlibContextX11 * x11, ImlibImage * im,
           {
              /* scale the imagedata for this LINESIZE lines chunk of image data */
              __imlib_Scale(scaleinfo, antialias, im->has_alpha,
-                           buf, (sx * dw) / sw,
+                           im->data, buf, (sx * dw) / sw,
                            ((sy * dh) / sh) + y, 0, 0, dw, hh, dw, im->w);
              jump = 0;
              pointer = buf;

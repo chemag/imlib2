@@ -1944,7 +1944,8 @@ __imlib_BlendImageToImage(ImlibImage * im_src, ImlibImage * im_dst,
                 hh = h;
 
              /* scale the imagedata for this LINESIZE lines chunk of image */
-             __imlib_Scale(scaleinfo, aa, im_src->has_alpha, buf, dxx, dyy + y,
+             __imlib_Scale(scaleinfo, aa, im_src->has_alpha,
+                           im_src->data, buf, dxx, dyy + y,
                            0, 0, dw, hh, dw, im_src->w);
 
              __imlib_BlendRGBAToData(buf, dw, hh,

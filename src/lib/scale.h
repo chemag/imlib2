@@ -11,7 +11,7 @@ ImlibScaleInfo     *__imlib_CalcScaleInfo(ImlibImage * im,
 ImlibScaleInfo     *__imlib_FreeScaleInfo(ImlibScaleInfo * isi);
 
 void                __imlib_Scale(ImlibScaleInfo * isi, bool aa, bool alpha,
-                                  uint32_t * dest,
+                                  uint32_t * srce, uint32_t * dest,
                                   int dxx, int dyy, int dx, int dy,
                                   int dw, int dh, int dow, int sow);
 
