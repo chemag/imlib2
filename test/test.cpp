@@ -57,7 +57,7 @@ pr_info(const char *fmt, ...)
       snprintf(fmtx, sizeof(fmtx), COL_YEL "[          ] -  %s%s\n",
                fmt, COL_RST);
    else
-      snprintf(fmtx, sizeof(fmtx), "[          ] -  %s", fmt);
+      snprintf(fmtx, sizeof(fmtx), "[          ] -  %s\n", fmt);
    fmt = fmtx;
 
    vprintf(fmt, args);
