@@ -71,6 +71,27 @@ AC_DEFUN([EC_LOADER_CHECK], [
 ])
 
 
+AC_ARG_ENABLE([filters],
+  [AS_HELP_STRING([--enable-filters], [Enable filters @<:@default=yes@:>@])],
+  enable_filters="$enableval",
+  enable_filters="yes"
+)
+if test "$enable_filters" = "yes"; then
+  AC_DEFINE(ENABLE_FILTERS, 1, [Enable filters])
+fi
+AM_CONDITIONAL(ENABLE_FILTERS, test "$enable_filters" = "yes")
+
+AC_ARG_ENABLE([text],
+  [AS_HELP_STRING([--enable-text], [Enable text (TrueType font functions) @<:@default=yes@:>@])],
+  enable_text="$enableval",
+  enable_text="yes"
+)
+if test "$enable_text" = "yes"; then
+  AC_DEFINE(ENABLE_TEXT, 1, [Enable text functions])
+fi
+AM_CONDITIONAL(ENABLE_TEXT, test "$enable_text" = "yes")
+
+
 mmx=no
 amd64=no
 case $host_cpu in
@@ -123,8 +144,9 @@ fi
 AC_MSG_RESULT($amd64)
 AM_CONDITIONAL(BUILD_AMD64, test x$amd64 = xyes)
 
-# check for freetype
-PKG_CHECK_MODULES(FREETYPE, freetype2)
+if test "$enable_text" = "yes"; then
+  PKG_CHECK_MODULES(FREETYPE, freetype2)
+fi
 
 AC_PATH_X
 AC_PATH_XTRA
@@ -225,26 +247,6 @@ EC_LOADER_CHECK(ID3,  auto, id3tag)
 
 
 AM_CONDITIONAL(BUILD_TEST, false)
-
-AC_ARG_ENABLE([filters],
-  [AS_HELP_STRING([--enable-filters], [Enable filters @<:@default=yes@:>@])],
-  enable_filters="$enableval",
-  enable_filters="yes"
-)
-if test "$enable_filters" = "yes"; then
-  AC_DEFINE(ENABLE_FILTERS, 1, [Enable filters])
-fi
-AM_CONDITIONAL(ENABLE_FILTERS, test "$enable_filters" = "yes")
-
-AC_ARG_ENABLE([text],
-  [AS_HELP_STRING([--enable-text], [Enable text (TrueType font functions) @<:@default=yes@:>@])],
-  enable_text="$enableval",
-  enable_text="yes"
-)
-if test "$enable_text" = "yes"; then
-  AC_DEFINE(ENABLE_TEXT, 1, [Enable text functions])
-fi
-AM_CONDITIONAL(ENABLE_TEXT, test "$enable_text" = "yes")
 
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug], [Enable debug features @<:@default=no@:>@])],
