@@ -59,8 +59,8 @@ __imlib_CalcPoints(int sw, int dw, int b1, int b2)
    /* Center */
    if (i < dw - b2)
      {
-        val = (b1 << 16);
-        inc = ((sw - b1 - b2) << 16) / (dw - (b1 + b2));
+        val = b1 << 16;
+        inc = ((sw - (b1 + b2)) << 16) / (dw - (b1 + b2));
         for (; i < dw - b2; i++)
           {
              p[i] = val >> 16;
@@ -122,12 +122,12 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
            p[i] = 0;
 
         /* Center */
-        if (d > (b1 + b2))
+        if (d > b1 + b2)
           {
              int                 ss, dd;
 
-             ss = s - b1 - b2;
-             dd = d - b1 - b2;
+             ss = s - (b1 + b2);
+             dd = d - (b1 + b2);
              val = 0;
              inc = (ss << 16) / dd;
              for (; i < d - b2; i++)
@@ -152,7 +152,7 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
            p[i] = (1 << (16 + 14)) + (1 << 14);
 
         /* Center */
-        if (d > (b1 + b2))
+        if (d > b1 + b2)
           {
              int                 ss, dd, ap, Cp;
 
