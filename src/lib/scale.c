@@ -47,6 +47,7 @@ __imlib_CalcYPoints(uint32_t * src, int sw, int sh, int dh, int b1, int b2)
         b2 = val - b1;
      }
 
+   /* Border 1 */
    val = 0;
    inc = 1 << 16;
    for (i = 0; i < b1; i++)
@@ -54,6 +55,8 @@ __imlib_CalcYPoints(uint32_t * src, int sw, int sh, int dh, int b1, int b2)
         p[j++] = src + ((val >> 16) * sw);
         val += inc;
      }
+
+   /* Center */
    if (dh > (b1 + b2))
      {
         val = (b1 << 16);
@@ -64,6 +67,8 @@ __imlib_CalcYPoints(uint32_t * src, int sw, int sh, int dh, int b1, int b2)
              val += inc;
           }
      }
+
+   /* Border 2 */
    val = (sh - b2) << 16;
    inc = 1 << 16;
    for (i = 0; i < b2; i++)
@@ -80,6 +85,7 @@ __imlib_CalcYPoints(uint32_t * src, int sw, int sh, int dh, int b1, int b2)
            p[i] = p[dh - i - 1];
            p[dh - i - 1] = tmp;
         }
+
    return p;
 }
 
@@ -107,6 +113,7 @@ __imlib_CalcXPoints(int sw, int dw, int b1, int b2)
         b2 = val - b1;
      }
 
+   /* Border 1 */
    val = 0;
    inc = 1 << 16;
    for (i = 0; i < b1; i++)
@@ -114,6 +121,8 @@ __imlib_CalcXPoints(int sw, int dw, int b1, int b2)
         p[j++] = (val >> 16);
         val += inc;
      }
+
+   /* Center */
    if (dw > (b1 + b2))
      {
         val = (b1 << 16);
@@ -124,6 +133,8 @@ __imlib_CalcXPoints(int sw, int dw, int b1, int b2)
              val += inc;
           }
      }
+
+   /* Border 2 */
    val = (sw - b2) << 16;
    inc = 1 << 16;
    for (i = 0; i < b2; i++)
@@ -140,6 +151,7 @@ __imlib_CalcXPoints(int sw, int dw, int b1, int b2)
            p[i] = p[dw - i - 1];
            p[dw - i - 1] = tmp;
         }
+
    return p;
 }
 
@@ -167,11 +179,15 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
         b2 = val - b1;
      }
 
-   /* scaling up */
    if (up)
      {
+        /* Scaling up */
+
+        /* Border 1 */
         for (i = 0; i < b1; i++)
            p[j++] = 0;
+
+        /* Center */
         if (d > (b1 + b2))
           {
              int                 ss, dd;
@@ -188,14 +204,20 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
                   val += inc;
                }
           }
+
+        /* Border 2 */
         for (i = 0; i < b2; i++)
            p[j++] = 0;
      }
-   /* scaling down */
    else
      {
+        /* Scaling down */
+
+        /* Border 1 */
         for (i = 0; i < b1; i++)
            p[j++] = (1 << (16 + 14)) + (1 << 14);
+
+        /* Center */
         if (d > (b1 + b2))
           {
              int                 ss, dd, ap, Cp;
@@ -213,6 +235,8 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
                   val += inc;
                }
           }
+
+        /* Border 2 */
         for (i = 0; i < b2; i++)
            p[j++] = (1 << (16 + 14)) + (1 << 14);
      }
@@ -227,6 +251,7 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
              p[d - i - 1] = tmp;
           }
      }
+
    return p;
 }
 
@@ -297,7 +322,7 @@ __imlib_ScaleSampleRGBA(ImlibScaleInfo * isi, uint32_t * dest, int dxx, int dyy,
 
    /* whats the last pixel on the line so we stop there */
    end = dxx + dw;
-   /* go through every scanline in the output buffer */
+
    for (y = 0; y < dh; y++)
      {
         /* get the pointer to the start of the destination scanline */
@@ -342,7 +367,6 @@ __imlib_ScaleAARGBA(ImlibScaleInfo * isi, uint32_t * dest, int dxx, int dyy,
      {
         /* Scaling up both ways */
 
-        /* go through every scanline in the output buffer */
         for (y = 0; y < dh; y++)
           {
              /* calculate the source line we'll scan from */
@@ -752,7 +776,6 @@ __imlib_ScaleAARGB(ImlibScaleInfo * isi, uint32_t * dest, int dxx, int dyy,
      {
         /* Scaling up both ways */
 
-        /* go through every scanline in the output buffer */
         for (y = 0; y < dh; y++)
           {
              /* calculate the source line we'll scan from */
