@@ -49,18 +49,16 @@ QOIDEC_API QoiDecStatus qoi_dec(QoiDecCtx * ctx);
 QOIDEC_API          QoiDecStatus
 qoi_dec_init(QoiDecCtx * ctx, const void *buffer, ptrdiff_t size)
 {
+   uint8_t             magic[4] = "qoif";
+
    QOIDEC_ASSERT(size >= 0);
 
    memset(ctx, 0, sizeof(QoiDecCtx));
 
    ctx->p = buffer;
    ctx->end = ctx->p + size;
-   if (size < 14 ||
-       !((ctx->p[0] == 'q') && (ctx->p[1] == 'o') &&
-         (ctx->p[2] == 'i') && (ctx->p[3] == 'f')))
-     {
-        return QOIDEC_NOT_QOI;
-     }
+   if (size < 14 || memcmp(ctx->p, magic, sizeof(magic)) != 0)
+      return QOIDEC_NOT_QOI;
    ctx->p += 4;
 
    ctx->w =
@@ -100,6 +98,7 @@ qoi_dec(QoiDecCtx * ctx)
    Clr                 t[64] = { 0 };
    Clr                 l = {.a = 0xFF };
    uint8_t             lop = -1;
+   uint8_t             eof[8] = {[7] = 0x1 };
    const uint8_t      *p = ctx->p, *end = ctx->end;
 
    QOIDEC_ASSERT(ctx->data != NULL);
@@ -184,12 +183,8 @@ qoi_dec(QoiDecCtx * ctx)
       no_write:
         lop = op;
      }
-   if (end - p < 8 ||
-       !((p[0] == 0) & (p[1] == 0) & (p[2] == 0) & (p[3] == 0) &
-         (p[4] == 0) & (p[5] == 0) & (p[6] == 0) & (p[7] == 1)))
-     {
-        return QOIDEC_CORRUPTED;
-     }
+   if (end - p < (int)sizeof(eof) || memcmp(p, eof, sizeof(eof)) != 0)
+      return QOIDEC_CORRUPTED;
 
    return QOIDEC_OK;
 }
