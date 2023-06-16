@@ -16,7 +16,7 @@
 #define DBG_PFX "LDR-qoi"
 #if IMLIB2_DEBUG
 #define QOIDEC_ASSERT(X)   do { if (!(X)) D("%d: %s\n", __LINE__, #X); } while (0)
-#elif defined(__GNUC__)
+#else
 #define QOIDEC_ASSERT(X)
 #endif
 
