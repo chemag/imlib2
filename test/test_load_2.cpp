@@ -75,6 +75,7 @@ static tii_t        tii[] = {
    { "xeyes.pam",		2937827957 },
    { "xeyes-gray.pam",		1280677270 },
    { "xeyes-mono.pam",		  17480910 },
+   { "icon-64.qoi",		1153555547 },
    { "icon-64.tga",		1153555547 },
 #ifdef BUILD_TIFF_LOADER
    { "icon-64.tiff",		1153555547 },

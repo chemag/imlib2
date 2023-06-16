@@ -21,6 +21,7 @@
  TYPES += pgm
  TYPES += pbm
  TYPES += pam
+ TYPES += qoi
  TYPES += tga
  TYPES += tiff
  TYPES += webp
@@ -117,6 +118,9 @@ imgs_misc: $(ALL_MISC)
 
 %-P7_332.ppm: %.ppm
 	pamtoxvmini <$< >$@
+
+%.qoi: %.png
+	$(CONVERT) $< $@
 
 %.tga: %.png
 #	$(CONVERT) $< $@
