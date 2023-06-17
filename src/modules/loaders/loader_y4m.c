@@ -26,6 +26,7 @@ _load(ImlibImage * im, int load_data)
    int                 rc = LOAD_FAIL;
    int                 broken_image = 0;
    uint32_t           *ptr = NULL;
+   const uint8_t       magic[10] = "YUV4MPEG2 ";
 
    /* we do not support the file being loaded from memory */
    if (!im->fi->fp)
@@ -34,7 +35,8 @@ _load(ImlibImage * im, int load_data)
    /* guess whether this is a y4m file */
    const char         *fptr = im->fi->fdata;
 
-   if (strncmp(fptr, "YUV4MPEG2 ", 10) != 0)
+   if (im->fi->fsize < (int)sizeof(magic) ||
+       memcmp(fptr, magic, sizeof(magic)) != 0)
       goto quit;
 
    /* format accepted */
