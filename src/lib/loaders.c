@@ -186,11 +186,17 @@ __imlib_ProduceLoader(const char *file)
 
    l->handle = dlopen(file, RTLD_NOW | RTLD_LOCAL);
    if (!l->handle)
-      goto bail;
+     {
+        DP("%s: dlerror: %s\n", __func__, dlerror());
+        goto bail;
+     }
 
    l->module = m = dlsym(l->handle, "loader");
    if (!l->module)
-      goto bail;
+     {
+        DP("%s: dlerror: %s\n", __func__, dlerror());
+        goto bail;
+     }
 
    /* Check version and that we have at least load() or save() */
    if (m->ldr_version != IMLIB2_LOADER_VERSION ||
