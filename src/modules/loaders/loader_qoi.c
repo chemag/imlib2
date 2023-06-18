@@ -49,7 +49,7 @@ QOIDEC_API QoiDecStatus qoi_dec(QoiDecCtx * ctx);
 QOIDEC_API          QoiDecStatus
 qoi_dec_init(QoiDecCtx * ctx, const void *buffer, ptrdiff_t size)
 {
-   uint8_t             magic[4] = "qoif";
+   static const uint8_t magic[4] = "qoif";
 
    QOIDEC_ASSERT(size >= 0);
 
@@ -98,7 +98,7 @@ qoi_dec(QoiDecCtx * ctx)
    Clr                 t[64] = { 0 };
    Clr                 l = {.a = 0xFF };
    uint8_t             lop = -1;
-   uint8_t             eof[8] = {[7] = 0x1 };
+   static const uint8_t eof[8] = {[7] = 0x1 };
    const uint8_t      *p = ctx->p, *end = ctx->end;
 
    QOIDEC_ASSERT(ctx->data != NULL);

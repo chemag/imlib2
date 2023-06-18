@@ -23,10 +23,10 @@ static const char  *const _formats[] = { "y4m" };
 static int
 _load(ImlibImage * im, int load_data)
 {
+   static const uint8_t magic[10] = "YUV4MPEG2 ";
    int                 rc = LOAD_FAIL;
    int                 broken_image = 0;
    uint32_t           *ptr = NULL;
-   const uint8_t       magic[10] = "YUV4MPEG2 ";
 
    /* we do not support the file being loaded from memory */
    if (!im->fi->fp)
