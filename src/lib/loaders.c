@@ -183,6 +183,8 @@ __imlib_ProduceLoader(const char *file)
      }
 
    l = malloc(sizeof(ImlibLoader));
+   if (!l)
+      goto bail;
 
    l->handle = dlopen(file, RTLD_NOW | RTLD_LOCAL);
    if (!l->handle)
