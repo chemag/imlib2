@@ -324,7 +324,7 @@ __imlib_ItemInList(char **list, int size, char *item)
 #include <errno.h>
 
 FILE               *
-__imlib_FileOpen(const char *path, const char *mode)
+__imlib_FileOpen(const char *path, const char *mode, struct stat *st)
 {
    FILE               *fp;
 
@@ -337,5 +337,18 @@ __imlib_FileOpen(const char *path, const char *mode)
            break;
      }
 
+   /* Only stat if all is good and we want to read */
+   if (!fp || !st)
+      goto done;
+   if (mode[0] == 'w')
+      goto done;
+
+   if (fstat(fileno(fp), st) < 0)
+     {
+        fclose(fp);
+        fp = NULL;
+     }
+
+ done:
    return fp;
 }

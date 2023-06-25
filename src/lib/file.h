@@ -49,6 +49,7 @@ char              **__imlib_ModulesList(char **path, int *num_ret);
 char               *__imlib_ModuleFind(char **path, const char *name);
 
 #include <stdio.h>
-FILE               *__imlib_FileOpen(const char *path, const char *mode);
+FILE               *__imlib_FileOpen(const char *path, const char *mode,
+                                     struct stat *st);
 
 #endif

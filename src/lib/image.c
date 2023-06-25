@@ -97,27 +97,22 @@ __imlib_FileContextOpen(ImlibImageFileInfo * fi, FILE * fp,
      {
         fi->keep_fp = true;
         fi->fp = fp;
+        /* fsize must be given */
      }
    else if (fdata)
      {
         fi->keep_mem = true;
+        /* fsize must be given */
      }
    else
      {
-        fi->fp = __imlib_FileOpen(fi->name, "rb");
+        fi->fp = __imlib_FileOpen(fi->name, "rb", &st);
         if (!fi->fp)
            return -1;
+        fsize = st.st_size;
      }
 
-   if (fi->fsize == 0)
-     {
-        if (fsize == 0)
-          {
-             __imlib_FileStat(fi->name, &st);
-             fsize = st.st_size;
-          }
-        fi->fsize = fsize;
-     }
+   fi->fsize = fsize;
 
    if (!fdata)
      {
@@ -485,6 +480,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    int                 err, loader_ret;
    ImlibLoaderCtx      ilc;
    struct stat         st;
+   FILE               *fp;
    char               *im_file, *im_key;
 
    if (!file || file[0] == '\0')
@@ -529,6 +525,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
           }
      }
 
+   fp = ila->fp;
    im_file = im_key = NULL;
    if (ila->fdata)
      {
@@ -536,29 +533,30 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
         st.st_size = ila->fsize;
         st.st_mtime = st.st_ctime = 0;
      }
-   else if (ila->fp)
+   else if (fp)
      {
-        err = fstat(fileno(ila->fp), &st);
+        err = fstat(fileno(fp), &st);
      }
    else
      {
-        err = __imlib_FileStat(file, &st);
-        if (err)
+        fp = __imlib_FileOpen(file, "rb", &st);
+        if (!fp)
           {
              im_key = __imlib_FileKey(file);
              if (im_key)
                {
                   im_file = __imlib_FileRealFile(file);
-                  err = __imlib_FileStat(im_file, &st);
+                  fp = __imlib_FileOpen(im_file, "rb", &st);
                }
           }
+        err = fp == NULL;
      }
 
    if (err)
       err = errno;
    else if (st.st_size == 0)
       err = IMLIB_ERR_BAD_IMAGE;
-   else if (!ila->fdata && __imlib_StatIsDir(&st))
+   else if (fp && __imlib_StatIsDir(&st))
       err = EISDIR;
 
    if (err)
@@ -577,12 +575,14 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    im->frame = ila->frame;
 
    if (__imlib_ImageFileContextPush(im, im_file ? im_file : im->file) ||
-       __imlib_FileContextOpen(im->fi, ila->fp, ila->fdata, st.st_size))
+       __imlib_FileContextOpen(im->fi, fp, ila->fdata, st.st_size))
      {
         ila->err = errno;
         __imlib_ConsumeImage(im);
         return NULL;
      }
+
+   im->fi->keep_fp = ila->fp != NULL;
 
    im->moddate = __imlib_StatModDate(&st);
 
@@ -885,7 +885,7 @@ __imlib_SaveImage(ImlibImage * im, const char *file, ImlibLoadArgs * ila)
 
    if (!fp)
      {
-        fp = __imlib_FileOpen(file, "wb");
+        fp = __imlib_FileOpen(file, "wb", NULL);
         if (!fp)
           {
              ila->err = errno;
