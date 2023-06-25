@@ -667,8 +667,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
 
    im->lc = NULL;
 
-   if (!ila->fp)
-      __imlib_FileContextClose(im->fi);
+   __imlib_FileContextClose(im->fi);
 
    if (loader_ret <= LOAD_FAIL)
      {
