@@ -4,13 +4,10 @@
 #include <time.h>
 #include <sys/stat.h>
 
-int                 __imlib_IsRealFile(const char *s);
 char               *__imlib_FileKey(const char *file);
 char               *__imlib_FileRealFile(const char *file);
 
 const char         *__imlib_FileExtension(const char *file);
-
-int                 __imlib_FileStat(const char *file, struct stat *st);
 
 static inline       time_t
 __imlib_StatModDate(const struct stat *st)
@@ -30,7 +27,6 @@ __imlib_StatIsDir(const struct stat *st)
    return S_ISDIR(st->st_mode);
 }
 
-int                 __imlib_FileExists(const char *s);
 int                 __imlib_FileIsFile(const char *s);
 int                 __imlib_FileIsDir(const char *s);
 time_t              __imlib_FileModDate(const char *s);

@@ -16,16 +16,6 @@
 #define DBG_PFX "FILE"
 #define DP(fmt...) DC(DBG_FILE, fmt)
 
-int
-__imlib_IsRealFile(const char *s)
-{
-   struct stat         st;
-
-   DP("%s: '%s'\n", __func__, s);
-
-   return (stat(s, &st) != -1) && (S_ISREG(st.st_mode));
-}
-
 char               *
 __imlib_FileKey(const char *file)
 {
@@ -110,7 +100,7 @@ __imlib_FileExtension(const char *file)
    return *p != '\0' ? p : NULL;
 }
 
-int
+static int
 __imlib_FileStat(const char *file, struct stat *st)
 {
    DP("%s: '%s'\n", __func__, file);
@@ -119,16 +109,6 @@ __imlib_FileStat(const char *file, struct stat *st)
       return -1;
 
    return stat(file, st);
-}
-
-int
-__imlib_FileExists(const char *s)
-{
-   struct stat         st;
-
-   DP("%s: '%s'\n", __func__, s);
-
-   return __imlib_FileStat(s, &st) == 0;
 }
 
 int

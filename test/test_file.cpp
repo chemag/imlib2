@@ -48,29 +48,6 @@ TEST(FILE, file_extension)
    EXPECT_STREQ(s, "def");
 }
 
-TEST(FILE, file_exists)
-{
-   int                 rc;
-
-   rc = __imlib_FileExists("./Makefile");
-   EXPECT_EQ(rc, 1);
-
-   rc = __imlib_FileExists(".");
-   EXPECT_EQ(rc, 1);
-
-   rc = __imlib_FileExists("./foob");
-   EXPECT_EQ(rc, 0);
-
-   rc = __imlib_FileExists("./Makefile:foo");
-   EXPECT_EQ(rc, USE_REAL_FILE);
-
-   rc = __imlib_FileExists(".:foo");
-   EXPECT_EQ(rc, USE_REAL_FILE);
-
-   rc = __imlib_FileExists("./foob:foo");
-   EXPECT_EQ(rc, 0);
-}
-
 TEST(FILE, file_is_file)
 {
    int                 rc;
@@ -114,33 +91,6 @@ TEST(FILE, file_is_dir)
    EXPECT_EQ(rc, USE_REAL_FILE);
 
    rc = __imlib_FileIsDir("./foob:foo");
-   EXPECT_EQ(rc, 0);
-}
-
-TEST(FILE, file_is_real_file)
-{
-   int                 rc;
-
-   rc = __imlib_IsRealFile("./Makefile");
-   EXPECT_EQ(rc, 1);
-
-   rc = __imlib_IsRealFile(".");
-   EXPECT_EQ(rc, 0);
-
-   rc = __imlib_IsRealFile("./foob");
-   EXPECT_EQ(rc, 0);
-
-   rc = system("touch gylle");
-   EXPECT_EQ(rc, 0);
-   rc = __imlib_IsRealFile("gylle");
-   EXPECT_EQ(rc, 1);
-
-   rc = system("chmod 000 gylle");
-   EXPECT_EQ(rc, 0);
-   rc = __imlib_IsRealFile("gylle");
-   EXPECT_EQ(rc, 1);
-
-   rc = unlink("gylle");
    EXPECT_EQ(rc, 0);
 }
 
