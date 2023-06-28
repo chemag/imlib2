@@ -222,6 +222,7 @@ EC_LOADER_CHECK(J2K,  auto, libopenjp2)
 EC_LOADER_CHECK(JXL,  auto, libjxl libjxl_threads)
 EC_LOADER_CHECK(PNG,  auto, libpng)
 EC_LOADER_CHECK(PS,   auto, libspectre)
+EC_LOADER_CHECK(RAW,  auto, libraw)
 EC_LOADER_CHECK(SVG,  auto, librsvg-2.0 >= 2.46)
 EC_LOADER_CHECK(TIFF, auto, libtiff-4)
 EC_LOADER_CHECK(WEBP, auto, libwebpdemux)
@@ -316,6 +317,7 @@ echo "  J2K.....................: $j2k_ok"
 echo "  JXL.....................: $jxl_ok"
 echo "  PNG.....................: $png_ok"
 echo "  PS......................: $ps_ok"
+echo "  RAW.....................: $raw_ok"
 echo "  SVG.....................: $svg_ok"
 echo "  TIFF....................: $tiff_ok"
 echo "  WEBP....................: $webp_ok"

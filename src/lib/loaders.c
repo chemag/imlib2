@@ -54,6 +54,11 @@ static const char  *const ext_qoi[] = { "qoi", NULL };
 #ifdef BUILD_PS_LOADER
 static const char  *const ext_ps[] = { "ps", "eps", NULL };
 #endif
+#ifdef BUILD_RAW_LOADER
+static const char  *const ext_raw[] = { "raw",
+   "arw", "cr2", "dcr", "dng", "nef", "orf", "raf", "rw2", "rwl", "srw", NULL
+};
+#endif
 #ifdef BUILD_SVG_LOADER
 static const char  *const ext_svg[] = { "svg", NULL };
 #endif
@@ -111,6 +116,9 @@ static const KnownLoader loaders_known[] = {
 #endif
 #ifdef BUILD_PS_LOADER
    {"ps", ext_ps},
+#endif
+#ifdef BUILD_RAW_LOADER
+   {"raw", ext_raw},
 #endif
    {"pnm", ext_pnm},
    {"qoi", ext_qoi},
