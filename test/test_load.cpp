@@ -137,7 +137,7 @@ test_load(void)
         EXPECT_TRUE(im);
         EXPECT_EQ(err, 0);
         if (!im || err)
-           D("Error %d im=%p loading '%s'\n", lerr, im, fileo);
+           D("Error %d im=%p loading '%s'\n", err, im, fileo);
         if (im)
            image_free(im);
         imlib_flush_loaders();
