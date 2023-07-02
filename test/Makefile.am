@@ -75,7 +75,8 @@ test_rotate_LDADD = $(LIBS)
 
  TESTS_RUN = $(addprefix run-, $(GTESTS))
 
- TEST_ENV = IMLIB2_LOADER_PATH=$(top_builddir)/src/modules/loaders/.libs
+ TEST_ENV  = LD_LIBRARY_PATH=$(top_builddir)/src/lib/.libs
+ TEST_ENV += IMLIB2_LOADER_PATH=$(top_builddir)/src/modules/loaders/.libs
 
  VG_PROG = valgrind --leak-check=full
 
@@ -84,11 +85,11 @@ all-local: run
 .PHONY: run $(TESTS_RUN)
 run: $(TESTS_RUN)
 $(TESTS_RUN): run-%: %
-	$(TEST_ENV) ./$* $(RUN_OPTS)
+	$(TEST_ENV) ./.libs/$* $(RUN_OPTS)
 
  TESTS_RUN_VG = $(addprefix run-vg-, $(GTESTS))
 
 .PHONY: run-vg $(TESTS_RUN_VG)
 run-vg: $(TESTS_RUN_VG)
 $(TESTS_RUN_VG): run-vg-%: %
-	$(TEST_ENV) $(VG_PROG) ./$* $(RUN_OPTS)
+	$(TEST_ENV) $(VG_PROG) ./.libs/$* $(RUN_OPTS)
