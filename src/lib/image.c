@@ -562,6 +562,8 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
    if (err)
      {
         ila->err = err;
+        if (fp && fp != ila->fp)
+           fclose(fp);
         free(im_file);
         free(im_key);
         return NULL;
