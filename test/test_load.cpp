@@ -135,7 +135,7 @@ test_load(void)
             EXPECT_TRUE(data);
             image_free(im);
         }
-        imlib_flush_loaders();
+        flush_loaders();
 
         D("Load '%s' (immediate)\n", fileo);
         im = imlib_load_image_with_errno_return(fileo, &err);
@@ -145,7 +145,7 @@ test_load(void)
             D("Error %d im=%p loading '%s'\n", err, im, fileo);
         if (im)
             image_free(im);
-        imlib_flush_loaders();
+        flush_loaders();
 
         if (strchr(pfxs[i], '.') == 0)
         {

@@ -227,7 +227,7 @@ test_save_2(const char *file, const char *fmt, bool load_imm, bool sok,
     Imlib_Image     im;
     unsigned int    crc;
 
-    imlib_flush_loaders();
+    flush_loaders();
 
     snprintf(filei, sizeof(filei), "%s/%s", IMG_SRC, file);
 

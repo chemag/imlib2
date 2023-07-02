@@ -98,6 +98,18 @@ image_get_crc32(Imlib_Image im)
     return crc;
 }
 
+void
+flush_loaders(void)
+{
+    static signed char do_flush = -1;   // Normally do flush
+
+    if (do_flush < 0)
+        do_flush = getenv("IMLIB2_TEST_NO_LOADER_FLUSH") == NULL;
+
+    if (do_flush)
+        imlib_flush_loaders();
+}
+
 /**INDENT-OFF**/
 extern "C" {
 #include "strutils.h"

@@ -15,6 +15,8 @@ void            pr_info(const char *fmt, ...);
 
 unsigned int    image_get_crc32(Imlib_Image im);
 
+void            flush_loaders(void);
+
 bool            file_skip(const char *file);
 
 #endif                          /* TEST_H */
