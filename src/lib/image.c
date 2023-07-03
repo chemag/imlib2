@@ -357,6 +357,25 @@ __imlib_GetCacheSize(void)
    return cache_size;
 }
 
+int
+__imlib_DecacheFile(const char *file)
+{
+   int                 n = 0;
+   ImlibImage         *im;
+
+   for (im = images; im; im = im->next)
+     {
+        if (!strcmp(file, im->file))
+          {
+             IM_FLAG_SET(im, F_INVALID);
+             ++n;
+          }
+     }
+   if (n > 0)
+      __imlib_CleanupImageCache();
+   return n;
+}
+
 /* Create a new image struct
  * If data is non-zero use it for pixel data, otherwise allocate the
  * pixel data buffer.

@@ -493,6 +493,12 @@ imlib_set_cache_size(int bytes)
    __imlib_SetCacheSize(bytes);
 }
 
+EAPI int
+imlib_image_decache_file(const char *file)
+{
+   return __imlib_DecacheFile(file);
+}
+
 EAPI void
 imlib_flush_loaders(void)
 {
