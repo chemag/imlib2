@@ -14,9 +14,7 @@ char               *__imlib_FileRealFile(const char *file);
 
 char              **__imlib_FileDir(const char *dir, int *num);
 void                __imlib_FileFreeDirList(char **l, int num);
-void                __imlib_FileDel(const char *s);
 time_t              __imlib_FileModDate(const char *s);
-char               *__imlib_FileHomeDir(int uid);
 int                 __imlib_FilePermissions(const char *s);
 #endif
 
@@ -68,29 +66,6 @@ TEST(FILE, file_is_file)
    EXPECT_EQ(rc, 0);
 
    rc = __imlib_FileIsFile("./foob:foo");
-   EXPECT_EQ(rc, 0);
-}
-
-TEST(FILE, file_is_dir)
-{
-   int                 rc;
-
-   rc = __imlib_FileIsDir("./Makefile");
-   EXPECT_EQ(rc, 0);
-
-   rc = __imlib_FileIsDir(".");
-   EXPECT_EQ(rc, 1);
-
-   rc = __imlib_FileIsDir("./foob");
-   EXPECT_EQ(rc, 0);
-
-   rc = __imlib_FileIsDir("./Makefile:foo");
-   EXPECT_EQ(rc, 0);
-
-   rc = __imlib_FileIsDir(".:foo");
-   EXPECT_EQ(rc, USE_REAL_FILE);
-
-   rc = __imlib_FileIsDir("./foob:foo");
    EXPECT_EQ(rc, 0);
 }
 

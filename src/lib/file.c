@@ -124,19 +124,6 @@ __imlib_FileIsFile(const char *s)
    return (S_ISREG(st.st_mode)) ? 1 : 0;
 }
 
-int
-__imlib_FileIsDir(const char *s)
-{
-   struct stat         st;
-
-   DP("%s: '%s'\n", __func__, s);
-
-   if (__imlib_FileStat(s, &st))
-      return 0;
-
-   return (S_ISDIR(st.st_mode)) ? 1 : 0;
-}
-
 time_t
 __imlib_FileModDate(const char *s)
 {
@@ -241,46 +228,6 @@ __imlib_FileFreeDirList(char **l, int num)
    while (num--)
       free(l[num]);
    free(l);
-}
-
-void
-__imlib_FileDel(const char *s)
-{
-   if ((!s) || (!*s))
-      return;
-   unlink(s);
-}
-
-char               *
-__imlib_FileHomeDir(int uid)
-{
-   static int          usr_uid = -1;
-   static char        *usr_s = NULL;
-   char               *s;
-   struct passwd      *pwd;
-
-   s = getenv("HOME");
-   if (s)
-      return strdup(s);
-
-   if (usr_uid < 0)
-      usr_uid = getuid();
-
-   if ((uid == usr_uid) && (usr_s))
-     {
-        return strdup(usr_s);
-     }
-
-   pwd = getpwuid(uid);
-   if (pwd)
-     {
-        s = strdup(pwd->pw_dir);
-        if (uid == usr_uid)
-           usr_s = strdup(s);
-        return s;
-     }
-
-   return NULL;
 }
 
 int
