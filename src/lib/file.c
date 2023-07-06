@@ -124,7 +124,28 @@ __imlib_FileIsFile(const char *s)
    return (S_ISREG(st.st_mode)) ? 1 : 0;
 }
 
-time_t
+#define STONS 1000000000ULL
+
+uint64_t
+__imlib_StatModDate(const struct stat *st)
+{
+   uint64_t            mtime_ns, ctime_ns;
+
+#if HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC
+   mtime_ns = st->st_mtim.tv_sec * STONS + st->st_mtim.tv_nsec;
+   ctime_ns = st->st_ctim.tv_sec * STONS + st->st_ctim.tv_nsec;
+#elif HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC
+   mtime_ns = st->st_mtimespec.tv_sec * STONS + st->st_mtimespec.tv_nsec;
+   ctime_ns = st->st_ctimespec.tv_sec * STONS + st->st_ctimespec.tv_nsec;
+#else
+   mtime_ns = st->st_mtime;
+   ctime_ns = st->st_ctime;
+#endif
+
+   return (mtime_ns > ctime_ns) ? mtime_ns : ctime_ns;
+}
+
+uint64_t
 __imlib_FileModDate(const char *s)
 {
    struct stat         st;
@@ -134,10 +155,10 @@ __imlib_FileModDate(const char *s)
    if (__imlib_FileStat(s, &st))
       return 0;
 
-   return (st.st_mtime > st.st_ctime) ? st.st_mtime : st.st_ctime;
+   return __imlib_StatModDate(&st);
 }
 
-time_t
+uint64_t
 __imlib_FileModDateFd(int fd)
 {
    struct stat         st;
@@ -145,7 +166,7 @@ __imlib_FileModDateFd(int fd)
    if (fstat(fd, &st) < 0)
       return 0;
 
-   return (st.st_mtime > st.st_ctime) ? st.st_mtime : st.st_ctime;
+   return __imlib_StatModDate(&st);
 }
 
 char              **

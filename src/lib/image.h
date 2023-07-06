@@ -70,7 +70,7 @@ struct _ImlibImage {
 
    char               *file;
    char               *key;
-   time_t              moddate;
+   uint64_t            moddate;
    unsigned int        flags;
    int                 references;
    char               *format;

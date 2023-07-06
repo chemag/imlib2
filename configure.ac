@@ -269,6 +269,9 @@ EC_C_VISIBILITY(yes)
 EC_C_PACKING()
 EC_C_ASAN()
 
+AC_CHECK_MEMBERS([struct stat.st_mtim.tv_nsec])
+AC_CHECK_MEMBERS([struct stat.st_mtimespec.tv_nsec])
+
 VERSION_MAJOR=`echo $VERSION | awk -F. '{print $1}'`
 VERSION_MINOR=`echo $VERSION | awk -F. '{print $2}'`
 VERSION_MICRO=`echo $VERSION | awk -F. '{print $3}'`

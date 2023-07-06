@@ -498,7 +498,7 @@ __imlib_LoadImage(const char *file, ImlibLoadArgs * ila)
           {
              if (IM_FLAG_ISSET(im, F_ALWAYS_CHECK_DISK))
                {
-                  time_t              current_modified_time;
+                  uint64_t            current_modified_time;
 
                   current_modified_time = ila->fp ?
                      __imlib_FileModDateFd(fileno(ila->fp)) :

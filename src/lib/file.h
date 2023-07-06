@@ -1,7 +1,7 @@
 #ifndef __FILE_H
 #define __FILE_H 1
 
-#include <time.h>
+#include <stdint.h>
 #include <sys/stat.h>
 
 char               *__imlib_FileKey(const char *file);
@@ -9,11 +9,7 @@ char               *__imlib_FileRealFile(const char *file);
 
 const char         *__imlib_FileExtension(const char *file);
 
-static inline       time_t
-__imlib_StatModDate(const struct stat *st)
-{
-   return (st->st_mtime > st->st_ctime) ? st->st_mtime : st->st_ctime;
-}
+uint64_t            __imlib_StatModDate(const struct stat *st);
 
 static inline int
 __imlib_StatIsFile(const struct stat *st)
@@ -28,8 +24,9 @@ __imlib_StatIsDir(const struct stat *st)
 }
 
 int                 __imlib_FileIsFile(const char *s);
-time_t              __imlib_FileModDate(const char *s);
-time_t              __imlib_FileModDateFd(int fd);
+
+uint64_t            __imlib_FileModDate(const char *s);
+uint64_t            __imlib_FileModDateFd(int fd);
 
 char              **__imlib_FileDir(const char *dir, int *num);
 void                __imlib_FileFreeDirList(char **l, int num);
