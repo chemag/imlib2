@@ -245,26 +245,48 @@ __imlib_AddImageToCache(ImlibImage * im)
    images = im;
 }
 
-/* remove (unlink) an image from the cache of images */
+/* Remove invalidated images from image cache */
 static void
-__imlib_RemoveImageFromCache(ImlibImage * im_del)
+__imlib_PruneImageCache(void)
 {
-   ImlibImage         *im, *im_prev;
+   ImlibImage         *im, *im_prev, *im_next;
 
-   im = im_del;
-   DP("%s: %p: '%s' frame %d\n", __func__, im, im->fi->name, im->frame);
-
-   for (im = images, im_prev = NULL; im; im_prev = im, im = im->next)
+   for (im = images, im_prev = NULL; im; im = im_next)
      {
-        if (im == im_del)
+        im_next = im->next;
+
+        if (im->references <= 0 && IM_FLAG_ISSET(im, F_INVALID))
           {
+             DP("%s: %p: '%s' frame %d\n", __func__,
+                im, im->fi->name, im->frame);
+
              if (im_prev)
-                im_prev->next = im->next;
+                im_prev->next = im_next;
              else
-                images = im->next;
-             return;
+                images = im_next;
+             __imlib_ConsumeImage(im);
+          }
+        else
+          {
+             im_prev = im;
           }
      }
+}
+
+static int
+__imlib_ImageCacheSize(void)
+{
+   ImlibImage         *im;
+   int                 current_cache;
+
+   current_cache = 0;
+   for (im = images; im; im = im->next)
+     {
+        if (im->references == 0 && im->data)
+           current_cache += im->w * im->h * sizeof(uint32_t);
+     }
+
+   return current_cache;
 }
 
 /* work out how much we have floaitng aroudn in our speculative cache */
@@ -272,26 +294,11 @@ __imlib_RemoveImageFromCache(ImlibImage * im_del)
 int
 __imlib_CurrentCacheSize(void)
 {
-   ImlibImage         *im, *im_next;
-   int                 current_cache = 0;
+   int                 current_cache;
 
-   for (im = images; im; im = im_next)
-     {
-        im_next = im->next;
+   __imlib_PruneImageCache();
 
-        /* mayaswell clean out stuff thats invalid that we dont need anymore */
-        if (im->references == 0)
-          {
-             if (IM_FLAG_ISSET(im, F_INVALID))
-               {
-                  __imlib_RemoveImageFromCache(im);
-                  __imlib_ConsumeImage(im);
-               }
-             /* it's valid but has 0 ref's - append to cache size count */
-             else
-                current_cache += im->w * im->h * sizeof(uint32_t);
-          }
-     }
+   current_cache = __imlib_ImageCacheSize();
 
 #ifdef BUILD_X11
    current_cache += __imlib_PixmapCacheSize();
@@ -304,7 +311,7 @@ __imlib_CurrentCacheSize(void)
 static void
 __imlib_CleanupImageCache(void)
 {
-   ImlibImage         *im, *im_del;
+   ImlibImage         *im;
    int                 current_cache;
 
    current_cache = __imlib_CurrentCacheSize();
@@ -313,18 +320,17 @@ __imlib_CleanupImageCache(void)
    /* clean out the oldest members of the imaeg cache */
    while (current_cache > cache_size)
      {
-        for (im = images, im_del = NULL; im; im = im->next)
+        for (im = images; im; im = im->next)
           {
-             if (im->references <= 0)
-                im_del = im;
+             if (im->references > 0)
+                continue;
+
+             IM_FLAG_SET(im, F_INVALID);        /* Will be pruned shortly */
+             current_cache = __imlib_CurrentCacheSize();
+             break;
           }
-        if (!im_del)
-           break;
-
-        __imlib_RemoveImageFromCache(im_del);
-        __imlib_ConsumeImage(im_del);
-
-        current_cache = __imlib_CurrentCacheSize();
+        if (!im)
+           break;               /* Nothing left to clean out */
      }
 }
 
