@@ -846,22 +846,16 @@ __imlib_GetFrame(ImlibImage * im)
 void
 __imlib_FreeImage(ImlibImage * im)
 {
-   /* if the refcount is positive */
-   if (im->references >= 0)
-     {
-        /* reduce a reference from the count */
-        im->references--;
-        /* if its uncachchable ... */
-        if (IM_FLAG_ISSET(im, F_UNCACHEABLE))
-          {
-             /* and we're down to no references for the image then free it */
-             if (im->references == 0)
-                __imlib_ConsumeImage(im);
-          }
-        /* otherwise clean up our cache if the image becoem 0 ref count */
-        else if (im->references == 0)
-           __imlib_CleanupImageCache();
-     }
+   if (im->references > 0)
+      im->references--;
+
+   if (im->references > 0)
+      return;
+
+   if (IM_FLAG_ISSET(im, F_UNCACHEABLE))
+      __imlib_ConsumeImage(im);
+   else
+      __imlib_CleanupImageCache();
 }
 
 /* dirty and image by settings its invalid flag */
