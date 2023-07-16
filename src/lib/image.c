@@ -304,21 +304,10 @@ __imlib_CurrentCacheSize(void)
 static void
 __imlib_CleanupImageCache(void)
 {
-   ImlibImage         *im, *im_next, *im_del;
+   ImlibImage         *im, *im_del;
    int                 current_cache;
 
    current_cache = __imlib_CurrentCacheSize();
-
-   /* remove 0 ref count invalid (dirty) images */
-   for (im = images; im; im = im_next)
-     {
-        im_next = im->next;
-        if (im->references <= 0 && IM_FLAG_ISSET(im, F_INVALID))
-          {
-             __imlib_RemoveImageFromCache(im);
-             __imlib_ConsumeImage(im);
-          }
-     }
 
    /* while the cache size of 0 ref coutn data is bigger than the set value */
    /* clean out the oldest members of the imaeg cache */
