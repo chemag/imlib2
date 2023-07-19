@@ -1014,6 +1014,7 @@ imlib_clone_image(void)
       return NULL;
 
    memcpy(im->data, im_old->data, im->w * im->h * sizeof(uint32_t));
+   im->has_alpha = im_old->has_alpha;
    im->flags = im_old->flags;
    IM_FLAG_SET(im, F_UNCACHEABLE);
    im->moddate = im_old->moddate;
