@@ -48,6 +48,7 @@ typedef struct {
    enum {
       Y4M_PARSE_CS_420,         /* default picked from ffmpeg */
       Y4M_PARSE_CS_420JPEG,
+      Y4M_PARSE_CS_420MPEG2,
       Y4M_PARSE_CS_420PALDV,
       Y4M_PARSE_CS_422,
       Y4M_PARSE_CS_444,
@@ -173,6 +174,8 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
                 res->colour_space = Y4M_PARSE_CS_MONO;
              else if (y4m__match("420jpeg", 7, &p, end))
                 res->colour_space = Y4M_PARSE_CS_420JPEG;
+             else if (y4m__match("420mpeg2", 8, &p, end))
+                res->colour_space = Y4M_PARSE_CS_420MPEG2;
              else if (y4m__match("420paldv", 8, &p, end))
                 res->colour_space = Y4M_PARSE_CS_420PALDV;
              else if (y4m__match("420", 3, &p, end))
@@ -255,6 +258,7 @@ y4m_parse_frame(Y4mParse * res)
    switch (res->colour_space)
      {
      case Y4M_PARSE_CS_420JPEG:
+     case Y4M_PARSE_CS_420MPEG2:
      case Y4M_PARSE_CS_420PALDV:
      case Y4M_PARSE_CS_420:
         res->frame_data_len = npixels * 3 / 2;
@@ -384,6 +388,7 @@ _load(ImlibImage * im, int load_data)
         conv = I444ToARGB;
         break;
      case Y4M_PARSE_CS_420JPEG:
+     case Y4M_PARSE_CS_420MPEG2:
      case Y4M_PARSE_CS_420PALDV:
      case Y4M_PARSE_CS_420:
         conv = I420ToARGB;
