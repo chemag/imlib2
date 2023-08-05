@@ -24,16 +24,12 @@ struct _imlib_scale_info {
 #define YAP                       (yapoints[dyy + y])
 
 static int         *
-__imlib_CalcPoints(int sw, int dw, int b1, int b2)
+__imlib_CalcPoints(int sw, int dw_, int b1, int b2)
 {
    int                *p, i;
-   int                 val, inc, rv = 0;
+   int                 val, inc, dw, ss, dd;
 
-   if (dw < 0)
-     {
-        dw = -dw;
-        rv = 1;
-     }
+   dw = (dw_ >= 0) ? dw_ : -dw_;
 
    p = malloc(dw * sizeof(int));
    if (!p)
@@ -48,19 +44,16 @@ __imlib_CalcPoints(int sw, int dw, int b1, int b2)
      }
 
    /* Border 1 */
-   val = 0;
-   inc = 1 << 16;
    for (i = 0; i < b1; i++)
-     {
-        p[i] = val >> 16;
-        val += inc;
-     }
+      p[i] = i;
 
    /* Center */
-   if (i < dw - b2)
+   ss = sw - (b1 + b2);
+   dd = dw - (b1 + b2);
+   if (dd > 0)
      {
         val = b1 << 16;
-        inc = ((sw - (b1 + b2)) << 16) / (dw - (b1 + b2));
+        inc = (ss << 16) / dd;
         for (; i < dw - b2; i++)
           {
              p[i] = val >> 16;
@@ -69,15 +62,11 @@ __imlib_CalcPoints(int sw, int dw, int b1, int b2)
      }
 
    /* Border 2 */
-   val = (sw - b2) << 16;
-   inc = 1 << 16;
+   val = sw - b2;
    for (; i < dw; i++)
-     {
-        p[i] = val >> 16;
-        val += inc;
-     }
+      p[i] = val++;
 
-   if (rv)
+   if (dw_ < 0)
       for (i = dw / 2; --i >= 0;)
         {
            int                 tmp = p[i];
@@ -90,22 +79,18 @@ __imlib_CalcPoints(int sw, int dw, int b1, int b2)
 }
 
 static int         *
-__imlib_CalcApoints(int s, int d, int b1, int b2, int up)
+__imlib_CalcApoints(int sw, int dw_, int b1, int b2, int up)
 {
-   int                *p, i, rv = 0;
-   int                 val, inc;
+   int                *p, i;
+   int                 val, inc, dw, ss, dd;
 
-   if (d < 0)
-     {
-        rv = 1;
-        d = -d;
-     }
+   dw = (dw_ >= 0) ? dw_ : -dw_;
 
-   p = malloc(d * sizeof(int));
+   p = malloc(dw * sizeof(int));
    if (!p)
       return NULL;
 
-   val = MIN(s, d);
+   val = MIN(sw, dw);
    inc = b1 + b2;
    if (val < inc)
      {
@@ -113,6 +98,8 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
         b2 = val - b1;
      }
 
+   ss = sw - (b1 + b2);
+   dd = dw - (b1 + b2);
    if (up)
      {
         /* Scaling up */
@@ -122,25 +109,21 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
            p[i] = 0;
 
         /* Center */
-        if (d > b1 + b2)
+        if (dd > 0)
           {
-             int                 ss, dd;
-
-             ss = s - (b1 + b2);
-             dd = d - (b1 + b2);
              val = 0;
              inc = (ss << 16) / dd;
-             for (; i < d - b2; i++)
+             for (; i < dw - b2; i++)
                {
                   p[i] = (val >> 8) - ((val >> 8) & 0xffffff00);
-                  if (((val >> 16) + b1) >= (s - 1))
+                  if (((val >> 16) + b1) >= (sw - 1))
                      p[i] = 0;
                   val += inc;
                }
           }
 
         /* Border 2 */
-        for (; i < d; i++)
+        for (; i < dw; i++)
            p[i] = 0;
      }
    else
@@ -152,16 +135,14 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
            p[i] = (1 << (16 + 14)) + (1 << 14);
 
         /* Center */
-        if (d > b1 + b2)
+        if (dd > 0)
           {
-             int                 ss, dd, ap, Cp;
+             int                 ap, Cp;
 
-             ss = s - (b1 + b2);
-             dd = d - (b1 + b2);
              val = 0;
              inc = (ss << 16) / dd;
              Cp = ((dd << 14) / ss) + 1;
-             for (; i < d - b2; i++)
+             for (; i < dw - b2; i++)
                {
                   ap = ((0x100 - ((val >> 8) & 0xff)) * Cp) >> 8;
                   p[i] = ap | (Cp << 16);
@@ -170,18 +151,18 @@ __imlib_CalcApoints(int s, int d, int b1, int b2, int up)
           }
 
         /* Border 2 */
-        for (; i < d; i++)
+        for (; i < dw; i++)
            p[i] = (1 << (16 + 14)) + (1 << 14);
      }
 
-   if (rv)
+   if (dw_ < 0)
      {
-        for (i = d / 2; --i >= 0;)
+        for (i = dw / 2; --i >= 0;)
           {
              int                 tmp = p[i];
 
-             p[i] = p[d - i - 1];
-             p[d - i - 1] = tmp;
+             p[i] = p[dw - i - 1];
+             p[dw - i - 1] = tmp;
           }
      }
 
@@ -232,13 +213,14 @@ __imlib_CalcScaleInfo(ImlibImage * im, int sw, int sh, int dw, int dh, bool aa)
 
    if (aa)
      {
-        isi->xapoints = __imlib_CalcApoints(im->w, scw, im->border.left,
-                                            im->border.right, isi->xup_yup & 1);
+        isi->xapoints = __imlib_CalcApoints(im->w, scw,
+                                            im->border.left, im->border.right,
+                                            isi->xup_yup & 1);
         if (!isi->xapoints)
            goto bail;
 
-        isi->yapoints = __imlib_CalcApoints(im->h, sch, im->border.top,
-                                            im->border.bottom,
+        isi->yapoints = __imlib_CalcApoints(im->h, sch,
+                                            im->border.top, im->border.bottom,
                                             isi->xup_yup & 2);
         if (!isi->yapoints)
            goto bail;
