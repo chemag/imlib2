@@ -24,7 +24,7 @@ struct _imlib_scale_info {
 #define YAP                       (yapoints[dyy + y])
 
 static int         *
-__imlib_CalcPoints(int sw, int dw_, int b1, int b2)
+__imlib_CalcPoints(int sw, int dw_, int b1, int b2, bool aa)
 {
    int                *p, i;
    int                 val, inc, dw, ss, dd;
@@ -52,12 +52,21 @@ __imlib_CalcPoints(int sw, int dw_, int b1, int b2)
    dd = dw - (b1 + b2);
    if (dd > 0)
      {
-        val = b1 << 16;
-        inc = (ss << 16) / dd;
-        for (; i < dw - b2; i++)
+        if (aa)
           {
-             p[i] = val >> 16;
-             val += inc;
+             val = b1 << 16;
+             inc = (ss << 16) / dd;
+             for (; i < dw - b2; i++)
+               {
+                  p[i] = val >> 16;
+                  val += inc;
+               }
+          }
+        else
+          {
+             for (i = 0; i < dd; i++)
+                p[b1 + i] = b1 + (i * ss) / dd;
+             i = dw - b2;
           }
      }
 
@@ -202,12 +211,12 @@ __imlib_CalcScaleInfo(ImlibImage * im, int sw, int sh, int dw, int dh, bool aa)
    isi->xup_yup = (abs(dw) >= sw) + ((abs(dh) >= sh) << 1);
 
    isi->xpoints = __imlib_CalcPoints(im->w, scw,
-                                     im->border.left, im->border.right);
+                                     im->border.left, im->border.right, aa);
    if (!isi->xpoints)
       goto bail;
 
    isi->ypoints = __imlib_CalcPoints(im->h, sch,
-                                     im->border.top, im->border.bottom);
+                                     im->border.top, im->border.bottom, aa);
    if (!isi->ypoints)
       goto bail;
 
