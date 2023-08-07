@@ -24,10 +24,10 @@ struct _imlib_scale_info {
 #define YAP                       (yapoints[dyy + y])
 
 static int         *
-__imlib_CalcPoints(int sw, int dw_, int b1, int b2, bool aa)
+__imlib_CalcPoints(int sw, int dw_, int b1, int b2, bool aa, int up)
 {
    int                *p, i;
-   int                 val, inc, dw, ss, dd;
+   int                 val, inc, dw, ss, dd, corr;
 
    dw = (dw_ >= 0) ? dw_ : -dw_;
 
@@ -52,10 +52,11 @@ __imlib_CalcPoints(int sw, int dw_, int b1, int b2, bool aa)
    dd = dw - (b1 + b2);
    if (dd > 0)
      {
-        if (aa)
+        if (aa && dd > 1)
           {
+             corr = (up) ? 1 : 0;
              val = b1 << 16;
-             inc = (ss << 16) / dd;
+             inc = ((ss - corr) << 16) / (dd - corr);
              for (; i < dw - b2; i++)
                {
                   p[i] = val >> 16;
@@ -91,7 +92,7 @@ static int         *
 __imlib_CalcApoints(int sw, int dw_, int b1, int b2, int up)
 {
    int                *p, i;
-   int                 val, inc, dw, ss, dd;
+   int                 val, inc, dw, ss, dd, corr;
 
    dw = (dw_ >= 0) ? dw_ : -dw_;
 
@@ -120,13 +121,14 @@ __imlib_CalcApoints(int sw, int dw_, int b1, int b2, int up)
         /* Center */
         if (dd > 0)
           {
+             corr = (dd > 1) ? 1 : 0;
+             ss -= corr;
+             dd -= corr;
              val = 0;
              inc = (ss << 16) / dd;
              for (; i < dw - b2; i++)
                {
                   p[i] = (val >> 8) - ((val >> 8) & 0xffffff00);
-                  if (((val >> 16) + b1) >= (sw - 1))
-                     p[i] = 0;
                   val += inc;
                }
           }
@@ -211,12 +213,14 @@ __imlib_CalcScaleInfo(ImlibImage * im, int sw, int sh, int dw, int dh, bool aa)
    isi->xup_yup = (abs(dw) >= sw) + ((abs(dh) >= sh) << 1);
 
    isi->xpoints = __imlib_CalcPoints(im->w, scw,
-                                     im->border.left, im->border.right, aa);
+                                     im->border.left, im->border.right,
+                                     aa, isi->xup_yup & 1);
    if (!isi->xpoints)
       goto bail;
 
    isi->ypoints = __imlib_CalcPoints(im->h, sch,
-                                     im->border.top, im->border.bottom, aa);
+                                     im->border.top, im->border.bottom,
+                                     aa, isi->xup_yup & 2);
    if (!isi->ypoints)
       goto bail;
 
