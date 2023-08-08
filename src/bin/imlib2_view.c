@@ -31,6 +31,7 @@ static Imlib_Image bg_im = NULL;
 static Imlib_Image bg_im_clean = NULL;
 static Imlib_Image fg_im = NULL;        /* The animated image */
 static Imlib_Image im_curr = NULL;      /* The current image */
+static Imlib_Border border;
 
 static bool     opt_cache = false;
 static bool     opt_progr = true;       /* Render through progress callback */
@@ -69,6 +70,7 @@ static int      animloop = 0;   /* Animation loop count          */
    "  imlib2_view [OPTIONS] {FILE | XID}...\n" \
    "OPTIONS:\n" \
    "  -a         : Disable final anti-aliased rendering\n" \
+   "  -b L,R,T,B : Set border\n" \
    "  -c         : Enable image caching (implies -e)\n" \
    "  -d         : Enable debug\n" \
    "  -e         : Do rendering explicitly (not via progress callback)\n" \
@@ -364,6 +366,8 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
     /* first time it's called */
     if (image_width == 0)
     {
+        imlib_image_set_border(&border);
+
         scale_x = opt_sc_out_x;
         scale_y = opt_sc_out_y;
 
@@ -622,12 +626,17 @@ main(int argc, char **argv)
 
     verbose = 0;
 
-    while ((opt = getopt(argc, argv, "acdeg:l:ps:S:t:v")) != -1)
+    while ((opt = getopt(argc, argv, "ab:cdeg:l:ps:S:t:v")) != -1)
     {
         switch (opt)
         {
         case 'a':
             opt_aa_final = false;
+            break;
+        case 'b':
+            border.left = border.right = border.top = border.bottom = 0;
+            sscanf(optarg, "%d,%d,%d,%d",
+                   &border.left, &border.right, &border.top, &border.bottom);
             break;
         case 'c':
             opt_cache = true;
