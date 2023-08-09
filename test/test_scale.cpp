@@ -110,8 +110,9 @@ test_scale_1(int alpha)
              w = imlib_image_get_width();
              h = imlib_image_get_height();
 
-             pr_info("Alpha=%d: %dx%d -> %dx%d (%d,%d)", alpha,
-                     w, h, w + i, h + j, i, j);
+             pr_info("AA=%d Alpha=%d: %dx%d -> %dx%d (%d,%d)",
+                     imlib_context_get_anti_alias(), alpha,
+		     w, h, w + i, h + j, i, j);
 
              imo = imlib_create_cropped_scaled_image(0, 0, w, h, w + i, h + j);
              ASSERT_TRUE(imo);
@@ -143,12 +144,13 @@ test_scale_1(int alpha)
 }
 
 static void
-test_scale_2(int alpha, int w0, int h0, int w1, int h1, int w2, int h2)
+test_scale_2a(int alpha, int w0, int h0, int w1, int h1, int w2, int h2)
 {
    int                 w, h;
    Imlib_Image         imi, imo;
 
-   pr_info("Alpha=%d: %dx%d -> %d:%dx%d:%d", alpha, w0, h0, w1, w2, h1, h2);
+   pr_info("AA=%d Alpha=%d: %dx%d -> %d:%dx%d:%d",
+           imlib_context_get_anti_alias(), alpha, w0, h0, w1, w2, h1, h2);
 
    imi = imlib_create_image(w0, h0);
    ASSERT_TRUE(imi);
@@ -183,6 +185,15 @@ test_scale_2(int alpha, int w0, int h0, int w1, int h1, int w2, int h2)
 
    imlib_context_set_image(imi);
    imlib_free_image_and_decache();
+}
+
+static void
+test_scale_2(int alpha, int w0, int h0, int w1, int h1, int w2, int h2)
+{
+   imlib_context_set_anti_alias(0);
+   test_scale_2a(alpha, w0, h0, w1, h1, w2, h2);
+   imlib_context_set_anti_alias(1);
+   test_scale_2a(alpha, w0, h0, w1, h1, w2, h2);
 }
 
 TEST(SCALE, scale_1_rgb)
