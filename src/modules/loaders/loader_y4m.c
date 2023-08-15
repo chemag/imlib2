@@ -67,6 +67,7 @@ typedef struct {
       Y4M_PARSE_ASPECT_4_3,
       Y4M_PARSE_ASPECT_4_5,
       Y4M_PARSE_ASPECT_32_27,
+      Y4M_PARSE_ASPECT_OTHER,
    } aspect;
 
    const void         *frame_data;
@@ -199,7 +200,11 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
              else if (y4m__match("32:27", 5, &p, end))
                 res->aspect = Y4M_PARSE_ASPECT_32_27;
              else
-                return Y4M_PARSE_CORRUPTED;
+               {
+                  res->aspect = Y4M_PARSE_ASPECT_OTHER;
+                  for (; p < end && *p != ' ' && *p != '\n'; ++p)
+                     ;
+               }
              break;
           case 'X':            /* comments ignored */
              for (; p < end && *p != ' ' && *p != '\n'; ++p)
@@ -367,9 +372,6 @@ _load(ImlibImage * im, int load_data)
       return LOAD_BADIMAGE;
    // no interlacing support
    if (y4m.interlacing != Y4M_PARSE_IL_PROGRESSIVE)
-      return LOAD_BADIMAGE;
-   // treat unknown and default as 1:1 similar to ffmpeg
-   if (y4m.aspect > Y4M_PARSE_ASPECT_1_1)       /* no support for non 1:1 */
       return LOAD_BADIMAGE;
 
    im->w = y4m.w;
