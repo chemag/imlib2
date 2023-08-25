@@ -3,6 +3,9 @@
 #include "config.h"
 #include <fcntl.h>
 #include <Imlib2.h>
+#ifdef BUILD_HEIF_LOADER
+#include <libheif/heif.h>
+#endif
 #ifdef BUILD_JXL_LOADER
 #include <jxl/version.h>
 #endif
@@ -25,7 +28,17 @@ static const test_rec_t exts[] = {
 // { "bz2",  { 0, 0 } },
    { "ff",   { 1636116234,  169859126 } },
 // { "gif",  { 0, 0 } },
-// { "heif", { 0, 0 } },
+#ifdef BUILD_HEIF_LOADER
+#ifndef __SANITIZE_ADDRESS__
+#if LIBHEIF_HAVE_VERSION(1, 19, 0)
+   { "avif", {  271316575,  632516970 } },
+   { "heic", { 2429908023, 1720725349 } },
+#else
+   { "avif", {  458570512, 4237984766 } },
+   { "heic", { 4046271191,  793249753 } },
+#endif
+#endif
+#endif
 // { "ico",  { 0, 0 } },
 // { "id3",  { 0, 0 } },
 // { "j2k",  { 0, 0 } },

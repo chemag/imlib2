@@ -96,7 +96,7 @@ gif_la_LDFLAGS       = -module -avoid-version
 gif_la_LIBADD        = $(GIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
 gif_la_LIBTOOLFLAGS  = --tag=disable-static
 
-heif_la_SOURCES      = loader_heif.c
+heif_la_SOURCES      = loader_heif.c $(SRCS_SAVE)
 heif_la_CPPFLAGS     = $(AM_CPPFLAGS) $(HEIF_CFLAGS)
 heif_la_LDFLAGS      = -module -avoid-version
 heif_la_LIBADD       = $(HEIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
