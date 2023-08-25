@@ -39,13 +39,13 @@ endif
 %.c: $(top_srcdir)/src/lib/%.c
 	ln -s $< $@
 
- TEST_COMMON = test.cpp test.h
+ TEST_COMMON = test.cpp test.h strutils.c
 
 test_misc_SOURCES = $(TEST_COMMON) test_misc.cpp
 test_misc_LDADD = $(LIBS)
 
 test_string_SOURCES = $(TEST_COMMON) test_string.cpp
-nodist_test_string_SOURCES = strutils.c
+#nodist_test_string_SOURCES = strutils.c
 test_string_LDADD = $(LIBS)
 
 test_file_SOURCES = $(TEST_COMMON) test_file.cpp

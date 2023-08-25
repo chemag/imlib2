@@ -131,6 +131,10 @@ TEST(LOAD2, load_1)
     for (i = 0; i < NT3_IMGS; i++)
     {
         fn = tii[i].name;
+
+        if (file_skip(fn))
+            continue;
+
         if (*fn != '/')
         {
             snprintf(buf, sizeof(buf), "%s/%s", IMG_SRC, fn);

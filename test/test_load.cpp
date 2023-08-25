@@ -116,6 +116,11 @@ test_load(void)
 
     for (i = 0; i < N_PFX; i++)
     {
+#if 0
+        if (file_skip(pfxs[i]))
+            continue;
+#endif
+
         // Load files of all types
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
         pr_info("Load '%s'", fileo);

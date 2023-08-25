@@ -82,3 +82,36 @@ image_get_crc32(Imlib_Image im)
 
     return crc;
 }
+
+/**INDENT-OFF**/
+extern "C" {
+#include "strutils.h"
+}
+/**INDENT-ON**/
+
+bool
+file_skip(const char *file)
+{
+    static char   **skiplist = (char **)(-1);
+    const char     *s;
+
+    if (skiplist == (char **)(-1))
+    {
+        s = getenv("IMLIB2_TEST_FILES_SKIP");
+        skiplist = __imlib_StrSplit(s, ':');
+    }
+
+    if (!skiplist)
+        return false;
+
+    for (int i = 0; skiplist[i]; i++)
+    {
+        if (strstr(file, skiplist[i]))
+        {
+            printf("skip c %s\n", file);
+            return true;
+        }
+    }
+
+    return false;
+}

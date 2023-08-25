@@ -118,6 +118,9 @@ test_save_1(const char *file, int prog, int check = 0)
     {
         ext = exts[i].ext;
 
+        if (file_skip(ext))
+            continue;
+
         imlib_context_set_image(im);
         imlib_image_set_format(ext);
         w = imlib_image_get_width();
@@ -361,6 +364,9 @@ test_save_3(const char *file, const char *dest, int err_new, int err_old)
     for (i = 0; i < N_PFX; i++)
     {
         ext = exts[i].ext;
+
+        if (file_skip(ext))
+            continue;
 
         imlib_context_set_image(im);
         imlib_image_set_format(ext);
