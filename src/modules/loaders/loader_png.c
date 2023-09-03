@@ -348,7 +348,7 @@ _load(ImlibImage * im, int load_data)
 
         len = htonl(chunk->hdr.len);
         D("Scan %3d: %06lx: %6d: %.4s: ", ic++,
-          fptr - (unsigned char *)im->fi->fdata, len, chunk->hdr.name);
+          (long)(fptr - (unsigned char *)im->fi->fdata), len, chunk->hdr.name);
         if (!mm_check(fptr + len))
            break;
 
@@ -440,7 +440,7 @@ _load(ImlibImage * im, int load_data)
 
         len = htonl(chunk->hdr.len);
         D("Chunk %3d: %06lx: %6d: %.4s: ", ic++,
-          fptr - (unsigned char *)im->fi->fdata, len, chunk->hdr.name);
+          (long)(fptr - (unsigned char *)im->fi->fdata), len, chunk->hdr.name);
         if (!mm_check(fptr + len))
            break;
 
