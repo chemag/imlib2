@@ -59,6 +59,7 @@ static tii_t        tii[] = {
 #endif
 #ifdef BUILD_PNG_LOADER
    { "icon-64.png",		1153555547 },
+   { "xeyes.png",		2937827957 },
    { "xeyes-gray.png",		3493264608 },
 #endif
    { "icon-64.ppm",		1153555547 },
