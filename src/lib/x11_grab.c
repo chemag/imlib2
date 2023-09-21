@@ -891,34 +891,8 @@ __imlib_GrabDrawableScaledToRGBA(const ImlibContextX11 * x11, uint32_t * data,
      }
    else
      {
-        XWindowAttributes   ratt;
-        Window              cret;
-
         if ((xatt.map_state != IsViewable) && (xatt.backing_store == NotUseful))
            return 1;
-
-        /* Clip source to screen */
-        XGetWindowAttributes(x11->dpy, xatt.root, &ratt);
-        XTranslateCoordinates(x11->dpy, draw, xatt.root,
-                              0, 0, &xatt.x, &xatt.y, &cret);
-
-#if 0
-        if (xatt.x + x_src < 0)
-          {
-             width += xatt.x + x_src;
-             x_src = -xatt.x;
-          }
-        if (xatt.x + x_src + width > ratt.width)
-           width = ratt.width - (xatt.x + x_src);
-
-        if (xatt.y + y_src < 0)
-          {
-             height += xatt.y + y_src;
-             y_src = -xatt.y;
-          }
-        if (xatt.y + y_src + height > ratt.height)
-           height = ratt.height - (xatt.y + y_src);
-#endif
 
         if (*pdomask && mask == None)
           {
