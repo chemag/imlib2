@@ -3,6 +3,9 @@
 #include "config.h"
 #include <fcntl.h>
 #include <Imlib2.h>
+#ifdef BUILD_JXL_LOADER
+#include <jxl/version.h>
+#endif
 
 #include "test.h"
 
@@ -26,12 +29,24 @@ static const test_rec_t exts[] = {
 // { "ico",  { 0, 0 } },
 // { "id3",  { 0, 0 } },
 // { "j2k",  { 0, 0 } },
+#ifdef BUILD_JPEG_LOADER
    { "jpeg", { 2458451111, 3483232328 } },
+#endif
+#ifdef BUILD_JXL_LOADER
+#if JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 8, 0)
+#ifdef __i386__
+   { "jxl",  { 4232124886, 2621968888 } },
+#else
+   { "jxl",  { 4232124886, 1010978750 } },
+#endif
+#else
 #ifdef __i386__
    { "jxl",  { 2681286418, 3923017710 } },
 #else
-   { "jxl",  { 2681286418,  774897965 } },
+   { "jxl",  { 2681286418, 2516911844 } },
 #endif
+#endif
+#endif // BUILD_JXL_LOADER
 // { "lbm",  { 0, 0 } },
 // { "lzma", { 0, 0 } },
    { "png",  { 1153555547, 2937827957 } },
@@ -40,7 +55,9 @@ static const test_rec_t exts[] = {
 // { "svg",  { 0, 0 } },
    { "tga",  { 1153555547, 2937827957 } },
    { "tiff", { 1153555547, 2937827957 } },
+#ifdef BUILD_WEBP_LOADER
    { "webp", { 1698406918, 1844000264 } },
+#endif
    { "xbm",  { 4292907803,  914370483 } },
 // { "xpm",  { 0, 0 } },
 // { "zlib", { 0, 0 } },
