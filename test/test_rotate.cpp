@@ -5,17 +5,17 @@
 
 #include "test.h"
 
-#define FILE_REF1	"icon-64"       // RGB
-#define FILE_REF2	"xeyes" // ARGB (shaped)
+#define FILE_REF1   "icon-64"   // RGB
+#define FILE_REF2   "xeyes"     // ARGB (shaped)
 
 typedef struct {
-   double              ang;
-   unsigned int        crc[4];
+    double          ang;
+    unsigned int    crc[4];
 } tv_t;
 
 typedef struct {
-   const char         *file;
-   const tv_t         *tv;      // Test values
+    const char     *file;
+    const tv_t     *tv;         // Test values
 } td_t;
 
 /**INDENT-OFF**/
@@ -44,34 +44,34 @@ static const td_t   td[] = {
 static void
 test_rotate(int no, int aa)
 {
-   const td_t         *ptd;
-   char                filei[256];
-   char                fileo[256];
+    const td_t     *ptd;
+    char            filei[256];
+    char            fileo[256];
 
 // int                 wi, hi;
-   int                 wo, ho;
-   unsigned int        i, ic, crc;
-   Imlib_Image         imi, imo;
-   int                 err;
+    int             wo, ho;
+    unsigned int    i, ic, crc;
+    Imlib_Image     imi, imo;
+    int             err;
 
-   ptd = &td[no];
+    ptd = &td[no];
 
-   ic = aa;                     // CRC index
+    ic = aa;                    // CRC index
 #ifdef DO_MMX_ASM
-   // Hmm.. MMX functions appear to produce a slightly different result
-   if (!getenv("IMLIB2_ASM_OFF"))
-      ic += 2;
+    // Hmm.. MMX functions appear to produce a slightly different result
+    if (!getenv("IMLIB2_ASM_OFF"))
+        ic += 2;
 #endif
 
-   snprintf(filei, sizeof(filei), "%s/%s.png", IMG_SRC, ptd->file);
-   D("Load '%s'\n", filei);
-   imi = imlib_load_image(filei);
-   ASSERT_TRUE(imi);
+    snprintf(filei, sizeof(filei), "%s/%s.png", IMG_SRC, ptd->file);
+    D("Load '%s'\n", filei);
+    imi = imlib_load_image(filei);
+    ASSERT_TRUE(imi);
 
-   imlib_context_set_anti_alias(aa);
+    imlib_context_set_anti_alias(aa);
 
-   for (i = 0; i < N_VAL; i++)
-     {
+    for (i = 0; i < N_VAL; i++)
+    {
         imlib_context_set_image(imi);
         //wi = imlib_image_get_width();
         //hi = imlib_image_get_height();
@@ -92,35 +92,35 @@ test_rotate(int no, int aa)
         imlib_save_image_with_errno_return(fileo, &err);
         EXPECT_EQ(err, 0);
         if (err)
-           D("Error %d saving '%s'\n", err, fileo);
+            D("Error %d saving '%s'\n", err, fileo);
 
         crc = image_get_crc32(imo);
         EXPECT_EQ(crc, ptd->tv[i].crc[ic]);
 
         imlib_context_set_image(imo);
         imlib_free_image_and_decache();
-     }
+    }
 
-   imlib_context_set_image(imi);
-   imlib_free_image_and_decache();
+    imlib_context_set_image(imi);
+    imlib_free_image_and_decache();
 }
 
 TEST(ROTAT, rotate_1_aa)
 {
-   test_rotate(0, 1);
+    test_rotate(0, 1);
 }
 
 TEST(ROTAT, rotate_1_noaa)
 {
-   test_rotate(0, 0);
+    test_rotate(0, 0);
 }
 
 TEST(ROTAT, rotate_2_aa)
 {
-   test_rotate(1, 1);
+    test_rotate(1, 1);
 }
 
 TEST(ROTAT, rotate_2_noaa)
 {
-   test_rotate(1, 0);
+    test_rotate(1, 0);
 }

@@ -1,1 +1,23 @@
--i3 -nut -brs -bl -bad -nbap -sob -ncdb -di20 -nbc -lp -nce -npcs -sc -ncs -l80
+--k-and-r-style
+
+--procnames-start-lines
+--brace-indent0
+--break-after-boolean-operator
+
+--no-tabs
+--indent-level4
+--braces-after-if-line
+--blank-lines-after-declarations
+--no-blank-lines-after-procedures
+--swallow-optional-blank-lines
+--no-comment-delimiters-on-blank-lines
+--declaration-indentation16
+--no-blank-lines-after-commas
+--continue-at-parentheses
+--dont-cuddle-else
+--no-space-after-function-call-names
+--start-left-side-of-comments
+--no-space-after-casts
+--braces-on-struct-decl-line
+--line-length80
+--no-blank-lines-after-declarations

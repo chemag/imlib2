@@ -12,66 +12,66 @@
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
 
-#define FILE_REF	"icon-64.png"
+#define FILE_REF    "icon-64.png"
 
-static const char  *const pfxs[] = {
-   "argb",
-   "bmp",
-   "ff",
+static const char *const pfxs[] = {
+    "argb",
+    "bmp",
+    "ff",
 #ifdef BUILD_GIF_LOADER
-   "gif",
+    "gif",
 #endif
 #ifdef BUILD_HEIF_LOADER
-   "heif",
+    "heif",
 #endif
-   "ico",
+    "ico",
 #ifdef BUILD_JPEG_LOADER
-   "jpg",
+    "jpg",
 #endif
 #ifdef BUILD_J2K_LOADER
-   "jp2",
-   "j2k",
+    "jp2",
+    "j2k",
 #endif
 #ifdef BUILD_JXL_LOADER
-   "jxl",
+    "jxl",
 #endif
-   "ilbm",                      // lbm
+    "ilbm",                     // lbm
 #ifdef BUILD_PNG_LOADER
-   "png",
+    "png",
 #endif
-   "ppm",                       // pnm
-   "pgm",                       // pnm
-   "pbm",                       // pnm
-   "pam",                       // pnm
-   "qoi",
-   "tga",
+    "ppm",                      // pnm
+    "pgm",                      // pnm
+    "pbm",                      // pnm
+    "pam",                      // pnm
+    "qoi",
+    "tga",
 #ifdef BUILD_SVG_LOADER
-   "svg",
+    "svg",
 #endif
 #ifdef BUILD_TIFF_LOADER
-   "tiff",
+    "tiff",
 #endif
 #ifdef BUILD_WEBP_LOADER
-   "webp",
+    "webp",
 #endif
-   "xbm",
-   "xpm",
+    "xbm",
+    "xpm",
 #ifdef BUILD_Y4M_LOADER
-   "y4m",
+    "y4m",
 #endif
 
 #ifdef BUILD_BZ2_LOADER
-   "ff.bz2",                    // bz2
+    "ff.bz2",                   // bz2
 #endif
 #ifdef BUILD_ZLIB_LOADER
-   "ff.gz",                     // zlib
+    "ff.gz",                    // zlib
 #endif
 #ifdef BUILD_LZMA_LOADER
-   "ff.xz",                     // lzma
+    "ff.xz",                    // lzma
 #endif
 
 #ifdef BUILD_ID3_LOADER
-   "jpg.mp3",                   // id3
+    "jpg.mp3",                  // id3
 #endif
 };
 #define N_PFX (sizeof(pfxs) / sizeof(char*))
@@ -80,42 +80,42 @@ static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
 {
-   D2("%s: %3d%% %4d,%4d %4dx%4d\n",
-      __func__, percent, update_x, update_y, update_w, update_h);
+    D2("%s: %3d%% %4d,%4d %4dx%4d\n",
+       __func__, percent, update_x, update_y, update_w, update_h);
 
-   return 1;                    /* Continue */
+    return 1;                   /* Continue */
 }
 
 static void
 image_free(Imlib_Image im)
 {
-   imlib_context_set_image(im);
-   imlib_free_image_and_decache();
+    imlib_context_set_image(im);
+    imlib_free_image_and_decache();
 }
 
 static void
 test_load(void)
 {
-   char                filei[256];
-   char                fileo[256];
-   unsigned int        i, j;
-   Imlib_Image         im;
-   Imlib_Load_Error    lerr;
-   FILE               *fp;
-   int                 fd;
-   int                 err;
-   uint32_t           *data;
+    char            filei[256];
+    char            fileo[256];
+    unsigned int    i, j;
+    Imlib_Image     im;
+    Imlib_Load_Error lerr;
+    FILE           *fp;
+    int             fd;
+    int             err;
+    uint32_t       *data;
 
-   snprintf(filei, sizeof(filei), "%s/%s", IMG_SRC, FILE_REF);
-   D("Load '%s'\n", filei);
-   im = imlib_load_image(filei);
+    snprintf(filei, sizeof(filei), "%s/%s", IMG_SRC, FILE_REF);
+    D("Load '%s'\n", filei);
+    im = imlib_load_image(filei);
 
-   ASSERT_TRUE(im);
+    ASSERT_TRUE(im);
 
-   image_free(im);
+    image_free(im);
 
-   for (i = 0; i < N_PFX; i++)
-     {
+    for (i = 0; i < N_PFX; i++)
+    {
         // Load files of all types
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
         pr_info("Load '%s'", fileo);
@@ -124,12 +124,12 @@ test_load(void)
         im = imlib_load_image(fileo);
         ASSERT_TRUE(im);
         if (im)
-          {
-             imlib_context_set_image(im);
-             data = imlib_image_get_data();
-             EXPECT_TRUE(data);
-             image_free(im);
-          }
+        {
+            imlib_context_set_image(im);
+            data = imlib_image_get_data();
+            EXPECT_TRUE(data);
+            image_free(im);
+        }
         imlib_flush_loaders();
 
         D("Load '%s' (immediate)\n", fileo);
@@ -137,32 +137,32 @@ test_load(void)
         EXPECT_TRUE(im);
         EXPECT_EQ(err, 0);
         if (!im || err)
-           D("Error %d im=%p loading '%s'\n", err, im, fileo);
+            D("Error %d im=%p loading '%s'\n", err, im, fileo);
         if (im)
-           image_free(im);
+            image_free(im);
         imlib_flush_loaders();
 
         if (strchr(pfxs[i], '.') == 0)
-          {
-             snprintf(filei, sizeof(filei),
-                      "../%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
-             for (j = 0; j < N_PFX; j++)
-               {
-                  // Load certain types pretending they are something else
-                  snprintf(fileo, sizeof(fileo), "%s/%s.%s.%s", IMG_GEN,
-                           "icon-64", pfxs[i], pfxs[j]);
-                  unlink(fileo);
-                  symlink(filei, fileo);
-                  D("Load incorrect suffix '%s'\n", fileo);
-                  im = imlib_load_image_with_errno_return(fileo, &err);
-                  EXPECT_TRUE(im);
-                  EXPECT_EQ(err, 0);
-                  if (!im || err)
-                     D("Error %d im=%p loading '%s'\n", err, im, fileo);
-                  if (im)
-                     image_free(im);
-               }
-          }
+        {
+            snprintf(filei, sizeof(filei),
+                     "../%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
+            for (j = 0; j < N_PFX; j++)
+            {
+                // Load certain types pretending they are something else
+                snprintf(fileo, sizeof(fileo), "%s/%s.%s.%s", IMG_GEN,
+                         "icon-64", pfxs[i], pfxs[j]);
+                unlink(fileo);
+                symlink(filei, fileo);
+                D("Load incorrect suffix '%s'\n", fileo);
+                im = imlib_load_image_with_errno_return(fileo, &err);
+                EXPECT_TRUE(im);
+                EXPECT_EQ(err, 0);
+                if (!im || err)
+                    D("Error %d im=%p loading '%s'\n", err, im, fileo);
+                if (im)
+                    image_free(im);
+            }
+        }
 
         // Empty files of all types
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_GEN, "empty", pfxs[i]);
@@ -219,18 +219,18 @@ test_load(void)
         EXPECT_TRUE(im);
         EXPECT_EQ(err, 0);
         if (im)
-           image_free(im);
+            image_free(im);
         err = close(fd);
         EXPECT_NE(err, 0);
 
         if (!strcmp(pfxs[i], "jpg.mp3"))        // id3 cannot do mem
-           continue;
+            continue;
 
         // Load via mem
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
         fd = open(fileo, O_RDONLY);
-        void               *fdata;
-        struct stat         st;
+        void           *fdata;
+        struct stat     st;
 
         err = stat(fileo, &st);
         ASSERT_EQ(err, 0);
@@ -238,30 +238,30 @@ test_load(void)
         ASSERT_TRUE(fdata != NULL);
         ASSERT_TRUE(fdata != MAP_FAILED);
         for (int n = 0; n < 3; n++)
-          {
-             D("Load mem[%d] %d '%s'\n", n, fd, fileo);
-             snprintf(fileo, sizeof(fileo), ".%s", pfxs[i]);
-             im = imlib_load_image_mem(pfxs[i], fdata, st.st_size);
-             err = imlib_get_error();
-             EXPECT_TRUE(im);
-             EXPECT_EQ(err, 0);
-             if (im)
+        {
+            D("Load mem[%d] %d '%s'\n", n, fd, fileo);
+            snprintf(fileo, sizeof(fileo), ".%s", pfxs[i]);
+            im = imlib_load_image_mem(pfxs[i], fdata, st.st_size);
+            err = imlib_get_error();
+            EXPECT_TRUE(im);
+            EXPECT_EQ(err, 0);
+            if (im)
                 image_free(im);
-          }
+        }
         munmap(fdata, st.st_size);
         err = close(fd);
         EXPECT_EQ(err, 0);
-     }
+    }
 }
 
 TEST(LOAD, load_1)
 {
-   test_load();
+    test_load();
 }
 
 TEST(LOAD, load_2)
 {
-   imlib_context_set_progress_function(progress);
-   imlib_context_set_progress_granularity(10);
-   test_load();
+    imlib_context_set_progress_function(progress);
+    imlib_context_set_progress_granularity(10);
+    test_load();
 }

@@ -3,36 +3,36 @@
 #include "config.h"
 #include "test.h"
 
-int                 debug = 0;
-static bool         ttyout = false;
+int             debug = 0;
+static bool     ttyout = false;
 
 int
 main(int argc, char **argv)
 {
-   const char         *s;
+    const char     *s;
 
-   ttyout = isatty(STDOUT_FILENO);
+    ttyout = isatty(STDOUT_FILENO);
 
-   ::testing::InitGoogleTest(&argc, argv);
+    ::testing::InitGoogleTest(&argc, argv);
 
-   for (argc--, argv++; argc > 0; argc--, argv++)
-     {
+    for (argc--, argv++; argc > 0; argc--, argv++)
+    {
         s = argv[0];
         if (*s++ != '-')
-           break;
+            break;
       again:
         switch (*s++)
-          {
-          case 'd':
-             debug++;
-             goto again;
-          }
-     }
+        {
+        case 'd':
+            debug++;
+            goto again;
+        }
+    }
 
-   // Required by some tests
-   mkdir(IMG_GEN, 0755);
+    // Required by some tests
+    mkdir(IMG_GEN, 0755);
 
-   return RUN_ALL_TESTS();
+    return RUN_ALL_TESTS();
 }
 
 #define COL_RST  "\x1B[0m"
@@ -48,21 +48,21 @@ main(int argc, char **argv)
 void
 pr_info(const char *fmt, ...)
 {
-   char                fmtx[1024];
-   va_list             args;
+    char            fmtx[1024];
+    va_list         args;
 
-   va_start(args, fmt);
+    va_start(args, fmt);
 
-   if (ttyout)
-      snprintf(fmtx, sizeof(fmtx), COL_YEL "[          ] -  %s%s\n",
-               fmt, COL_RST);
-   else
-      snprintf(fmtx, sizeof(fmtx), "[          ] -  %s\n", fmt);
-   fmt = fmtx;
+    if (ttyout)
+        snprintf(fmtx, sizeof(fmtx), COL_YEL "[          ] -  %s%s\n",
+                 fmt, COL_RST);
+    else
+        snprintf(fmtx, sizeof(fmtx), "[          ] -  %s\n", fmt);
+    fmt = fmtx;
 
-   vprintf(fmt, args);
+    vprintf(fmt, args);
 
-   va_end(args);
+    va_end(args);
 }
 
 #include <Imlib2.h>
@@ -71,14 +71,14 @@ pr_info(const char *fmt, ...)
 unsigned int
 image_get_crc32(Imlib_Image im)
 {
-   const unsigned char *data;
-   unsigned int        crc, w, h;
+    const unsigned char *data;
+    unsigned int    crc, w, h;
 
-   imlib_context_set_image(im);
-   w = imlib_image_get_width();
-   h = imlib_image_get_height();
-   data = (const unsigned char *)imlib_image_get_data_for_reading_only();
-   crc = crc32(0, data, w * h * sizeof(uint32_t));
+    imlib_context_set_image(im);
+    w = imlib_image_get_width();
+    h = imlib_image_get_height();
+    data = (const unsigned char *)imlib_image_get_data_for_reading_only();
+    crc = crc32(0, data, w * h * sizeof(uint32_t));
 
-   return crc;
+    return crc;
 }

@@ -7,16 +7,16 @@
 
 TEST(MISC, version)
 {
-   EXPECT_EQ(imlib_version(), IMLIB2_VERSION);
+    EXPECT_EQ(imlib_version(), IMLIB2_VERSION);
 }
 
 TEST(MISC, strerror)
 {
-   if (debug <= 0)
-      return;
+    if (debug <= 0)
+        return;
 
-   for (int i = -10; i < 140; i++)
-     {
+    for (int i = -10; i < 140; i++)
+    {
         printf("%3d: '%s'\n", i, imlib_strerror(i));
-     }
+    }
 }
