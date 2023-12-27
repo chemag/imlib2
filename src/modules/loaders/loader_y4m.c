@@ -36,11 +36,14 @@ enum Y4mParseStatus {
 
 // values are (roughly) equal to the delay in microseconds
 #define Y4M_PARSE_FPS_INVALID       0
+#define Y4M_PARSE_FPS_OTHER        -1
 #define Y4M_PARSE_FPS_23_976    41708
 #define Y4M_PARSE_FPS_24        41667
 #define Y4M_PARSE_FPS_25        40000
 #define Y4M_PARSE_FPS_29_97     33367
 #define Y4M_PARSE_FPS_30        33333
+#define Y4M_PARSE_FPS_60        16667
+#define Y4M_PARSE_FPS_1       1000000
 
 typedef struct {
    ptrdiff_t           w, h;
@@ -155,8 +158,22 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
                 res->fps = Y4M_PARSE_FPS_29_97;
              else if (y4m__match("24000:1001", 10, &p, end))
                 res->fps = Y4M_PARSE_FPS_23_976;
-             else
-                return Y4M_PARSE_CORRUPTED;
+             else if (y4m__match("60:1", 4, &p, end))
+                res->fps = Y4M_PARSE_FPS_60;
+             else {
+                int rate_num;
+                int rate_den;
+                int nlen;
+                if (sscanf((char *)p, "%i:%i%n", &rate_num, &rate_den, &nlen) < 2) {
+                    return Y4M_PARSE_CORRUPTED;
+                }
+                p += nlen;
+                if (rate_num == rate_den) {
+                    res->fps = Y4M_PARSE_FPS_1;
+                } else {
+                    res->fps = Y4M_PARSE_FPS_OTHER;
+                }
+             }
              break;
           case 'I':
              if (y4m__match("p", 1, &p, end))
