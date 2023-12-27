@@ -196,11 +196,11 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
                 res->colour_space = Y4M_PARSE_CS_420MPEG2;
              else if (y4m__match("420paldv", 8, &p, end))
                 res->colour_space = Y4M_PARSE_CS_420PALDV;
-             else if (y4m__match("420", 3, &p, end))
+             else if (y4m__match("420 ", 4, &p, end))
                 res->colour_space = Y4M_PARSE_CS_420;
-             else if (y4m__match("422", 3, &p, end))
+             else if (y4m__match("422 ", 4, &p, end))
                 res->colour_space = Y4M_PARSE_CS_422;
-             else if (y4m__match("444", 3, &p, end))
+             else if (y4m__match("444 ", 4, &p, end))
                 res->colour_space = Y4M_PARSE_CS_444;
              else
                 return Y4M_PARSE_CORRUPTED;
