@@ -171,6 +171,9 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
                 if (rate_num == rate_den) {
                     res->fps = Y4M_PARSE_FPS_1;
                 } else {
+                    char str[1024];
+                    sscanf((char *)(p-1), "%s", (char *)&str);
+                    D("%s: unknown frame rate: '%s'\n", __func__, str);
                     res->fps = Y4M_PARSE_FPS_OTHER;
                 }
              }
@@ -184,8 +187,12 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
                 res->interlacing = Y4M_PARSE_IL_BOTTOM;
              else if (y4m__match("m", 1, &p, end))
                 res->interlacing = Y4M_PARSE_IL_MIXED;
-             else
+             else {
+               char str[1024];
+               sscanf((char *)(p-1), "%s", (char *)&str);
+               D("%s: unknown interlace type: '%s'\n", __func__, str);
                 return Y4M_PARSE_CORRUPTED;
+             }
              break;
           case 'C':
              if (y4m__match("mono", 4, &p, end))
@@ -202,8 +209,12 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
                 res->colour_space = Y4M_PARSE_CS_422;
              else if (y4m__match("444 ", 4, &p, end))
                 res->colour_space = Y4M_PARSE_CS_444;
-             else
+             else {
+                char str[1024];
+                sscanf((char *)(p-1), "%s", (char *)&str);
+                D("%s: unknown color type: '%s'\n", __func__, str);
                 return Y4M_PARSE_CORRUPTED;
+             }
              break;
           case 'A':
              if (y4m__match("0:0", 3, &p, end))
