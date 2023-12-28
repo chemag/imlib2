@@ -338,7 +338,7 @@ _load(ImlibImage * im, int load_data)
    fptr = (unsigned char *)im->fi->fdata;
    fptr += _PNG_SIG_SIZE;
    seen_actl = false;
-#ifdef IMLIB2_DEBUG
+#if IMLIB2_DEBUG
    int                 ic = 0;
 #endif
 
@@ -358,7 +358,7 @@ _load(ImlibImage * im, int load_data)
              D("\n");
              if (!seen_actl)
                 goto scan_done; /* No acTL before IDAT - Regular PNG */
-#ifdef IMLIB2_DEBUG
+#if IMLIB2_DEBUG
              break;             /* Show all frames */
 #else
              if (ctx.pch_fctl)
@@ -397,7 +397,7 @@ _load(ImlibImage * im, int load_data)
 
           case PNG_TYPE_fdAT:
              D("\n");
-#ifdef IMLIB2_DEBUG
+#if IMLIB2_DEBUG
              break;             /* Show all frames */
 #else
              if (ctx.pch_fctl)
@@ -430,7 +430,7 @@ _load(ImlibImage * im, int load_data)
    png_process_data(png_ptr, info_ptr, fptr, _PNG_SIG_SIZE);
 
    fptr += _PNG_SIG_SIZE;
-#ifdef IMLIB2_DEBUG
+#if IMLIB2_DEBUG
    ic = 0;
 #endif
 
