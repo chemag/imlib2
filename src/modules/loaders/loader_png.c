@@ -745,11 +745,12 @@ _save(ImlibImage * im)
           }
      }
 
+   png_write_end(png_ptr, info_ptr);
+
    rc = LOAD_SUCCESS;
 
  quit:
    free(misc.data);
-   png_write_end(png_ptr, info_ptr);
    png_destroy_write_struct(&png_ptr, &info_ptr);
 
    return rc;
