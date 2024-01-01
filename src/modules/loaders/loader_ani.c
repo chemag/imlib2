@@ -125,12 +125,8 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
         type = SWAP_LE_32(chunk->hdr.type);
         size = SWAP_LE_32(chunk->hdr.size);
 
-        D("%5lu: %*s Chunk: %.4s size %u: ",
-          OFFS(fptr), ctx->nest, "", fptr, size);
-
         if (ctx->nest == 1 && fptr == fdata)
           {
-             Dx("\n");
              /* First chunk of file */
              if (type != RIFF_TYPE_RIFF ||
                  (SWAP_LE_32(chunk->list.name)) != RIFF_NAME_ACON)
@@ -138,6 +134,9 @@ _riff_parse(ImlibImage * im, riff_ctx_t * ctx, const char *fdata,
              size = 4;
              continue;
           }
+
+        D("%5lu: %*s Chunk: %.4s size %u: ",
+          OFFS(fptr), ctx->nest, "", fptr, size);
 
         if (avail < 8 + size)
           {
