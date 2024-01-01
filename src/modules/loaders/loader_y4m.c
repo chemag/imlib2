@@ -112,12 +112,17 @@ y4m__match(const char *match, ptrdiff_t mlen,
 static enum Y4mParseStatus
 y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
 {
-   const uint8_t      *p = *start, *pp;
+   const uint8_t      *p = *start;
 
    for (;;)
      {
+#if IMLIB2_DEBUG
+        const char      *pp = (const char *)p;
+#endif
+
         if (end - p <= 0)
            return Y4M_PARSE_CORRUPTED;
+
         switch (*p++)
           {
           case ' ':
@@ -137,14 +142,13 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
                 return Y4M_PARSE_CORRUPTED;
              break;
           case 'F':
-             pp = p;
              if (!y4m__int(&res->fps_num, &p, end) ||
                  !y4m__match(":", 1, &p, end) ||
                  !y4m__int(&res->fps_den, &p, end))
              {
 #if IMLIB2_DEBUG
                char str[1024];
-               sscanf((const char *)(pp-1), "%s", str);
+               sscanf(pp, "%s", str);
                D("%s: unknown frame rate: '%s'\n", __func__, str);
 #endif
                 return Y4M_PARSE_CORRUPTED;
@@ -162,7 +166,7 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
              else {
 #if IMLIB2_DEBUG
                char str[1024];
-               sscanf((const char *)(p-1), "%s", str);
+               sscanf(pp, "%s", str);
                D("%s: unknown interlace type: '%s'\n", __func__, str);
 #endif
                 return Y4M_PARSE_CORRUPTED;
@@ -186,7 +190,7 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
              else {
 #if IMLIB2_DEBUG
                 char str[1024];
-                sscanf((const char *)(p-1), "%s", str);
+                sscanf(pp, "%s", str);
                 D("%s: unknown color type: '%s'\n", __func__, str);
 #endif
                 return Y4M_PARSE_CORRUPTED;
