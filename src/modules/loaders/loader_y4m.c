@@ -34,20 +34,9 @@ enum Y4mParseStatus {
    Y4M_PARSE_UNSUPPORTED,
 };
 
-// values are (roughly) equal to the delay in microseconds
-#define Y4M_PARSE_FPS_INVALID       0
-#define Y4M_PARSE_FPS_OTHER        -1
-#define Y4M_PARSE_FPS_23_976    41708
-#define Y4M_PARSE_FPS_24        41667
-#define Y4M_PARSE_FPS_25        40000
-#define Y4M_PARSE_FPS_29_97     33367
-#define Y4M_PARSE_FPS_30        33333
-#define Y4M_PARSE_FPS_60        16667
-#define Y4M_PARSE_FPS_1       1000000
-
 typedef struct {
    ptrdiff_t           w, h;
-   int32_t             fps;
+   ptrdiff_t           fps_num, fps_den;
    enum {
       Y4M_PARSE_CS_420,         /* default picked from ffmpeg */
       Y4M_PARSE_CS_420JPEG,
@@ -123,7 +112,7 @@ y4m__match(const char *match, ptrdiff_t mlen,
 static enum Y4mParseStatus
 y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
 {
-   const uint8_t      *p = *start;
+   const uint8_t      *p = *start, *pp;
 
    for (;;)
      {
@@ -135,10 +124,10 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
              break;
           case '\n':
              *start = p;
-             if (res->w < 0 || res->h < 0 || res->fps == Y4M_PARSE_FPS_INVALID)
+             if (res->w <= 0 || res->h <= 0 ||
+                 res->fps_num <= 0 || res->fps_den <= 0)
                 return Y4M_PARSE_CORRUPTED;
              return Y4M_PARSE_OK;
-             break;
           case 'W':
              if (!y4m__int(&res->w, &p, end))
                 return Y4M_PARSE_CORRUPTED;
@@ -148,36 +137,17 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
                 return Y4M_PARSE_CORRUPTED;
              break;
           case 'F':
-             if (y4m__match("30:1", 4, &p, end))
-                res->fps = Y4M_PARSE_FPS_30;
-             else if (y4m__match("24:1", 4, &p, end))
-                res->fps = Y4M_PARSE_FPS_24;
-             else if (y4m__match("25:1", 4, &p, end))
-                res->fps = Y4M_PARSE_FPS_25;
-             else if (y4m__match("30000:1001", 10, &p, end))
-                res->fps = Y4M_PARSE_FPS_29_97;
-             else if (y4m__match("24000:1001", 10, &p, end))
-                res->fps = Y4M_PARSE_FPS_23_976;
-             else if (y4m__match("60:1", 4, &p, end))
-                res->fps = Y4M_PARSE_FPS_60;
-             else {
-                int rate_num;
-                int rate_den;
-                int nlen;
-                if (sscanf((const char *)p, "%i:%i%n", &rate_num, &rate_den, &nlen) < 2) {
-                    return Y4M_PARSE_CORRUPTED;
-                }
-                p += nlen;
-                if (rate_num == rate_den) {
-                    res->fps = Y4M_PARSE_FPS_1;
-                } else {
+             pp = p;
+             if (!y4m__int(&res->fps_num, &p, end) ||
+                 !y4m__match(":", 1, &p, end) ||
+                 !y4m__int(&res->fps_den, &p, end))
+             {
 #if IMLIB2_DEBUG
-                    char str[1024];
-                    sscanf((const char *)(p-1), "%s", str);
-                    D("%s: unknown frame rate: '%s'\n", __func__, str);
+               char str[1024];
+               sscanf((const char *)(pp-1), "%s", str);
+               D("%s: unknown frame rate: '%s'\n", __func__, str);
 #endif
-                    res->fps = Y4M_PARSE_FPS_OTHER;
-                }
+                return Y4M_PARSE_CORRUPTED;
              }
              break;
           case 'I':
@@ -439,7 +409,7 @@ _load(ImlibImage * im, int load_data)
      {
         pf->canvas_w = im->w;
         pf->canvas_h = im->h;
-        pf->frame_delay = y4m.fps / 1000;
+        pf->frame_delay = (1000 * y4m.fps_den) / y4m.fps_num;
      }
 
    if (!load_data)
