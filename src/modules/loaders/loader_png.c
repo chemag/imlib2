@@ -115,9 +115,8 @@ comment_free(ImlibImage * im, void *data)
 static void
 user_error_fn(png_struct * png_ptr, const char *txt)
 {
-#if 0
    D("%s: %s\n", __func__, txt);
-#endif
+   longjmp(png_jmpbuf(png_ptr), 1);
 }
 
 static void
@@ -621,7 +620,8 @@ _save(ImlibImage * im)
    info_ptr = NULL;
    misc.data = NULL;
 
-   png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+   png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
+                                     user_error_fn, user_warning_fn);
    if (!png_ptr)
       return LOAD_FAIL;
 
