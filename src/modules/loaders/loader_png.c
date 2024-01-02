@@ -595,10 +595,6 @@ _load(ImlibImage *im, int load_data)
     return rc;
 }
 
-typedef struct {
-    png_bytep       data;
-} misc_data_t;
-
 static int
 _save(ImlibImage *im)
 {
@@ -606,24 +602,30 @@ _save(ImlibImage *im)
     FILE           *f = im->fi->fp;
     png_structp     png_ptr;
     png_infop       info_ptr;
-    misc_data_t     misc;
     const uint32_t *imdata;
     int             x, y, j, interlace;
-    png_bytep       row_ptr;
+    png_bytep       row_buf, row_ptr;
     png_color_8     sig_bit;
     ImlibImageTag  *tag;
     int             quality = 75, compression = 3;
     int             pass, n_passes = 1;
-    int             has_alpha;
+
+    row_ptr = NULL;
+    if (!im->has_alpha)
+    {
+        row_ptr = malloc(im->w * 3 * sizeof(png_byte));
+        if (!row_ptr)
+            return LOAD_FAIL;
+    }
+    row_buf = row_ptr;
 
     rc = LOAD_FAIL;
     info_ptr = NULL;
-    misc.data = NULL;
 
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
                                       user_error_fn, user_warning_fn);
     if (!png_ptr)
-        return LOAD_FAIL;
+        goto quit;
 
     info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr)
@@ -642,8 +644,7 @@ _save(ImlibImage *im)
     }
 
     png_init_io(png_ptr, f);
-    has_alpha = im->has_alpha;
-    if (has_alpha)
+    if (im->has_alpha)
     {
         png_set_IHDR(png_ptr, info_ptr, im->w, im->h, 8,
                      PNG_COLOR_TYPE_RGB_ALPHA, interlace,
@@ -659,7 +660,6 @@ _save(ImlibImage *im)
         png_set_IHDR(png_ptr, info_ptr, im->w, im->h, 8, PNG_COLOR_TYPE_RGB,
                      interlace, PNG_COMPRESSION_TYPE_BASE,
                      PNG_FILTER_TYPE_BASE);
-        misc.data = malloc(im->w * 3 * sizeof(png_byte));
     }
     sig_bit.red = 8;
     sig_bit.green = 8;
@@ -722,7 +722,7 @@ _save(ImlibImage *im)
 
         for (y = 0; y < im->h; y++, imdata += im->w)
         {
-            if (has_alpha)
+            if (im->has_alpha)
             {
                 row_ptr = (png_bytep) imdata;
             }
@@ -732,11 +732,11 @@ _save(ImlibImage *im)
                 {
                     uint32_t        pixel = imdata[x];
 
-                    misc.data[j++] = PIXEL_R(pixel);
-                    misc.data[j++] = PIXEL_G(pixel);
-                    misc.data[j++] = PIXEL_B(pixel);
+                    row_buf[j++] = PIXEL_R(pixel);
+                    row_buf[j++] = PIXEL_G(pixel);
+                    row_buf[j++] = PIXEL_B(pixel);
                 }
-                row_ptr = misc.data;
+                row_ptr = row_buf;
             }
             png_write_rows(png_ptr, &row_ptr, 1);
 
@@ -750,8 +750,9 @@ _save(ImlibImage *im)
     rc = LOAD_SUCCESS;
 
   quit:
-    free(misc.data);
-    png_destroy_write_struct(&png_ptr, &info_ptr);
+    if (png_ptr)
+        png_destroy_write_struct(&png_ptr, &info_ptr);
+    free(row_buf);
 
     return rc;
 }
