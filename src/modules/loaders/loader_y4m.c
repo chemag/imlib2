@@ -38,6 +38,7 @@ typedef struct {
    ptrdiff_t           w, h;
    ptrdiff_t           fps_num, fps_den;
    enum {
+      Y4M_PARSE_CS_UNSUPPORTED = -1,
       Y4M_PARSE_CS_420,         /* default picked from ffmpeg */
       Y4M_PARSE_CS_420JPEG,
       Y4M_PARSE_CS_420MPEG2,
@@ -113,6 +114,7 @@ static enum Y4mParseStatus
 y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
 {
    const uint8_t      *p = *start;
+   const uint8_t      *peek;
 
    for (;;)
      {
@@ -173,6 +175,7 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
              }
              break;
           case 'C':
+             res->colour_space = Y4M_PARSE_CS_UNSUPPORTED;
              if (y4m__match("mono", 4, &p, end))
                 res->colour_space = Y4M_PARSE_CS_MONO;
              else if (y4m__match("420jpeg", 7, &p, end))
@@ -181,20 +184,26 @@ y4m__parse_params(Y4mParse * res, const uint8_t ** start, const uint8_t * end)
                 res->colour_space = Y4M_PARSE_CS_420MPEG2;
              else if (y4m__match("420paldv", 8, &p, end))
                 res->colour_space = Y4M_PARSE_CS_420PALDV;
-             else if (y4m__match("420 ", 4, &p, end))
+             else if (y4m__match("420", 3, &p, end))
                 res->colour_space = Y4M_PARSE_CS_420;
-             else if (y4m__match("422 ", 4, &p, end))
+             else if (y4m__match("422", 3, &p, end))
                 res->colour_space = Y4M_PARSE_CS_422;
-             else if (y4m__match("444 ", 4, &p, end))
+             else if (y4m__match("444", 3, &p, end))
                 res->colour_space = Y4M_PARSE_CS_444;
-             else {
+
+             peek = p; /* peek to avoid falsly matching things like "420p16" */
+             if (res->colour_space == Y4M_PARSE_CS_UNSUPPORTED ||
+                 (!y4m__match(" ", 1, &peek, end) &&
+                  !y4m__match("\n", 1, &peek, end)))
+             {
 #if IMLIB2_DEBUG
                 char str[1024];
                 sscanf(pp, "%s", str);
                 D("%s: unknown color type: '%s'\n", __func__, str);
 #endif
-                return Y4M_PARSE_CORRUPTED;
+                return Y4M_PARSE_UNSUPPORTED;
              }
+
              break;
           case 'A':
              if (y4m__match("0:0", 3, &p, end))
