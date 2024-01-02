@@ -343,11 +343,12 @@ _save(ImlibImage *im)
             QUIT_WITH_RC(LOAD_BREAK);
     }
 
+    jpeg_finish_compress(&jcs);
+
     rc = LOAD_SUCCESS;
 
   quit:
     /* finish off */
-    jpeg_finish_compress(&jcs);
     jpeg_destroy_compress(&jcs);
     free(buf);
 
