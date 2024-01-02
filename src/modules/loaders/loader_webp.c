@@ -137,7 +137,7 @@ _save(ImlibImage *im)
     int             lossless;
     int             free_pic = 0;
 
-    rc = LOAD_FAIL;
+    rc = LOAD_BADFILE;
 
     if (!WebPConfigInit(&conf) || !WebPPictureInit(&pic))
         goto quit;

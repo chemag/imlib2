@@ -268,14 +268,14 @@ _save(ImlibImage *im)
     /* allocate a small buffer to convert image data */
     buf = malloc(im->w * 3 * sizeof(uint8_t));
     if (!buf)
-        return LOAD_FAIL;
+        return LOAD_OOM;
 
-    rc = LOAD_FAIL;
+    rc = LOAD_BADFILE;
 
     /* set up error handling */
     jcs.err = _jdata_init(&jdata);
     if (sigsetjmp(jdata.setjmp_buffer, 1))
-        QUIT_WITH_RC(LOAD_FAIL);
+        QUIT_WITH_RC(LOAD_BADFILE);
 
     /* setup compress params */
     jpeg_create_compress(&jcs);

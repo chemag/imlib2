@@ -502,7 +502,7 @@ _save(ImlibImage *im)
     int             y;
     tga_header      header;
 
-    rc = LOAD_FAIL;
+    rc = LOAD_BADFILE;
 
     /* assemble the TGA header information */
 
@@ -533,7 +533,7 @@ _save(ImlibImage *im)
     /* allocate a buffer to receive the BGRA-swapped pixel values */
     buf = malloc(im->w * im->h * (im->has_alpha ? 4 : 3));
     if (!buf)
-        goto quit;
+        QUIT_WITH_RC(LOAD_OOM);
 
     /* now we have to read from im->data into buf, swapping RGBA to BGRA */
     imdata = im->data;
@@ -562,10 +562,13 @@ _save(ImlibImage *im)
     }
 
     /* write the header */
-    fwrite(&header, sizeof(header), 1, f);
+    if (fwrite(&header, 1, sizeof(header), f) != sizeof(header))
+        goto quit;
 
     /* write the image data */
-    fwrite(buf, 1, im->w * im->h * (im->has_alpha ? 4 : 3), f);
+    if (fwrite(buf, (im->has_alpha ? 4 : 3), im->w * im->h, f) !=
+        (size_t)(im->w * im->h))
+        goto quit;
 
     rc = LOAD_SUCCESS;
 

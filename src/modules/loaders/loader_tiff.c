@@ -488,9 +488,9 @@ _save(ImlibImage *im)
 
     tif = TIFFFdOpen(fileno(im->fi->fp), im->fi->name, "w");
     if (!tif)
-        return LOAD_FAIL;
+        return LOAD_BADFILE;
 
-    rc = LOAD_FAIL;
+    rc = LOAD_BADFILE;
 
     /* None of the TIFFSetFields are checked for errors, but since they */
     /* shouldn't fail, this shouldn't be a problem */
@@ -559,7 +559,7 @@ _save(ImlibImage *im)
 
     buf = _TIFFmalloc(TIFFScanlineSize(tif));
     if (!buf)
-        goto quit;
+        QUIT_WITH_RC(LOAD_OOM);
 
     imdata = im->data;
     for (y = 0; y < im->h; y++)

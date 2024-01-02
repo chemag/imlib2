@@ -240,7 +240,7 @@ _save(ImlibImage *im)
     JxlParallelRunner *runner = NULL;
 #endif
 
-    rc = LOAD_FAIL;
+    rc = LOAD_BADFILE;
 
     enc = JxlEncoderCreate(NULL);
     if (!enc)

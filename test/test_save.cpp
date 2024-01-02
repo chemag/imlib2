@@ -333,3 +333,65 @@ TEST(SAVE, save_2b_defer)
     test_save_2("icon-64.gif", "svg", immed, false);
     test_save_2("icon-64.gif", "png", immed, true, 4016720483);
 }
+
+static void
+test_save_3(const char *file, const char *dest, int err_new, int err_old)
+{
+    char            filei[256];
+    char            fileo[256];
+    unsigned int    i;
+    const char     *ext;
+    int             err;
+    Imlib_Image     im;
+    Imlib_Load_Error lerr;
+
+    snprintf(filei, sizeof(filei), "%s/%s", IMG_SRC, file);
+    D("Load '%s'\n", filei);
+    im = imlib_load_image(filei);
+    ASSERT_TRUE(im);
+
+    imlib_context_set_image(im);
+
+    for (i = 0; i < N_PFX; i++)
+    {
+        ext = exts[i].ext;
+
+        imlib_context_set_image(im);
+        imlib_image_set_format(ext);
+        snprintf(fileo, sizeof(fileo), "%s", dest);
+        pr_info("Save %s to '%s'", ext, fileo);
+
+        imlib_save_image_with_errno_return(fileo, &err);
+        EXPECT_EQ(err, err_new);
+
+        imlib_save_image_with_error_return(fileo, &lerr);
+        EXPECT_EQ(lerr, err_old);
+
+        imlib_save_image(fileo);
+        err = imlib_get_error();
+        ASSERT_EQ(err, err_new);
+    }
+
+    imlib_context_set_image(im);
+    imlib_free_image_and_decache();
+}
+
+TEST(SAVE, save_3_full)
+{
+    test_save_3("icon-64.png", "/dev/full",
+                ENOSPC, IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE);
+}
+
+#if 0
+TEST(SAVE, save_3_dir)
+{
+    test_save_3("icon-64.png", "/tmp",
+                EISDIR, IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY);
+}
+
+TEST(SAVE, save_3_rdonly)
+{
+    test_save_3("icon-64.png", IMG_GEN "/rdonly",
+                EACCES, IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE);
+}
+#endif

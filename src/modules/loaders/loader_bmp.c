@@ -107,7 +107,7 @@ enum {
 };
 
 static int
-WriteleByte(FILE *file, unsigned char val)
+_WriteleByte(FILE *file, unsigned char val)
 {
     int             rc;
 
@@ -119,7 +119,7 @@ WriteleByte(FILE *file, unsigned char val)
 }
 
 static int
-WriteleShort(FILE *file, unsigned short val)
+_WriteleShort(FILE *file, unsigned short val)
 {
     int             rc;
 
@@ -134,7 +134,7 @@ WriteleShort(FILE *file, unsigned short val)
 }
 
 static int
-WriteleLong(FILE *file, unsigned long val)
+_WriteleLong(FILE *file, unsigned long val)
 {
     int             rc;
 
@@ -755,6 +755,10 @@ _load(ImlibImage *im, int load_data)
     return rc;
 }
 
+#define WriteleByte(file, val)  if (!_WriteleByte(file, val)) goto quit
+#define WriteleShort(file, val) if (!_WriteleShort(file, val)) goto quit
+#define WriteleLong(file, val)  if (!_WriteleLong(file, val)) goto quit
+
 static int
 _save(ImlibImage *im)
 {
@@ -763,7 +767,7 @@ _save(ImlibImage *im)
     int             i, j, pad;
     uint32_t        pixel;
 
-    rc = LOAD_SUCCESS;
+    rc = LOAD_BADFILE;
 
     /* calculate number of bytes to pad on end of each row */
     pad = (4 - ((im->w * 3) % 4)) & 0x03;
@@ -800,6 +804,9 @@ _save(ImlibImage *im)
             WriteleByte(f, 0);
     }
 
+    rc = LOAD_SUCCESS;
+
+  quit:
     return rc;
 }
 

@@ -615,24 +615,24 @@ _save(ImlibImage *im)
     {
         row_ptr = malloc(im->w * 3 * sizeof(png_byte));
         if (!row_ptr)
-            return LOAD_FAIL;
+            return LOAD_OOM;
     }
     row_buf = row_ptr;
 
-    rc = LOAD_FAIL;
+    rc = LOAD_BADFILE;
     info_ptr = NULL;
 
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
                                       user_error_fn, user_warning_fn);
     if (!png_ptr)
-        goto quit;
+        QUIT_WITH_RC(LOAD_OOM);
 
     info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr)
-        goto quit;
+        QUIT_WITH_RC(LOAD_OOM);
 
     if (setjmp(png_jmpbuf(png_ptr)))
-        QUIT_WITH_RC(LOAD_FAIL);
+        QUIT_WITH_RC(LOAD_BADFILE);
 
     /* check whether we should use interlacing */
     interlace = PNG_INTERLACE_NONE;

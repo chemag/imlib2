@@ -620,19 +620,21 @@ _save(ImlibImage *im)
     const uint32_t *imdata;
     int             x, y;
 
-    rc = LOAD_FAIL;
+    rc = LOAD_BADFILE;
 
     /* allocate a small buffer to convert image data */
     buf = malloc(im->w * 4 * sizeof(uint8_t));
     if (!buf)
-        goto quit;
+        QUIT_WITH_RC(LOAD_OOM);
 
     imdata = im->data;
 
     /* if the image has a useful alpha channel */
     if (im->has_alpha)
     {
-        fprintf(f, fmt_rgba, im->w, im->h);
+        if (fprintf(f, fmt_rgba, im->w, im->h) <= 0)
+            goto quit;
+
         for (y = 0; y < im->h; y++)
         {
             bptr = buf;
@@ -646,7 +648,9 @@ _save(ImlibImage *im)
                 bptr[3] = PIXEL_A(pixel);
                 bptr += 4;
             }
-            fwrite(buf, im->w * 4, 1, f);
+
+            if (fwrite(buf, 4, im->w, f) != (size_t)im->w)
+                goto quit;
 
             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;
@@ -654,7 +658,9 @@ _save(ImlibImage *im)
     }
     else
     {
-        fprintf(f, fmt_rgb, im->w, im->h);
+        if (fprintf(f, fmt_rgb, im->w, im->h) <= 0)
+            goto quit;
+
         for (y = 0; y < im->h; y++)
         {
             bptr = buf;
@@ -667,7 +673,9 @@ _save(ImlibImage *im)
                 bptr[2] = PIXEL_B(pixel);
                 bptr += 3;
             }
-            fwrite(buf, im->w * 3, 1, f);
+
+            if (fwrite(buf, 3, im->w, f) != (size_t)im->w)
+                goto quit;
 
             if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                 goto quit_progress;

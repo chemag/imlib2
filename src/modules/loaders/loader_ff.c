@@ -90,7 +90,7 @@ _save(ImlibImage *im)
     uint16_t       *row;
     const uint8_t  *imdata;
 
-    rc = LOAD_FAIL;
+    rc = LOAD_BADFILE;
     row = NULL;
 
     /* write header */
@@ -108,7 +108,7 @@ _save(ImlibImage *im)
     rowlen = im->w * (sizeof("RGBA") - 1);
     row = malloc(rowlen * sizeof(uint16_t));
     if (!row)
-        goto quit;
+        QUIT_WITH_RC(LOAD_OOM);
 
     imdata = (uint8_t *) im->data;
     for (i = 0; i < (uint32_t) im->h; ++i, imdata += rowlen)

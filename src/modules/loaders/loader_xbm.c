@@ -218,7 +218,7 @@ _save(ImlibImage *im)
     int             i, k, x, y, bits, nval, val;
     const uint32_t *imdata;
 
-    rc = LOAD_SUCCESS;
+    rc = LOAD_BADFILE;
 
     name = im->fi->name;
     if ((s = strrchr(name, '/')) != 0)
@@ -226,9 +226,12 @@ _save(ImlibImage *im)
 
     bname = strndup(name, strcspn(name, "."));
 
-    fprintf(f, "#define %s_width %d\n", bname, im->w);
-    fprintf(f, "#define %s_height %d\n", bname, im->h);
-    fprintf(f, "static unsigned char %s_bits[] = {\n", bname);
+    if (fprintf(f, "#define %s_width %d\n", bname, im->w) <= 0)
+        goto quit;
+    if (fprintf(f, "#define %s_height %d\n", bname, im->h) <= 0)
+        goto quit;
+    if (fprintf(f, "static unsigned char %s_bits[] = {\n", bname) <= 0)
+        goto quit;
 
     free(bname);
 
@@ -251,12 +254,17 @@ _save(ImlibImage *im)
         }
         k++;
         DL("x, y = %2d,%2d: %d/%d\n", x, y, k, nval);
-        fprintf(f, " 0x%02x%s%s", bits, k < nval ? "," : "",
-                (k == nval) || ((k % 12) == 0) ? "\n" : "");
+        if (fprintf(f, " 0x%02x%s%s", bits, k < nval ? "," : "",
+                    (k == nval) || ((k % 12) == 0) ? "\n" : "") <= 0)
+            goto quit;
     }
 
-    fprintf(f, "};\n");
+    if (fprintf(f, "};\n") <= 0)
+        goto quit;
 
+    rc = LOAD_SUCCESS;
+
+  quit:
     return rc;
 }
 

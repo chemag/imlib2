@@ -478,7 +478,7 @@ __imlib_LoadErrorToErrno(int loader_ret, int save)
     case LOAD_OOM:
         return ENOMEM;
     case LOAD_BADFILE:
-        return errno;
+        return errno ? errno : IMLIB_ERR_INTERNAL;
     case LOAD_BADIMAGE:
         return IMLIB_ERR_BAD_IMAGE;
     case LOAD_BADFRAME:
@@ -913,7 +913,11 @@ __imlib_SaveImage(ImlibImage *im, const char *file, ImlibLoadArgs *ila)
     loader_ret = l->module->save(im);
 
     if (!ila->fp)
+    {
+        if (fflush(im->fi->fp) != 0)
+            loader_ret = LOAD_BADFILE;  /* Use errno */
         fclose(fp);
+    }
 
     __imlib_ImageFileContextPop(im);
 

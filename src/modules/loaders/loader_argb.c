@@ -112,14 +112,20 @@ _save(ImlibImage *im)
     FILE           *f = im->fi->fp;
     const uint32_t *imdata;
     int             y, alpha = 0;
+    size_t          nw;
 
 #ifdef WORDS_BIGENDIAN
     uint32_t       *buf = (uint32_t *) malloc(im->w * 4);
+    if (!buf)
+        QUIT_WITH_RC(LOAD_OOM);
 #endif
+
+    rc = LOAD_BADFILE;
 
     alpha = !!im->has_alpha;
 
-    fprintf(f, "ARGB %i %i %i\n", im->w, im->h, alpha);
+    if (fprintf(f, "ARGB %i %i %i\n", im->w, im->h, alpha) <= 0)
+        goto quit;
 
     imdata = im->data;
     for (y = 0; y < im->h; y++, imdata += im->w)
@@ -131,11 +137,13 @@ _save(ImlibImage *im)
             memcpy(buf, imdata, im->w * 4);
             for (x = 0; x < im->w; x++)
                 SWAP_LE_32_INPLACE(buf[x]);
-            fwrite(buf, im->w, 4, f);
+            nw = fwrite(buf, 4, im->w, f);
         }
 #else
-        fwrite(imdata, im->w, 4, f);
+        nw = fwrite(imdata, 4, im->w, f);
 #endif
+        if (nw != (size_t)im->w)
+            goto quit;
 
         if (im->lc && __imlib_LoadProgressRows(im, y, 1))
             QUIT_WITH_RC(LOAD_BREAK);
