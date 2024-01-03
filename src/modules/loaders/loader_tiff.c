@@ -10,6 +10,16 @@ static const char *const _formats[] = { "tiff", "tif" };
 
 #define DD(fmt...)  DC(DBG_PFX, 0x80, fmt)
 
+static void
+_tiff_error(const char *module, const char *fmt, va_list ap)
+{
+#if IMLIB2_DEBUG
+    char            buf[128];
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    D("%s: %s: %s\n", __func__, module, buf);
+#endif
+}
+
 static struct {
     const unsigned char *data, *dptr;
     unsigned int    size;
@@ -364,6 +374,9 @@ _load(ImlibImage *im, int load_data)
 
     mm_init(im->fi->fdata, im->fi->fsize);
 
+    TIFFSetErrorHandler(_tiff_error);
+    TIFFSetWarningHandler(_tiff_error);
+
     tif = TIFFClientOpen(im->fi->name, "r", NULL, _tiff_read, _tiff_write,
                          _tiff_seek, _tiff_close, _tiff_size,
                          _tiff_map, _tiff_unmap);
@@ -469,6 +482,9 @@ _save(ImlibImage *im)
     int             compression_type;
     int             i;
     ImlibImageTag  *tag;
+
+    TIFFSetErrorHandler(_tiff_error);
+    TIFFSetWarningHandler(_tiff_error);
 
     tif = TIFFFdOpen(fileno(im->fi->fp), im->fi->name, "w");
     if (!tif)
