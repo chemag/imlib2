@@ -35,6 +35,7 @@ static Imlib_Image im_curr = NULL;      /* The current image */
 static bool     opt_cache = false;
 static bool     opt_progr = true;       /* Render through progress callback */
 static bool     opt_scale = false;
+static bool     opt_cbalt = false;      /* Alternate checkerboard colors (red/green) */
 static double   opt_scale_x = 1.;
 static double   opt_scale_y = 1.;
 static double   opt_sgrab_x = 1.;
@@ -102,10 +103,20 @@ bg_im_init(int w, int h)
         onoff = (y / opt_cbfs) & 0x1;
         for (x = 0; x < w; x += opt_cbfs)
         {
-            if (onoff)
-                imlib_context_set_color(144, 144, 144, 255);
+            if (opt_cbalt)
+            {
+                if (onoff)
+                    imlib_context_set_color(255, 0, 0, 255);
+                else
+                    imlib_context_set_color(0, 255, 0, 255);
+            }
             else
-                imlib_context_set_color(100, 100, 100, 255);
+            {
+                if (onoff)
+                    imlib_context_set_color(144, 144, 144, 255);
+                else
+                    imlib_context_set_color(100, 100, 100, 255);
+            }
             imlib_image_fill_rectangle(x, y, opt_cbfs, opt_cbfs);
             onoff ^= 0x1;
         }
@@ -637,6 +648,11 @@ main(int argc, char **argv)
                 opt_sgrab_y = opt_sgrab_x;
             break;
         case 't':
+            if (*optarg == 'a')
+            {
+                optarg++;
+                opt_cbalt = true;
+            }
             no = atoi(optarg);
             if (no > 0)
                 opt_cbfs = no;
