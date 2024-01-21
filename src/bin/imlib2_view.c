@@ -95,6 +95,8 @@ bg_im_init(int w, int h)
     bg_im = imlib_create_image(w, h);
 
     imlib_context_set_image(bg_im);
+    imlib_context_set_blend(0);
+
     for (y = 0; y < h; y += opt_cbfs)
     {
         onoff = (y / opt_cbfs) & 0x1;
@@ -104,11 +106,8 @@ bg_im_init(int w, int h)
                 imlib_context_set_color(144, 144, 144, 255);
             else
                 imlib_context_set_color(100, 100, 100, 255);
-            imlib_context_set_blend(0);
             imlib_image_fill_rectangle(x, y, opt_cbfs, opt_cbfs);
-            onoff++;
-            if (onoff == 2)
-                onoff = 0;
+            onoff ^= 0x1;
         }
     }
 }
