@@ -37,10 +37,10 @@ static bool     opt_progr = true;       /* Render through progress callback */
 static bool     opt_scale = false;
 static bool     opt_cbalt = false;      /* Alternate checkerboard colors (red/green) */
 static bool     opt_aa_final = true;    /* Do final anti-aliased rendering */
-static double   opt_scale_x = 1.;
-static double   opt_scale_y = 1.;
-static double   opt_sgrab_x = 1.;
-static double   opt_sgrab_y = 1.;
+static double   opt_sc_inp_x = 1.;
+static double   opt_sc_inp_y = 1.;
+static double   opt_sc_out_x = 1.;
+static double   opt_sc_out_y = 1.;
 static int      opt_cbfs = 8;   /* Background checkerboard field size */
 static char     opt_progress_granularity = 10;
 static char     opt_progress_print = 0;
@@ -59,8 +59,10 @@ static int      animloop = 0;   /* Animation loop count          */
 
 #define MAX_DIM 32767
 
-#define SCALE_X(x) (int)(scale_x * (x) + .5)
-#define SCALE_Y(x) (int)(scale_y * (x) + .5)
+#define SC_INP_X(x) (int)(opt_sc_inp_x * (x) + .5)
+#define SC_INP_Y(x) (int)(opt_sc_inp_y * (x) + .5)
+#define SC_OUT_X(x) (int)(scale_x * (x) + .5)
+#define SC_OUT_Y(x) (int)(scale_y * (x) + .5)
 
 #define HELP \
    "Usage:\n" \
@@ -73,8 +75,8 @@ static int      animloop = 0;   /* Animation loop count          */
    "  -g N       : Set progress granularity to N%% (default 10(%%))\n" \
    "  -l N       : Introduce N ms delay in progress callback (default 0)\n" \
    "  -p         : Print info in progress callback (default no)\n" \
-   "  -s Sx[,Sy] : Set render x/y scaling factors to Sx,Sy (default 1.0)\n" \
-   "  -S Sx[,Sy] : Set grab x/y scaling factors to Sx,Sy (default 1.0)\n" \
+   "  -s Sx[,Sy] : Set output x/y scaling factors to Sx,Sy (default 1.0)\n" \
+   "  -S Sx[,Sy] : Set input x/y scaling factors to Sx,Sy (default 1.0)\n" \
    "  -t N       : Set background checkerboard field size (default 8)\n" \
    "  -v         : Increase verbosity\n"
 
@@ -361,8 +363,8 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
     /* first time it's called */
     if (image_width == 0)
     {
-        scale_x = opt_scale_x;
-        scale_y = opt_scale_y;
+        scale_x = opt_sc_out_x;
+        scale_y = opt_sc_out_y;
 
         window_width = DisplayWidth(disp, DefaultScreen(disp));
         window_height = DisplayHeight(disp, DefaultScreen(disp));
@@ -377,8 +379,8 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
             (image_width > window_width || image_height > window_height))
         {
             scale_x = scale_y = 1.;
-            while (window_width < SCALE_X(image_width) ||
-                   window_height < SCALE_Y(image_height))
+            while (window_width < SC_OUT_X(image_width) ||
+                   window_height < SC_OUT_Y(image_height))
             {
                 scale_x *= .5;
                 scale_y = scale_x;
@@ -386,8 +388,8 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
             }
         }
 
-        window_width = SCALE_X(image_width);
-        window_height = SCALE_Y(image_height);
+        window_width = SC_OUT_X(image_width);
+        window_height = SC_OUT_Y(image_height);
         if (window_width > MAX_DIM)
         {
             window_width = MAX_DIM;
@@ -457,10 +459,10 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
                                  r_out.x, r_out.y, r_out.w, r_out.h);
 
     /* Render image (part) (or updated canvas) on window background pixmap */
-    up_wx = SCALE_X(r_out.x);
-    up_wy = SCALE_Y(r_out.y);
-    up_ww = SCALE_X(r_out.w);
-    up_wh = SCALE_Y(r_out.h);
+    up_wx = SC_OUT_X(r_out.x);
+    up_wy = SC_OUT_Y(r_out.y);
+    up_ww = SC_OUT_X(r_out.w);
+    up_wh = SC_OUT_Y(r_out.h);
     Dprintf(" Paint  %d,%d %dx%d\n", up_wx, up_wy, up_ww, up_wh);
     imlib_context_set_blend(0);
     imlib_context_set_drawable(bg_pm);
@@ -552,8 +554,8 @@ load_image(int no, const char *name)
         Vprintf("Drawable: %#lx: x,y: %d,%d  wxh=%ux%u  bw=%u  depth=%u\n",
                 draw, x, y, w, h, bw, depth);
 
-        wo = w * opt_sgrab_x;
-        ho = h * opt_sgrab_y;
+        wo = SC_INP_X(w);
+        ho = SC_INP_Y(h);
         im = imlib_create_scaled_image_from_drawable(None, 0, 0, w, h, wo, ho,
                                                      1, (get_alpha) ? 1 : 0);
         if (!im)
@@ -639,18 +641,18 @@ main(int argc, char **argv)
         case 'p':
             opt_progress_print = 1;
             break;
-        case 's':              /* Scale (window size wrt. image size) */
+        case 's':              /* Scale output (window size wrt. image size) */
             opt_scale = true;
-            opt_scale_y = 0.f;
-            sscanf(optarg, "%lf,%lf", &opt_scale_x, &opt_scale_y);
-            if (opt_scale_y == 0.f)
-                opt_scale_y = opt_scale_x;
+            opt_sc_out_y = 0.f;
+            sscanf(optarg, "%lf,%lf", &opt_sc_out_x, &opt_sc_out_y);
+            if (opt_sc_out_y == 0.f)
+                opt_sc_out_y = opt_sc_out_x;
             break;
-        case 'S':              /* Scale on grab */
-            opt_sgrab_y = 0.f;
-            sscanf(optarg, "%lf,%lf", &opt_sgrab_x, &opt_sgrab_y);
-            if (opt_sgrab_y == 0.f)
-                opt_sgrab_y = opt_sgrab_x;
+        case 'S':              /* Scale input (input imgage, grab) */
+            opt_sc_inp_y = 0.f;
+            sscanf(optarg, "%lf,%lf", &opt_sc_inp_x, &opt_sc_inp_y);
+            if (opt_sc_inp_y == 0.f)
+                opt_sc_inp_y = opt_sc_inp_x;
             break;
         case 't':
             if (*optarg == 'a')
