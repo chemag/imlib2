@@ -321,6 +321,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
 {
     static double   scale_x = 0., scale_y = 0.;
     int             up_wx, up_wy, up_ww, up_wh;
+    int             up2_wx, up2_wy, up2_ww, up2_wh;
     rect_t          r_up, r_out;
 
     if (opt_progress_print)
@@ -372,8 +373,10 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         window_height -= 32;
         Dprintf(" Screen WxH=%dx%d\n", window_width, window_height);
 
-        image_width = fixedframe ? finfo.frame_w : finfo.canvas_w;
-        image_height = fixedframe ? finfo.frame_h : finfo.canvas_h;
+        up_ww = fixedframe ? finfo.frame_w : finfo.canvas_w;
+        up_wh = fixedframe ? finfo.frame_h : finfo.canvas_h;
+        image_width = SC_INP_X(up_ww);
+        image_height = SC_INP_X(up_wh);
 
         if (!opt_scale &&
             (image_width > window_width || image_height > window_height))
@@ -403,7 +406,7 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         Dprintf(" Window WxH=%dx%d\n", window_width, window_height);
 
         V2printf(" Image  WxH=%dx%d fmt='%s'\n",
-                 image_width, image_height, imlib_image_format());
+                 up_ww, up_wh, imlib_image_format());
 
         /* Initialize checkered background image */
         bg_im_init(image_width, image_height);
@@ -451,27 +454,31 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
     }
 
     /* Render image on background image */
-    Dprintf(" Update %d,%d %dx%d\n", r_out.x, r_out.y, r_out.w, r_out.h);
     imlib_context_set_image(bg_im);
     imlib_context_set_blend(1);
+    up_wx = SC_INP_X(r_out.x);
+    up_wy = SC_INP_Y(r_out.y);
+    up_ww = SC_INP_X(r_out.w);
+    up_wh = SC_INP_Y(r_out.h);
+    Dprintf(" Update  %d,%d %dx%d -> %d,%d %dx%d \n",
+            r_out.x, r_out.y, r_out.w, r_out.h, up_wx, up_wy, up_ww, up_wh);
     imlib_blend_image_onto_image(im, 1,
                                  r_out.x, r_out.y, r_out.w, r_out.h,
-                                 r_out.x, r_out.y, r_out.w, r_out.h);
+                                 up_wx, up_wy, up_ww, up_wh);
 
     /* Render image (part) (or updated canvas) on window background pixmap */
-    up_wx = SC_OUT_X(r_out.x);
-    up_wy = SC_OUT_Y(r_out.y);
-    up_ww = SC_OUT_X(r_out.w);
-    up_wh = SC_OUT_Y(r_out.h);
-    Dprintf(" Paint  %d,%d %dx%d\n", up_wx, up_wy, up_ww, up_wh);
+    up2_wx = SC_OUT_X(up_wx);
+    up2_wy = SC_OUT_Y(up_wy);
+    up2_ww = SC_OUT_X(up_ww);
+    up2_wh = SC_OUT_Y(up_wh);
+    Dprintf(" Paint  %d,%d %dx%d\n", up2_wx, up2_wy, up2_ww, up2_wh);
     imlib_context_set_blend(0);
     imlib_context_set_drawable(bg_pm);
-    imlib_render_image_part_on_drawable_at_size(r_out.x, r_out.y, r_out.w,
-                                                r_out.h, up_wx, up_wy, up_ww,
-                                                up_wh);
+    imlib_render_image_part_on_drawable_at_size(up_wx, up_wy, up_ww, up_wh,
+                                                up2_wx, up2_wy, up2_ww, up2_wh);
 
     /* Update window */
-    XClearArea(disp, win, up_wx, up_wy, up_ww, up_wh, False);
+    XClearArea(disp, win, up2_wx, up2_wy, up2_ww, up2_wh, False);
     XFlush(disp);
 
     if (opt_progress_delay > 0)
