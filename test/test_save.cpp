@@ -33,7 +33,13 @@ static const test_rec_t exts[] = {
    { "jpeg", { 2458451111, 3483232328 } },
 #endif
 #ifdef BUILD_JXL_LOADER
-#if JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 8, 0)
+#if JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 10, 0)
+#ifdef __i386__
+   { "jxl",  {  911944613, 1271262469 } },
+#else
+   { "jxl",  { 2884987131, 3285665573 } },
+#endif
+#elif JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 8, 0)
 #ifdef __i386__
    { "jxl",  { 4232124886, 2621968888 } },
 #else

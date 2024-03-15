@@ -5,6 +5,9 @@
 #include <Imlib2.h>
 
 #include <fcntl.h>
+#ifdef BUILD_JXL_LOADER
+#include <jxl/version.h>
+#endif
 
 #include "test.h"
 
@@ -55,7 +58,15 @@ static tii_t    tii[] = {
    { "xeyes-gray.j2k",          3377113384 },
 #endif
 #ifdef BUILD_JXL_LOADER
+#if JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 10, 0)
+#ifdef __i386__
+   { "icon-64.jxl",             2700566991 },
+#else
+   { "icon-64.jxl",             2773434955 },
+#endif
+#else
    { "icon-64.jxl",             2534597492 },
+#endif
 #endif
 #ifdef BUILD_PNG_LOADER
    { "icon-64.png",             1153555547 },
