@@ -442,6 +442,9 @@ _load(ImlibImage *im, int load_data)
             done = 1;
     }
 
+    if (!im->data || !cmap)
+        goto quit;
+
     for (; count < pixels; count++)
     {
         /* Fill in missing pixels
