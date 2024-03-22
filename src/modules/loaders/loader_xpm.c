@@ -32,12 +32,13 @@ mm_getc(void)
 
 static FILE    *rgb_txt = NULL;
 
-static void
-xpm_parse_color(char *color, uint32_t *pixel)
+static          uint32_t
+xpm_parse_color(const char *color)
 {
     char            buf[4096];
-    int             r, g, b;
+    int             a, r, g, b;
 
+    a = 0xff;
     r = g = b = 0;
 
     /* is a #ff00ff like color */
@@ -80,6 +81,12 @@ xpm_parse_color(char *color, uint32_t *pixel)
         goto done;
     }
 
+    if (!strcasecmp(color, "none"))
+    {
+        a = 0;
+        goto done;
+    }
+
     /* look in rgb txt database */
     if (!rgb_txt)
         rgb_txt = fopen(PACKAGE_DATA_DIR "/rgb.txt", "r");
@@ -106,8 +113,9 @@ xpm_parse_color(char *color, uint32_t *pixel)
             }
         }
     }
+
   done:
-    *pixel = PIXEL_ARGB(0xff, r, g, b);
+    return PIXEL_ARGB(a, r, g, b);
 }
 
 static void
@@ -263,9 +271,8 @@ _load(ImlibImage *im, int load_data)
                 if (j < ncolors)
                 {
                     int             slen;
-                    int             hascolor, iscolor;
+                    int             hascolor;
 
-                    iscolor = 0;
                     hascolor = 0;
                     tok[0] = 0;
                     col[0] = 0;
@@ -282,8 +289,6 @@ _load(ImlibImage *im, int load_data)
                         sscanf(&line[k], "%255s", s);
                         slen = strlen(s);
                         k += slen;
-                        if (!strcmp(s, "c"))
-                            iscolor = 1;
                         if ((!strcmp(s, "m")) || (!strcmp(s, "s")) ||
                             (!strcmp(s, "g4")) || (!strcmp(s, "g")) ||
                             (!strcmp(s, "c")) || (k >= len))
@@ -302,18 +307,14 @@ _load(ImlibImage *im, int load_data)
                             }
                             if (col[0])
                             {
-                                if (!strcasecmp(col, "none"))
+                                if ((!cmap[j].assigned || !strcmp(tok, "c")) &&
+                                    (!hascolor))
                                 {
-                                    cmap[j].transp = 1;
-                                    cmap[j].pixel = 0;
-                                }
-                                else if ((!cmap[j].assigned ||
-                                          !strcmp(tok, "c")) && (!hascolor))
-                                {
-                                    xpm_parse_color(col, &cmap[j].pixel);
+                                    cmap[j].pixel = xpm_parse_color(col);
                                     cmap[j].assigned = 1;
-                                    cmap[j].transp = 0;
-                                    if (iscolor)
+                                    if ((cmap[j].pixel >> 24) != 0xff)
+                                        cmap[j].transp = 1;
+                                    if (!strcmp(tok, "c"))
                                         hascolor = 1;
                                 }
                             }
