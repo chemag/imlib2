@@ -62,6 +62,11 @@ typedef struct {
         Y4M_PARSE_ASPECT_32_27,
         Y4M_PARSE_ASPECT_OTHER,
     } aspect;
+    enum {
+        Y4M_PARSE_RANGE_UNSPECIFIED,
+        Y4M_PARSE_RANGE_LIMITED,
+        Y4M_PARSE_RANGE_FULL,
+    } range;
 
     const void     *frame_data;
     ptrdiff_t       frame_data_len;
@@ -224,9 +229,26 @@ y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
                     ;
             }
             break;
-        case 'X':              /* comments ignored */
-            for (; p < end && *p != ' ' && *p != '\n'; ++p)
-                ;
+        case 'X':
+            if (y4m__match("COLORRANGE=LIMITED", 18, &p, end))
+                res->range = Y4M_PARSE_RANGE_LIMITED;
+            else if (y4m__match("COLORRANGE=FULL", 15, &p, end))
+                res->range = Y4M_PARSE_RANGE_FULL;
+            else if (y4m__match("COLORRANGE=", 11, &p, end))
+            {
+#if IMLIB2_DEBUG
+                char            str[1024];
+                sscanf(pp, "%s", str);
+                D("%s: unknown color range: '%s'\n", __func__, str);
+#endif
+                return Y4M_PARSE_UNSUPPORTED;
+            }
+            else
+            {
+                /* other comments ignored */
+                for (; p < end && *p != ' ' && *p != '\n'; ++p)
+                    ;
+            }
             break;
         default:
             return Y4M_PARSE_CORRUPTED;
@@ -402,16 +424,25 @@ _load(ImlibImage *im, int load_data)
         conv = conv_mono;
         break;
     case Y4M_PARSE_CS_422:
-        conv = I422ToARGB;
+        if (y4m.range == Y4M_PARSE_RANGE_FULL)
+            conv = J422ToARGB;
+        else
+            conv = I422ToARGB;
         break;
     case Y4M_PARSE_CS_444:
-        conv = I444ToARGB;
+        if (y4m.range == Y4M_PARSE_RANGE_FULL)
+            conv = J444ToARGB;
+        else
+            conv = I444ToARGB;
         break;
     case Y4M_PARSE_CS_420JPEG:
     case Y4M_PARSE_CS_420MPEG2:
     case Y4M_PARSE_CS_420PALDV:
     case Y4M_PARSE_CS_420:
-        conv = I420ToARGB;
+        if (y4m.range == Y4M_PARSE_RANGE_FULL)
+            conv = J420ToARGB;
+        else
+            conv = I420ToARGB;
         break;
     default:
         DL("colour_space: %d\n", y4m.colour_space);
