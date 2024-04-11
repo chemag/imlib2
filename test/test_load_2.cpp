@@ -106,6 +106,7 @@ static tii_t    tii[] = {
    { "icon-64.yuv420paldv.y4m",         3810593176 },
    { "icon-64.aspect_unsupported.y4m",  2400380696 },
    { "icon-64.framerate_1_1.y4m",       2400380696 },
+   { "img-17x14.full_range.y4m",         839224907 },
 #endif
 
    { "icon-128.ico",             218415319 },
