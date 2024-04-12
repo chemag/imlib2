@@ -46,6 +46,7 @@ typedef struct {
         Y4M_PARSE_CS_422,
         Y4M_PARSE_CS_444,
         Y4M_PARSE_CS_MONO,
+        Y4M_PARSE_CS_420P10,
     } colour_space;
     enum {
         Y4M_PARSE_IL_PROGRESSIVE,
@@ -67,6 +68,7 @@ typedef struct {
         Y4M_PARSE_RANGE_LIMITED,
         Y4M_PARSE_RANGE_FULL,
     } range;
+    uint8_t         depth;      // Bit depth  (8, 10, 12, 14, 16)
 
     const void     *frame_data;
     ptrdiff_t       frame_data_len;
@@ -120,6 +122,10 @@ y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
 {
     const uint8_t  *p = *start;
     const uint8_t  *peek;
+
+    // default values
+    res->range = Y4M_PARSE_RANGE_UNSPECIFIED;
+    res->depth = 8;
 
     for (;;)
     {
@@ -183,19 +189,45 @@ y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
         case 'C':
             res->colour_space = Y4M_PARSE_CS_UNSUPPORTED;
             if (y4m__match("mono", 4, &p, end))
+            {
                 res->colour_space = Y4M_PARSE_CS_MONO;
+                res->depth = 8;
+            }
             else if (y4m__match("420jpeg", 7, &p, end))
+            {
                 res->colour_space = Y4M_PARSE_CS_420JPEG;
+                res->depth = 8;
+            }
             else if (y4m__match("420mpeg2", 8, &p, end))
+            {
                 res->colour_space = Y4M_PARSE_CS_420MPEG2;
+                res->depth = 8;
+            }
             else if (y4m__match("420paldv", 8, &p, end))
+            {
                 res->colour_space = Y4M_PARSE_CS_420PALDV;
+                res->depth = 8;
+            }
+            else if (y4m__match("420p10", 6, &p, end))
+            {
+                res->colour_space = Y4M_PARSE_CS_420P10;
+                res->depth = 10;
+            }
             else if (y4m__match("420", 3, &p, end))
+            {
                 res->colour_space = Y4M_PARSE_CS_420;
+                res->depth = 8;
+            }
             else if (y4m__match("422", 3, &p, end))
+            {
                 res->colour_space = Y4M_PARSE_CS_422;
+                res->depth = 8;
+            }
             else if (y4m__match("444", 3, &p, end))
+            {
                 res->colour_space = Y4M_PARSE_CS_444;
+                res->depth = 8;
+            }
 
             peek = p;           /* peek to avoid falsly matching things like "420p16" */
             if (res->colour_space == Y4M_PARSE_CS_UNSUPPORTED ||
@@ -306,6 +338,7 @@ y4m_parse_frame(Y4mParse *res)
     case Y4M_PARSE_CS_420MPEG2:
     case Y4M_PARSE_CS_420PALDV:
     case Y4M_PARSE_CS_420:
+    case Y4M_PARSE_CS_420P10:
         res->frame_data_len = npixels * 3 / 2;
         sdiv = 2;
         voff = (npixels * 5) / 4;
@@ -342,8 +375,16 @@ y4m_parse_frame(Y4mParse *res)
     }
     else
     {
-        res->u = p + npixels;
-        res->v = p + voff;
+        if (res->depth == 10)
+        {
+            res->u = p + npixels * 2;
+            res->v = p + voff * 2;
+        }
+        else
+        {
+            res->u = p + npixels;
+            res->v = p + voff;
+        }
         res->u_stride = res->v_stride = res->w / sdiv;
     }
 
@@ -439,6 +480,7 @@ _load(ImlibImage *im, int load_data)
     case Y4M_PARSE_CS_420MPEG2:
     case Y4M_PARSE_CS_420PALDV:
     case Y4M_PARSE_CS_420:
+    case Y4M_PARSE_CS_420P10:
         if (y4m.range == Y4M_PARSE_RANGE_FULL)
             conv = J420ToARGB;
         else
@@ -463,8 +505,43 @@ _load(ImlibImage *im, int load_data)
     if (!__imlib_AllocateData(im))
         return LOAD_OOM;
 
-    res = conv(y4m.y, y4m.y_stride, y4m.u, y4m.u_stride, y4m.v, y4m.v_stride,
-               (uint8_t *) im->data, im->w * 4, im->w, im->h);
+    if (y4m.depth == 10 && y4m.colour_space == Y4M_PARSE_CS_420P10)
+    {
+        /* allocate a small buffer to convert image data */
+        uint8_t        *buf =
+            calloc(((y4m.w * y4m.h * 3) >> 1), sizeof(uint8_t));
+        if (!buf)
+            return LOAD_OOM;
+
+        /* convert 10-bit YUV to 8-bit YUV */
+        uint8_t        *buf_y = buf;
+        int             npixels = y4m.w * y4m.h;
+        uint8_t        *buf_u = buf + npixels;
+        int             voff = (npixels * 5) / 4;
+        uint8_t        *buf_v = buf + voff;
+        int             buf_stride_y = y4m.w;
+        ptrdiff_t       buf_stride_u;
+        ptrdiff_t       buf_stride_v;
+        int             sdiv = 2;
+        buf_stride_u = buf_stride_v = y4m.w / sdiv;
+        I010ToI420(y4m.y, y4m.y_stride, y4m.u, y4m.u_stride,
+                   y4m.v, y4m.v_stride, buf_y, buf_stride_y,
+                   buf_u, buf_stride_u, buf_v, buf_stride_v, y4m.w, y4m.h);
+
+        /* convert 8-bit YUV to 8-bit ARGB */
+        res =
+            conv(buf_y, buf_stride_y, buf_u, buf_stride_u, buf_v, buf_stride_v,
+                 (uint8_t *) im->data, im->w * 4, im->w, im->h);
+
+        free(buf);
+    }
+    else
+    {
+        res =
+            conv(y4m.y, y4m.y_stride, y4m.u, y4m.u_stride, y4m.v, y4m.v_stride,
+                 (uint8_t *) im->data, im->w * 4, im->w, im->h);
+    }
+
     if (res != 0)
         return LOAD_BADIMAGE;
 
