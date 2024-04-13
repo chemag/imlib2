@@ -17,4 +17,14 @@
     .size PR_(sym),.-PR_(sym); \
     .align 8;
 
+#ifdef __CET__
+#if defined(DO_MMX_ASM)
+#define ENDBR_ endbr32
+#elif defined(DO_AMD64_ASM)
+#define ENDBR_ endbr64
+#endif
+#else
+#define ENDBR_
+#endif
+
 #endif                          /* __ASM_H */

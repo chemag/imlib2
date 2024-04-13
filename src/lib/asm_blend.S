@@ -61,6 +61,7 @@ FN_(imlib_mmx_reshade_copy_rgb_to_rgba)
 /*\ Common code \*/
 /*\ Set MMX mode, save registers, load common parameters \*/
 #define ENTER				\
+	ENDBR_				;\
 	pushl %ebp			;\
 	movl  %esp, %ebp		;\
 	pushl %ebx			;\

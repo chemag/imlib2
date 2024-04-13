@@ -97,6 +97,7 @@ FN_(imlib_amd64_reshade_copy_rgb_to_rgba)
 
 
 #define ENTER		\
+	ENDBR_		; \
 	pushq %rbp	; \
 	movq %rsp, %rbp	; \
 	pushq %rbx	; \

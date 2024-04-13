@@ -36,6 +36,7 @@ FN_(imlib_get_cpuid)
 /*\ Common code \*/
 /*\ Save registers, load common parameters \*/
 #define ENTER			\
+	ENDBR_;			\
 	pushl %ebp;		\
 	movl  %esp, %ebp;	\
 	pushl %ebx;		\
