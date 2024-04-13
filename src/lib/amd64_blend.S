@@ -1,9 +1,7 @@
 #include <config.h>
 #include "asm.h"
 
-#ifdef DO_AMD64_ASM
-
-/*\ 
+/*\
 |*| AMD64 SSE2 assembly blending routines for Imlib2
 |*| Written by John Slaten <zartheenumerator@comcast.net>
 |*| Based on MMX routines written by Willem Monsuwe <willem@stack.nl>
@@ -79,7 +77,7 @@ FN_(imlib_amd64_reshade_copy_rgba_to_rgba)
 FN_(imlib_amd64_reshade_copy_rgb_to_rgba)
 
 .extern pow_lut
-	
+
 /*\ SSE register use:
 |*| %xmm1 = Source value
 |*| %xmm2 = Destination value
@@ -96,9 +94,6 @@ FN_(imlib_amd64_reshade_copy_rgb_to_rgba)
 |*| %r10d = sw
 |*| %r11d = dw
 \*/
-	
-
-
 
 
 #define ENTER		\
@@ -118,7 +113,7 @@ FN_(imlib_amd64_reshade_copy_rgb_to_rgba)
 	jz 9f		; \
 	testq %r9, %r9	; \
 	jz 9f
-	
+
 #define LEAVE		\
 	popq %r14	; \
 	popq %r13	; \
@@ -135,20 +130,20 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	movdqu c1(%rip), %xmm5
 	movdqu m00XXXXXX(%rip), %xmm6
 
-	/* Move right to left across each line, */ 
-	/* processing in two pixel chunks */ 
-	leaq (%rsi, %r8, 4), %rsi	
-	leaq (%rdi, %r8, 4), %rdi	
-					
-	/* Last instruction is %rcx = 0 */ 
-	subq $4, %rsi			
-	subq $4, %rdi			
-					
-	negq %r8			
-0:					
-	movq %r8, %rcx			
-					
-	incq %rcx			
+	/* Move right to left across each line, */
+	/* processing in two pixel chunks */
+	leaq (%rsi, %r8, 4), %rsi
+	leaq (%rdi, %r8, 4), %rdi
+
+	/* Last instruction is %rcx = 0 */
+	subq $4, %rsi
+	subq $4, %rdi
+
+	negq %r8
+0:
+	movq %r8, %rcx
+
+	incq %rcx
 
 	/* prefetch a couple cache lines ahead */
 	prefetchnta (%rsi, %rcx, 4)
@@ -156,7 +151,7 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	prefetchnta 64(%rsi, %rcx, 4)
 	prefetcht0 64(%rdi, %rcx, 4)
 
-	jz 2f /* one pixel line */	
+	jz 2f /* one pixel line */
 1:
 	/* main loop, unrolled to work on 64 byte chunks */
 	prefetchnta 128(%rsi, %rcx, 4)
@@ -168,13 +163,13 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -197,10 +192,10 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -208,13 +203,13 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -237,10 +232,10 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -248,13 +243,13 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -277,10 +272,10 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -288,13 +283,13 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -317,10 +312,10 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -328,13 +323,13 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -357,10 +352,10 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -368,13 +363,13 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -397,10 +392,10 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -408,13 +403,13 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -437,10 +432,10 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -448,13 +443,13 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -477,10 +472,10 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
-	js 1b				
-	jnz 3f				
+	incq %rcx
+	incq %rcx
+	js 1b
+	jnz 3f
 2:
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
@@ -488,13 +483,13 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -516,10 +511,10 @@ PR_(imlib_amd64_blend_rgba_to_rgb):
 	/* Repack new pixels */
 	packuswb %xmm4, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
-3:					
-	leaq (%rsi, %r10, 4), %rsi	
-	leaq (%rdi, %r11, 4), %rdi	
-	decq %r9			
+3:
+	leaq (%rsi, %r10, 4), %rsi
+	leaq (%rdi, %r11, 4), %rdi
+	decq %r9
 	jnz 0b
 
 9:
@@ -534,20 +529,20 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	movdqu mX000X000X000X000(%rip), %xmm6
 	movq pow_lut@GOTPCREL(%rip), %r13
 
-	/* Move right to left across each line, */ 
-	/* processing in two pixel chunks */ 
-	leaq (%rsi, %r8, 4), %rsi	
-	leaq (%rdi, %r8, 4), %rdi	
-					
-	/* Last instruction is %rcx = 0 */ 
-	subq $4, %rsi			
-	subq $4, %rdi			
-					
-	negq %r8			
-0:					
-	movq %r8, %rcx			
-					
-	incq %rcx			
+	/* Move right to left across each line, */
+	/* processing in two pixel chunks */
+	leaq (%rsi, %r8, 4), %rsi
+	leaq (%rdi, %r8, 4), %rdi
+
+	/* Last instruction is %rcx = 0 */
+	subq $4, %rsi
+	subq $4, %rdi
+
+	negq %r8
+0:
+	movq %r8, %rcx
+
+	incq %rcx
 
 	/* prefetch a couple cache lines ahead */
 	prefetchnta (%rsi, %rcx, 4)
@@ -555,7 +550,7 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	prefetchnta 64(%rsi, %rcx, 4)
 	prefetcht0 64(%rdi, %rcx, 4)
 
-	jz 2f /* one pixel line */	
+	jz 2f /* one pixel line */
 1:
 	/* main loop, unrolled to work on 64 byte chunks */
 	prefetchnta 128(%rsi, %rcx, 4)
@@ -563,8 +558,8 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -575,14 +570,14 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* override source alpha to 255 */
 	por %xmm6, %xmm1
 
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* unpack source and dest */
@@ -600,15 +595,15 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -619,14 +614,14 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* override source alpha to 255 */
 	por %xmm6, %xmm1
 
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* unpack source and dest */
@@ -644,15 +639,15 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -663,14 +658,14 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* override source alpha to 255 */
 	por %xmm6, %xmm1
 
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* unpack source and dest */
@@ -688,15 +683,15 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -707,14 +702,14 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* override source alpha to 255 */
 	por %xmm6, %xmm1
 
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* unpack source and dest */
@@ -732,15 +727,15 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -751,14 +746,14 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* override source alpha to 255 */
 	por %xmm6, %xmm1
 
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* unpack source and dest */
@@ -776,15 +771,15 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -795,14 +790,14 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* override source alpha to 255 */
 	por %xmm6, %xmm1
 
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* unpack source and dest */
@@ -820,15 +815,15 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -839,14 +834,14 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* override source alpha to 255 */
 	por %xmm6, %xmm1
 
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* unpack source and dest */
@@ -864,15 +859,15 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -883,14 +878,14 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* override source alpha to 255 */
 	por %xmm6, %xmm1
 
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* unpack source and dest */
@@ -908,28 +903,28 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
-	js 1b				
-	jnz 3f				
+	incq %rcx
+	incq %rcx
+	js 1b
+	jnz 3f
 2:
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
-	/* Load one pixel as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load one pixel as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 3(%rdi, %rcx, 4), %rdx
 	movb 3(%rsi, %rcx, 4), %dh
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %eax, %xmm3 
+	movd %eax, %xmm3
 	/* override source alpha to 255 */
 	por %xmm6, %xmm1
 
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* unpack source and dest */
@@ -946,10 +941,10 @@ PR_(imlib_amd64_blend_rgba_to_rgba):
 	/* repack new pixels */
 	packuswb %xmm4, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
-3:					
-	leaq (%rsi, %r10, 4), %rsi	
-	leaq (%rdi, %r11, 4), %rdi	
-	decq %r9			
+3:
+	leaq (%rsi, %r10, 4), %rsi
+	leaq (%rdi, %r11, 4), %rdi
+	decq %r9
 	jnz 0b
 
 9:
@@ -1361,20 +1356,20 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	pxor %xmm4, %xmm4
 	movdqu m00XXXXXX(%rip), %xmm6
 
-	/* Move right to left across each line, */ 
-	/* processing in two pixel chunks */ 
-	leaq (%rsi, %r8, 4), %rsi	
-	leaq (%rdi, %r8, 4), %rdi	
-					
-	/* Last instruction is %rcx = 0 */ 
-	subq $4, %rsi			
-	subq $4, %rdi			
-					
-	negq %r8			
-0:					
-	movq %r8, %rcx			
-					
-	incq %rcx			
+	/* Move right to left across each line, */
+	/* processing in two pixel chunks */
+	leaq (%rsi, %r8, 4), %rsi
+	leaq (%rdi, %r8, 4), %rdi
+
+	/* Last instruction is %rcx = 0 */
+	subq $4, %rsi
+	subq $4, %rdi
+
+	negq %r8
+0:
+	movq %r8, %rcx
+
+	incq %rcx
 
 	/* prefetch a couple cache lines ahead */
 	prefetchnta (%rsi, %rcx, 4)
@@ -1382,7 +1377,7 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	prefetchnta 64(%rsi, %rcx, 4)
 	prefetcht0 64(%rdi, %rcx, 4)
 
-	jz 2f /* one pixel line */	
+	jz 2f /* one pixel line */
 1:
 	/* main loop, unrolled to work on 64 byte chunks */
 	prefetchnta 128(%rsi, %rcx, 4)
@@ -1394,13 +1389,13 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -1421,10 +1416,10 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -1432,13 +1427,13 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -1459,10 +1454,10 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -1470,13 +1465,13 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -1497,10 +1492,10 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -1508,13 +1503,13 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -1535,10 +1530,10 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -1546,13 +1541,13 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -1573,10 +1568,10 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -1584,13 +1579,13 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -1611,10 +1606,10 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -1622,13 +1617,13 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -1649,10 +1644,10 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -1660,13 +1655,13 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -1687,10 +1682,10 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
-	js 1b				
-	jnz 3f				
+	incq %rcx
+	incq %rcx
+	js 1b
+	jnz 3f
 2:
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
@@ -1698,13 +1693,13 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -1724,10 +1719,10 @@ PR_(imlib_amd64_add_blend_rgba_to_rgb):
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
-3:					
-	leaq (%rsi, %r10, 4), %rsi	
-	leaq (%rdi, %r11, 4), %rdi	
-	decq %r9			
+3:
+	leaq (%rsi, %r10, 4), %rsi
+	leaq (%rdi, %r11, 4), %rdi
+	decq %r9
 	jnz 0b
 
 9:
@@ -1743,20 +1738,20 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	movdqu mX000X000X000X000(%rip), %xmm6
 	movq pow_lut@GOTPCREL(%rip), %r13
 
-	/* Move right to left across each line, */ 
-	/* processing in two pixel chunks */ 
-	leaq (%rsi, %r8, 4), %rsi	
-	leaq (%rdi, %r8, 4), %rdi	
-					
-	/* Last instruction is %rcx = 0 */ 
-	subq $4, %rsi			
-	subq $4, %rdi			
-					
-	negq %r8			
-0:					
-	movq %r8, %rcx			
-					
-	incq %rcx			
+	/* Move right to left across each line, */
+	/* processing in two pixel chunks */
+	leaq (%rsi, %r8, 4), %rsi
+	leaq (%rdi, %r8, 4), %rdi
+
+	/* Last instruction is %rcx = 0 */
+	subq $4, %rsi
+	subq $4, %rdi
+
+	negq %r8
+0:
+	movq %r8, %rcx
+
+	incq %rcx
 
 	/* prefetch a couple cache lines ahead */
 	prefetchnta (%rsi, %rcx, 4)
@@ -1764,7 +1759,7 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	prefetchnta 64(%rsi, %rcx, 4)
 	prefetcht0 64(%rdi, %rcx, 4)
 
-	jz 2f /* one pixel line */	
+	jz 2f /* one pixel line */
 1:
 	/* main loop, unrolled to work on 64 byte chunks */
 	prefetchnta 128(%rsi, %rcx, 4)
@@ -1772,8 +1767,8 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -1784,11 +1779,11 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -1805,20 +1800,20 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	psllw $1, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -1829,11 +1824,11 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -1850,20 +1845,20 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	psllw $1, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -1874,11 +1869,11 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -1895,20 +1890,20 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	psllw $1, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -1919,11 +1914,11 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -1940,20 +1935,20 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	psllw $1, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -1964,11 +1959,11 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -1985,20 +1980,20 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	psllw $1, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -2009,11 +2004,11 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -2030,20 +2025,20 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	psllw $1, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -2054,11 +2049,11 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -2075,20 +2070,20 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	psllw $1, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -2099,11 +2094,11 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -2120,30 +2115,30 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	psllw $1, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
-	js 1b				
-	jnz 3f				
+	incq %rcx
+	incq %rcx
+	js 1b
+	jnz 3f
 2:
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
-	/* Load one pixel as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load one pixel as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 3(%rdi, %rcx, 4), %rdx
 	movb 3(%rsi, %rcx, 4), %dh
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %eax, %xmm3 
+	movd %eax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -2160,14 +2155,14 @@ PR_(imlib_amd64_add_blend_rgba_to_rgba):
 	psllw $1, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
-3:					
-	leaq (%rsi, %r10, 4), %rsi	
-	leaq (%rdi, %r11, 4), %rdi	
-	decq %r9			
+3:
+	leaq (%rsi, %r10, 4), %rsi
+	leaq (%rdi, %r11, 4), %rdi
+	decq %r9
 	jnz 0b
 
 9:
@@ -2502,7 +2497,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
@@ -2528,7 +2523,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movdqa (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -2537,7 +2532,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movdqa (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -2546,7 +2541,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movdqa (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -2555,7 +2550,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movdqa (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -2570,7 +2565,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movdqu (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -2579,7 +2574,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movdqu (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -2588,7 +2583,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movdqu (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -2597,7 +2592,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movdqu (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -2610,7 +2605,7 @@ PR_(imlib_amd64_add_copy_rgb_to_rgba):
 
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
-	/* d = (d + s) | 0xff000000 */	
+	/* d = (d + s) | 0xff000000 */
 	paddusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
@@ -2633,20 +2628,20 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	pxor %xmm4, %xmm4
 	movdqu m00XXXXXX(%rip), %xmm6
 
-	/* Move right to left across each line, */ 
-	/* processing in two pixel chunks */ 
-	leaq (%rsi, %r8, 4), %rsi	
-	leaq (%rdi, %r8, 4), %rdi	
-					
-	/* Last instruction is %rcx = 0 */ 
-	subq $4, %rsi			
-	subq $4, %rdi			
-					
-	negq %r8			
-0:					
-	movq %r8, %rcx			
-					
-	incq %rcx			
+	/* Move right to left across each line, */
+	/* processing in two pixel chunks */
+	leaq (%rsi, %r8, 4), %rsi
+	leaq (%rdi, %r8, 4), %rdi
+
+	/* Last instruction is %rcx = 0 */
+	subq $4, %rsi
+	subq $4, %rdi
+
+	negq %r8
+0:
+	movq %r8, %rcx
+
+	incq %rcx
 
 	/* prefetch a couple cache lines ahead */
 	prefetchnta (%rsi, %rcx, 4)
@@ -2654,7 +2649,7 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	prefetchnta 64(%rsi, %rcx, 4)
 	prefetcht0 64(%rdi, %rcx, 4)
 
-	jz 2f /* one pixel line */	
+	jz 2f /* one pixel line */
 1:
 	/* main loop, unrolled to work on 64 byte chunks */
 	prefetchnta 128(%rsi, %rcx, 4)
@@ -2666,13 +2661,13 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -2693,10 +2688,10 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -2704,13 +2699,13 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -2731,10 +2726,10 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -2742,13 +2737,13 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -2769,10 +2764,10 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -2780,13 +2775,13 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -2807,10 +2802,10 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -2818,13 +2813,13 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -2845,10 +2840,10 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -2856,13 +2851,13 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -2883,10 +2878,10 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -2894,13 +2889,13 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -2921,10 +2916,10 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -2932,13 +2927,13 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -2959,10 +2954,10 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
-	js 1b				
-	jnz 3f				
+	incq %rcx
+	incq %rcx
+	js 1b
+	jnz 3f
 2:
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
@@ -2970,13 +2965,13 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	 * Result ranges is [0, 0x7fff], and is mapped to
 	 *  point values in [0.0, 1.0) by using the high word
 	 *  of the 32 bit multiplication result.
-	 * Because we want the unsigned value, we shift right one 
+	 * Because we want the unsigned value, we shift right one
 	 *  here and also shift left the other factors to compensate.
 	 */
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero out the alpha channel of the source to leave the
@@ -2996,10 +2991,10 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgb):
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
-3:					
-	leaq (%rsi, %r10, 4), %rsi	
-	leaq (%rdi, %r11, 4), %rdi	
-	decq %r9			
+3:
+	leaq (%rsi, %r10, 4), %rsi
+	leaq (%rdi, %r11, 4), %rdi
+	decq %r9
 	jnz 0b
 
 9:
@@ -3016,20 +3011,20 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	movdqu mX000X000(%rip), %xmm7
 	xorq %rax, %rax
 
-	/* Move right to left across each line, */ 
-	/* processing in two pixel chunks */ 
-	leaq (%rsi, %r8, 4), %rsi	
-	leaq (%rdi, %r8, 4), %rdi	
-					
-	/* Last instruction is %rcx = 0 */ 
-	subq $4, %rsi			
-	subq $4, %rdi			
-					
-	negq %r8			
-0:					
-	movq %r8, %rcx			
-					
-	incq %rcx			
+	/* Move right to left across each line, */
+	/* processing in two pixel chunks */
+	leaq (%rsi, %r8, 4), %rsi
+	leaq (%rdi, %r8, 4), %rdi
+
+	/* Last instruction is %rcx = 0 */
+	subq $4, %rsi
+	subq $4, %rdi
+
+	negq %r8
+0:
+	movq %r8, %rcx
+
+	incq %rcx
 
 	/* prefetch a couple cache lines ahead */
 	prefetchnta (%rsi, %rcx, 4)
@@ -3037,7 +3032,7 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	prefetchnta 64(%rsi, %rcx, 4)
 	prefetcht0 64(%rdi, %rcx, 4)
 
-	jz 2f /* one pixel line */	
+	jz 2f /* one pixel line */
 1:
 	/* main loop, unrolled to work on 64 byte chunks */
 	prefetchnta 128(%rsi, %rcx, 4)
@@ -3045,8 +3040,8 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -3057,11 +3052,11 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -3079,20 +3074,20 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	pmulhw %xmm3, %xmm1
 	pxor %xmm7, %xmm1
 	psubsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -3103,11 +3098,11 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -3125,20 +3120,20 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	pmulhw %xmm3, %xmm1
 	pxor %xmm7, %xmm1
 	psubsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -3149,11 +3144,11 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -3171,20 +3166,20 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	pmulhw %xmm3, %xmm1
 	pxor %xmm7, %xmm1
 	psubsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -3195,11 +3190,11 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -3217,20 +3212,20 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	pmulhw %xmm3, %xmm1
 	pxor %xmm7, %xmm1
 	psubsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -3241,11 +3236,11 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -3263,20 +3258,20 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	pmulhw %xmm3, %xmm1
 	pxor %xmm7, %xmm1
 	psubsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -3287,11 +3282,11 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -3309,20 +3304,20 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	pmulhw %xmm3, %xmm1
 	pxor %xmm7, %xmm1
 	psubsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -3333,11 +3328,11 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -3355,20 +3350,20 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	pmulhw %xmm3, %xmm1
 	pxor %xmm7, %xmm1
 	psubsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
-	/* Load two pixels as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load two pixels as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 7(%rdi, %rcx, 4), %rdx
 	movb 7(%rsi, %rcx, 4), %dh
@@ -3379,11 +3374,11 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	shlq $32, %rax
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -3401,30 +3396,30 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	pmulhw %xmm3, %xmm1
 	pxor %xmm7, %xmm1
 	psubsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
-	js 1b				
-	jnz 3f				
+	incq %rcx
+	incq %rcx
+	js 1b
+	jnz 3f
 2:
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
-	/* Load one pixel as 00, 00, src alpha, combined alpha 
-	 * Combined alpha is derived from the pow_lut table in blend.c 
+	/* Load one pixel as 00, 00, src alpha, combined alpha
+	 * Combined alpha is derived from the pow_lut table in blend.c
 	 */
 	movzbq 3(%rdi, %rcx, 4), %rdx
 	movb 3(%rsi, %rcx, 4), %dh
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
-	movd %eax, %xmm3 
+	movd %eax, %xmm3
 	/* unpack alpha to src alpha, combined alpha x 3 */
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* src alpha = 255 - dst alpha */
@@ -3442,14 +3437,14 @@ PR_(imlib_amd64_subtract_blend_rgba_to_rgba):
 	pmulhw %xmm3, %xmm1
 	pxor %xmm7, %xmm1
 	psubsw %xmm1, %xmm2
-	
+
 	/* pack new pixels */
 	packuswb %xmm4, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
-3:					
-	leaq (%rsi, %r10, 4), %rsi	
-	leaq (%rdi, %r11, 4), %rdi	
-	decq %r9			
+3:
+	leaq (%rsi, %r10, 4), %rsi
+	leaq (%rdi, %r11, 4), %rdi
+	decq %r9
 	jnz 0b
 
 9:
@@ -3805,7 +3800,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
@@ -3831,7 +3826,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movdqa (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -3840,7 +3835,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movdqa (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -3849,7 +3844,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movdqa (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -3858,7 +3853,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movdqa (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -3873,7 +3868,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movdqu (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -3882,7 +3877,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movdqu (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -3891,7 +3886,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movdqu (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -3900,7 +3895,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movdqu (%rsi, %rcx, 4), %xmm1
 	movdqa (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movdqa %xmm2, (%rdi, %rcx, 4)
@@ -3913,7 +3908,7 @@ PR_(imlib_amd64_subtract_copy_rgb_to_rgba):
 
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
-	/* d = (d - s) | 0xff000000 */	
+	/* d = (d - s) | 0xff000000 */
 	psubusb %xmm1, %xmm2
 	por %xmm5, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
@@ -3937,20 +3932,20 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movdqu m000V0V0V000V0V0V(%rip), %xmm6
 	movdqu m00XXXXXX(%rip), %xmm7
 
-	/* Move right to left across each line, */ 
-	/* processing in two pixel chunks */ 
-	leaq (%rsi, %r8, 4), %rsi	
-	leaq (%rdi, %r8, 4), %rdi	
-					
-	/* Last instruction is %rcx = 0 */ 
-	subq $4, %rsi			
-	subq $4, %rdi			
-					
-	negq %r8			
-0:					
-	movq %r8, %rcx			
-					
-	incq %rcx			
+	/* Move right to left across each line, */
+	/* processing in two pixel chunks */
+	leaq (%rsi, %r8, 4), %rsi
+	leaq (%rdi, %r8, 4), %rdi
+
+	/* Last instruction is %rcx = 0 */
+	subq $4, %rsi
+	subq $4, %rdi
+
+	negq %r8
+0:
+	movq %r8, %rcx
+
+	incq %rcx
 
 	/* prefetch a couple cache lines ahead */
 	prefetchnta (%rsi, %rcx, 4)
@@ -3958,7 +3953,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	prefetchnta 64(%rsi, %rcx, 4)
 	prefetcht0 64(%rdi, %rcx, 4)
 
-	jz 2f /* one pixel line */	
+	jz 2f /* one pixel line */
 1:
 	/* main loop, unrolled to work on 64 byte chunks */
 	prefetchnta 128(%rsi, %rcx, 4)
@@ -3970,7 +3965,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero blending alpha */
@@ -3990,10 +3985,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4001,7 +3996,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero blending alpha */
@@ -4021,10 +4016,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4032,7 +4027,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero blending alpha */
@@ -4052,10 +4047,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4063,7 +4058,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero blending alpha */
@@ -4083,10 +4078,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4094,7 +4089,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero blending alpha */
@@ -4114,10 +4109,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4125,7 +4120,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero blending alpha */
@@ -4145,10 +4140,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4156,7 +4151,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero blending alpha */
@@ -4176,10 +4171,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4187,7 +4182,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero blending alpha */
@@ -4207,10 +4202,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
-	js 1b				
-	jnz 3f				
+	incq %rcx
+	incq %rcx
+	js 1b
+	jnz 3f
 2:
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
@@ -4218,7 +4213,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	movq %xmm1, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0xFF, %xmm3, %xmm3
-	pshuflw $0xFF, %xmm3, %xmm3 
+	pshuflw $0xFF, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	/* Zero blending alpha */
@@ -4237,10 +4232,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgb):
 	/* Repack new pixels */
 	packuswb %xmm4, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
-3:					
-	leaq (%rsi, %r10, 4), %rsi	
-	leaq (%rdi, %r11, 4), %rdi	
-	decq %r9			
+3:
+	leaq (%rsi, %r10, 4), %rsi
+	leaq (%rdi, %r11, 4), %rdi
+	decq %r9
 	jnz 0b
 
 9:
@@ -4258,20 +4253,20 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movdqu m000V0V0V000V0V0V(%rip), %xmm8
 	xorq %rax, %rax
 
-	/* Move right to left across each line, */ 
-	/* processing in two pixel chunks */ 
-	leaq (%rsi, %r8, 4), %rsi	
-	leaq (%rdi, %r8, 4), %rdi	
-					
-	/* Last instruction is %rcx = 0 */ 
-	subq $4, %rsi			
-	subq $4, %rdi			
-					
-	negq %r8			
-0:					
-	movq %r8, %rcx			
-					
-	incq %rcx			
+	/* Move right to left across each line, */
+	/* processing in two pixel chunks */
+	leaq (%rsi, %r8, 4), %rsi
+	leaq (%rdi, %r8, 4), %rdi
+
+	/* Last instruction is %rcx = 0 */
+	subq $4, %rsi
+	subq $4, %rdi
+
+	negq %r8
+0:
+	movq %r8, %rcx
+
+	incq %rcx
 
 	/* prefetch a couple cache lines ahead */
 	prefetchnta (%rsi, %rcx, 4)
@@ -4279,7 +4274,7 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	prefetchnta 64(%rsi, %rcx, 4)
 	prefetcht0 64(%rdi, %rcx, 4)
 
-	jz 2f /* one pixel line */	
+	jz 2f /* one pixel line */
 1:
 	/* main loop, unrolled to work on 64 byte chunks */
 	prefetchnta 128(%rsi, %rcx, 4)
@@ -4298,10 +4293,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
 	shrb $1, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	movdqa %xmm2, %xmm0
@@ -4316,14 +4311,14 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	psllw $2, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4338,10 +4333,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
 	shrb $1, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	movdqa %xmm2, %xmm0
@@ -4356,14 +4351,14 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	psllw $2, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4378,10 +4373,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
 	shrb $1, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	movdqa %xmm2, %xmm0
@@ -4396,14 +4391,14 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	psllw $2, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4418,10 +4413,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
 	shrb $1, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	movdqa %xmm2, %xmm0
@@ -4436,14 +4431,14 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	psllw $2, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4458,10 +4453,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
 	shrb $1, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	movdqa %xmm2, %xmm0
@@ -4476,14 +4471,14 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	psllw $2, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4498,10 +4493,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
 	shrb $1, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	movdqa %xmm2, %xmm0
@@ -4516,14 +4511,14 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	psllw $2, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4538,10 +4533,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
 	shrb $1, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	movdqa %xmm2, %xmm0
@@ -4556,14 +4551,14 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	psllw $2, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
+	incq %rcx
+	incq %rcx
 	jz 2f
-	jns 3f				
+	jns 3f
 
 	movq (%rsi, %rcx, 4), %xmm1
 	movq (%rdi, %rcx, 4), %xmm2
@@ -4578,10 +4573,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
 	shrb $1, %ah
-	movd %rax, %xmm3 
+	movd %rax, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	movdqa %xmm2, %xmm0
@@ -4596,14 +4591,14 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	psllw $2, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	packuswb %xmm4, %xmm2
 	movq %xmm2, (%rdi, %rcx, 4)
 
-	incq %rcx			
-	incq %rcx			
-	js 1b				
-	jnz 3f				
+	incq %rcx
+	incq %rcx
+	js 1b
+	jnz 3f
 2:
 	movd (%rsi, %rcx, 4), %xmm1
 	movd (%rdi, %rcx, 4), %xmm2
@@ -4612,10 +4607,10 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	movb (%r13, %rdx), %al
 	movb %dh, %ah
 	shrb $1, %ah
-	movd %eax, %xmm3 
+	movd %eax, %xmm3
 	punpcklbw %xmm3, %xmm3
 	pshufhw $0x40, %xmm3, %xmm3
-	pshuflw $0x40, %xmm3, %xmm3	
+	pshuflw $0x40, %xmm3, %xmm3
 	psrlw $1, %xmm3
 
 	movdqa %xmm2, %xmm0
@@ -4630,13 +4625,13 @@ PR_(imlib_amd64_reshade_blend_rgba_to_rgba):
 	psllw $2, %xmm1
 	pmulhw %xmm3, %xmm1
 	paddsw %xmm1, %xmm2
-	
+
 	packuswb %xmm4, %xmm2
 	movd %xmm2, (%rdi, %rcx, 4)
-3:					
-	leaq (%rsi, %r10, 4), %rsi	
-	leaq (%rdi, %r11, 4), %rdi	
-	decq %r9			
+3:
+	leaq (%rsi, %r10, 4), %rsi
+	leaq (%rdi, %r11, 4), %rdi
+	decq %r9
 	jnz 0b
 
 9:
@@ -5015,7 +5010,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5055,7 +5050,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5078,7 +5073,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5101,7 +5096,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5124,7 +5119,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5153,7 +5148,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5176,7 +5171,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5199,7 +5194,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5222,7 +5217,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5249,7 +5244,7 @@ PR_(imlib_amd64_reshade_copy_rgba_to_rgba):
 	/* d = d + s1 - s2, unsigned saturation */
 	paddusb %xmm1, %xmm2
 	psubusb %xmm3, %xmm2
-	
+
 	/* d alpha = s alpha */
 	pand %xmm5, %xmm2
 	pand %xmm7, %xmm0
@@ -5520,8 +5515,6 @@ PR_(imlib_amd64_reshade_copy_rgb_to_rgba):
 9:
 	LEAVE
 SIZE(imlib_amd64_reshade_copy_rgb_to_rgba)
-
-#endif
 
 #ifdef __ELF__
 .section .note.GNU-stack,"",@progbits
