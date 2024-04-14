@@ -3,6 +3,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -595,6 +596,8 @@ main(int argc, char **argv)
 {
     int             opt, err;
     int             no, inc;
+    static int      nfds;
+    static struct pollfd afds[1];
 
     verbose = 0;
 
@@ -684,14 +687,15 @@ main(int argc, char **argv)
         exit(0);
     }
 
+    nfds = 0;
+    afds[nfds++].fd = ConnectionNumber(disp);
+
     for (;;)
     {
-        int             x, y, b, count, fdsize, xfd, timeout;
+        int             x, y, b, count, timeout;
         XEvent          ev;
         static int      zoom_mode = 0, zx, zy;
         static double   zoom = 1.0;
-        struct timeval  tval;
-        fd_set          fdset;
         KeySym          key;
         int             no2;
 
@@ -848,21 +852,7 @@ main(int argc, char **argv)
         if (multiframe)
             continue;
 
-        xfd = ConnectionNumber(disp);
-        fdsize = xfd + 1;
-        FD_ZERO(&fdset);
-        FD_SET(xfd, &fdset);
-
-        if (timeout > 0)
-        {
-            tval.tv_sec = timeout / 1000000;
-            tval.tv_usec = timeout - tval.tv_sec * 1000000;
-            count = select(fdsize, &fdset, NULL, NULL, &tval);
-        }
-        else
-        {
-            count = select(fdsize, &fdset, NULL, NULL, NULL);
-        }
+        count = poll(afds, nfds, timeout);
 
         if (count < 0)
         {
