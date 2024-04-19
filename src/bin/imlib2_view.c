@@ -36,6 +36,7 @@ static bool     opt_cache = false;
 static bool     opt_progr = true;       /* Render through progress callback */
 static bool     opt_scale = false;
 static bool     opt_cbalt = false;      /* Alternate checkerboard colors (red/green) */
+static bool     opt_aa_final = true;    /* Do final anti-aliased rendering */
 static double   opt_scale_x = 1.;
 static double   opt_scale_y = 1.;
 static double   opt_sgrab_x = 1.;
@@ -65,6 +66,7 @@ static int      animloop = 0;   /* Animation loop count          */
    "Usage:\n" \
    "  imlib2_view [OPTIONS] {FILE | XID}...\n" \
    "OPTIONS:\n" \
+   "  -a         : Disable final anti-aliased rendering\n" \
    "  -c         : Enable image caching (implies -e)\n" \
    "  -d         : Enable debug\n" \
    "  -e         : Do rendering explicitly (not via progress callback)\n" \
@@ -611,10 +613,13 @@ main(int argc, char **argv)
 
     verbose = 0;
 
-    while ((opt = getopt(argc, argv, "cdeg:l:ps:S:t:v")) != -1)
+    while ((opt = getopt(argc, argv, "acdeg:l:ps:S:t:v")) != -1)
     {
         switch (opt)
         {
+        case 'a':
+            opt_aa_final = false;
+            break;
         case 'c':
             opt_cache = true;
             opt_progr = false;  /* Cached images won't give progress callbacks */
@@ -876,8 +881,11 @@ main(int argc, char **argv)
         }
         else if (count == 0)
         {
-            /* "Final" (delayed) re-rendering with AA */
-            bg_pm_redraw(zx, zy, zoom, 1);
+            if (opt_aa_final)
+            {
+                /* "Final" (delayed) re-rendering with AA */
+                bg_pm_redraw(zx, zy, zoom, 1);
+            }
         }
     }
 
