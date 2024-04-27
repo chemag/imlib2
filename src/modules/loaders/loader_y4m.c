@@ -338,8 +338,12 @@ y4m_parse_frame(Y4mParse *res)
     case Y4M_PARSE_CS_420MPEG2:
     case Y4M_PARSE_CS_420PALDV:
     case Y4M_PARSE_CS_420:
-    case Y4M_PARSE_CS_420P10:
         res->frame_data_len = npixels * 3 / 2;
+        sdiv = 2;
+        voff = (npixels * 5) / 4;
+        break;
+    case Y4M_PARSE_CS_420P10:
+        res->frame_data_len = npixels * 3;
         sdiv = 2;
         voff = (npixels * 5) / 4;
         break;
