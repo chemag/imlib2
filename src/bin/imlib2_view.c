@@ -16,6 +16,16 @@
 #define MIN(a, b) ((a < b) ? a : b)
 #define MAX(a, b) ((a > b) ? a : b)
 
+#define PIXEL_ARGB(a, r, g, b)  ((uint32_t)(a) << 24) | ((r) << 16) | ((g) << 8) | (b)
+
+#define PIXEL_A(argb)  (((argb) >> 24) & 0xff)
+#define PIXEL_R(argb)  (((argb) >> 16) & 0xff)
+#define PIXEL_G(argb)  (((argb) >>  8) & 0xff)
+#define PIXEL_B(argb)  (((argb)      ) & 0xff)
+
+#define RGBA_VALUES(argb) \
+    PIXEL_R(argb), PIXEL_G(argb), PIXEL_B(argb), PIXEL_A(argb)
+
 typedef struct {
     int             x, y;       /* Origin */
     int             w, h;       /* Size   */
@@ -36,7 +46,6 @@ static Imlib_Border border;
 static bool     opt_cache = false;
 static bool     opt_progr = true;       /* Render through progress callback */
 static bool     opt_scale = false;
-static bool     opt_cbalt = false;      /* Alternate checkerboard colors (red/green) */
 static bool     opt_aa_final = true;    /* Do final anti-aliased rendering */
 static double   opt_sc_inp_x = 1.;
 static double   opt_sc_inp_y = 1.;
@@ -46,6 +55,8 @@ static int      opt_cbfs = 8;   /* Background checkerboard field size */
 static char     opt_progress_granularity = 10;
 static char     opt_progress_print = 0;
 static int      opt_progress_delay = 0;
+static unsigned int bg_cb_col_a = PIXEL_ARGB(255, 144, 144, 144);
+static unsigned int bg_cb_col_b = PIXEL_ARGB(255, 100, 100, 100);
 
 static Imlib_Frame_Info finfo;
 static bool     multiframe = false;     /* Image has multiple frames     */
@@ -80,6 +91,7 @@ static int      animloop = 0;   /* Animation loop count          */
    "  -s Sx[,Sy] : Set output x/y scaling factors to Sx,Sy (default 1.0)\n" \
    "  -S Sx[,Sy] : Set input x/y scaling factors to Sx,Sy (default 1.0)\n" \
    "  -t N       : Set background checkerboard field size (default 8)\n" \
+   "  -T CA,CB   : Set background checkerboard colors (0xRRGGBB,0xRRGGBB)\n" \
    "  -v         : Increase verbosity\n"
 
 static void
@@ -109,20 +121,10 @@ bg_im_init(int w, int h)
         onoff = (y / opt_cbfs) & 0x1;
         for (x = 0; x < w; x += opt_cbfs)
         {
-            if (opt_cbalt)
-            {
-                if (onoff)
-                    imlib_context_set_color(255, 0, 0, 255);
-                else
-                    imlib_context_set_color(0, 255, 0, 255);
-            }
+            if (onoff)
+                imlib_context_set_color(RGBA_VALUES(bg_cb_col_a));
             else
-            {
-                if (onoff)
-                    imlib_context_set_color(144, 144, 144, 255);
-                else
-                    imlib_context_set_color(100, 100, 100, 255);
-            }
+                imlib_context_set_color(RGBA_VALUES(bg_cb_col_b));
             imlib_image_fill_rectangle(x, y, opt_cbfs, opt_cbfs);
             onoff ^= 0x1;
         }
@@ -621,12 +623,13 @@ main(int argc, char **argv)
 {
     int             opt, err;
     int             no, inc;
+    unsigned int    va, vb;
     static int      nfds;
     static struct pollfd afds[1];
 
     verbose = 0;
 
-    while ((opt = getopt(argc, argv, "ab:cdeg:l:ps:S:t:v")) != -1)
+    while ((opt = getopt(argc, argv, "ab:cdeg:l:ps:S:t:T:v")) != -1)
     {
         switch (opt)
         {
@@ -671,14 +674,17 @@ main(int argc, char **argv)
                 opt_sc_inp_y = opt_sc_inp_x;
             break;
         case 't':
-            if (*optarg == 'a')
-            {
-                optarg++;
-                opt_cbalt = true;
-            }
             no = atoi(optarg);
             if (no > 0)
                 opt_cbfs = no;
+            break;
+        case 'T':
+            va = vb = 1;
+            sscanf(optarg, "%x,%x", &va, &vb);
+            bg_cb_col_a =
+                va != 1 ? va | 0xff000000 : PIXEL_ARGB(255, 255, 0, 0);
+            bg_cb_col_b =
+                vb != 1 ? vb | 0xff000000 : PIXEL_ARGB(255, 0, 255, 0);
             break;
         case 'v':
             verbose += 1;
