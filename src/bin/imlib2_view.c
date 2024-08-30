@@ -780,6 +780,9 @@ main(int argc, char **argv)
                 {
                 default:
                     break;
+                case XK_a:
+                    opt_aa_final = !opt_aa_final;
+                    goto show_cur;
                 case XK_q:
                 case XK_Escape:
                     goto quit;
