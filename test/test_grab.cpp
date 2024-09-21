@@ -135,7 +135,11 @@ _pmap_mk_fill_solid(int w, int h, unsigned int col_bg, unsigned int col_fg)
 
     gcv.foreground = pix_bg;
     gcv.graphics_exposures = False;
-    gc = XCreateGC(xd.dpy, pmap, GCForeground | GCGraphicsExposures, &gcv);
+    gcv.line_width = 1;
+    if (getenv("IMLIB2_TEST_LW0_BUG"))
+        gcv.line_width = 0;
+    gc = XCreateGC(xd.dpy, pmap,
+                   GCForeground | GCGraphicsExposures | GCLineWidth, &gcv);
 
     XFillRectangle(xd.dpy, pmap, gc, 0, 0, w, h);
 
