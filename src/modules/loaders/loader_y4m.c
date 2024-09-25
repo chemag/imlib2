@@ -126,6 +126,8 @@ y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
     // default values
     res->range = Y4M_PARSE_RANGE_UNSPECIFIED;
     res->depth = 8;
+    res->fps_num = 1;
+    res->fps_den = 1;
 
     for (;;)
     {
