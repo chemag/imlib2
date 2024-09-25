@@ -110,6 +110,7 @@ static tii_t    tii[] = {
    { "img-17x14.yuv420p10.full_range.y4m",  839224907 },
    { "img-8x8.full_range.y4m",             1737487406 },
    { "img-8x8.yuv420p10.full_range.y4m",   1737487406 },
+   { "img-8x8.yuv420p10.full_range.framerate_no.y4m",   1737487406 },
 #endif
 
    { "icon-128.ico",             218415319 },
