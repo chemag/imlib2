@@ -68,7 +68,7 @@ __imlib_CalcPoints(int sw, int dw_, int b1, int b2, bool aa, int up)
         else
         {
             for (i = 0; i < dd; i++)
-                p[b1 + i] = b1 + (i * ss) / dd;
+                p[b1 + i] = b1 + ((long long)i * ss) / dd;
             i = dw - b2;
         }
     }
