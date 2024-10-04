@@ -197,7 +197,8 @@ __imlib_FreeScaleInfo(ImlibScaleInfo *isi)
 }
 
 ImlibScaleInfo *
-__imlib_CalcScaleInfo(ImlibImage *im, int sw, int sh, int dw, int dh, bool aa)
+__imlib_CalcScaleInfo(const ImlibImage *im, int sw, int sh, int dw, int dh,
+                      bool aa)
 {
     ImlibScaleInfo *isi;
     int             scw, sch;
@@ -249,11 +250,13 @@ __imlib_CalcScaleInfo(ImlibImage *im, int sw, int sh, int dw, int dh, bool aa)
 
 /* scale by pixel sampling only */
 static void
-__imlib_ScaleSampleRGBA(ImlibScaleInfo *isi, uint32_t *srce, uint32_t *dest,
-                        int dxx, int dyy, int dx, int dy, int dw, int dh,
-                        int dow, int sow)
+__imlib_ScaleSampleRGBA(const ImlibScaleInfo *isi,
+                        const uint32_t *srce, uint32_t *dest,
+                        int dxx, int dyy, int dx, int dy,
+                        int dw, int dh, int dow, int sow)
 {
-    uint32_t       *sptr, *dptr;
+    const uint32_t *sptr;
+    uint32_t       *dptr;
     int             x, y, end;
     int            *ypoints = isi->ypoints;
     int            *xpoints = isi->xpoints;
@@ -277,11 +280,13 @@ __imlib_ScaleSampleRGBA(ImlibScaleInfo *isi, uint32_t *srce, uint32_t *dest,
 
 /* scale by area sampling */
 static void
-__imlib_ScaleAARGBA(ImlibScaleInfo *isi, uint32_t *srce, uint32_t *dest,
-                    int dxx, int dyy, int dx, int dy, int dw, int dh, int dow,
-                    int sow)
+__imlib_ScaleAARGBA(const ImlibScaleInfo *isi,
+                    const uint32_t *srce, uint32_t *dest,
+                    int dxx, int dyy, int dx, int dy, int dw, int dh,
+                    int dow, int sow)
 {
-    uint32_t       *sptr, *dptr, *pix;
+    const uint32_t *sptr, *pix;
+    uint32_t       *dptr;
     int             r, g, b, a;
     int             x, y, end;
     int            *ypoints;
@@ -681,11 +686,13 @@ __imlib_ScaleAARGBA(ImlibScaleInfo *isi, uint32_t *srce, uint32_t *dest,
 
 /* scale by area sampling - IGNORE the ALPHA byte*/
 static void
-__imlib_ScaleAARGB(ImlibScaleInfo *isi, uint32_t *srce, uint32_t *dest,
-                   int dxx, int dyy, int dx, int dy, int dw, int dh, int dow,
-                   int sow)
+__imlib_ScaleAARGB(const ImlibScaleInfo *isi,
+                   const uint32_t *srce, uint32_t *dest,
+                   int dxx, int dyy, int dx, int dy, int dw, int dh,
+                   int dow, int sow)
 {
-    uint32_t       *sptr, *dptr, *pix;
+    const uint32_t *sptr, *pix;
+    uint32_t       *dptr;
     int             r, g, b;
     int             x, y, end;
     int            *ypoints;
@@ -1038,9 +1045,9 @@ __imlib_ScaleAARGB(ImlibScaleInfo *isi, uint32_t *srce, uint32_t *dest,
 }
 
 void
-__imlib_Scale(ImlibScaleInfo *isi, bool aa, bool alpha,
-              uint32_t *srce, uint32_t *dest, int dxx, int dyy, int dx,
-              int dy, int dw, int dh, int dow, int sow)
+__imlib_Scale(const ImlibScaleInfo *isi, bool aa, bool alpha,
+              const uint32_t *srce, uint32_t *dest, int dxx, int dyy,
+              int dx, int dy, int dw, int dh, int dow, int sow)
 {
     if (aa)
     {
