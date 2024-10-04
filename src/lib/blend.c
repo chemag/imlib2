@@ -1839,22 +1839,19 @@ __imlib_BlendImageToImage(const ImlibImage *im_src, ImlibImage *im_dst,
             CLIP(ddx, ddy, ddw, ddh, clx, cly, clw, clh);
             if (ddw <= 0 || ddh <= 0)
                 return;
-            px = ddx - px;
-            py = ddy - py;
-            ssx += px;
-            ssy += py;
+            ssx += ddx - px;
+            ssy += ddy - py;
         }
 
         __imlib_BlendRGBAToData(im_src->data, im_src->w, im_src->h,
                                 im_dst->data, im_dst->w, im_dst->h,
-                                ssx, ssy,
-                                ddx, ddy,
-                                ddw, ddh, blend, merge_alpha, cm, op, rgb_src);
+                                ssx, ssy, ddx, ddy, ddw, ddh,
+                                blend, merge_alpha, cm, op, rgb_src);
     }
     else
     {
-        ImlibScaleInfo *scaleinfo = NULL;
-        uint32_t       *buf = NULL;
+        ImlibScaleInfo *scaleinfo;
+        uint32_t       *buf;
         int             sx, sy, sw, sh, dx, dy, dw, dh, dxx, dyy, y2, x2;
         int             psx, psy, psw, psh;
         int             y, h, hh;
@@ -1958,8 +1955,7 @@ __imlib_BlendImageToImage(const ImlibImage *im_src, ImlibImage *im_dst,
                           0, 0, dw, hh, dw, im_src->w);
 
             __imlib_BlendRGBAToData(buf, dw, hh,
-                                    im_dst->data, im_dst->w,
-                                    im_dst->h,
+                                    im_dst->data, im_dst->w, im_dst->h,
                                     0, 0, dx, dy + y, dw, dh,
                                     blend, merge_alpha, cm, op, rgb_src);
         }
