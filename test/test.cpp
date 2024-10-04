@@ -89,6 +89,10 @@ extern "C" {
 }
 /**INDENT-ON**/
 
+/* Skip crc checks on jxl images by default.
+ * They seem to be quite sensitive to libjxl version and cpu type(?) */
+#define IMLIB2_TEST_FILES_SKIP_DEFAULT "jxl"
+
 bool
 file_skip(const char *file)
 {
@@ -98,6 +102,8 @@ file_skip(const char *file)
     if (skiplist == (char **)(-1))
     {
         s = getenv("IMLIB2_TEST_FILES_SKIP");
+        if (!s)
+            s = IMLIB2_TEST_FILES_SKIP_DEFAULT;
         skiplist = __imlib_StrSplit(s, ':');
     }
 
