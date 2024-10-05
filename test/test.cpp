@@ -45,23 +45,38 @@ main(int argc, char **argv)
 #define COL_WHT  "\x1B[37m"
 
 #include <stdarg.h>
-void
-pr_info(const char *fmt, ...)
+static void
+_pr_text(const char *col, const char *fmt, va_list args)
 {
     char            fmtx[1024];
-    va_list         args;
-
-    va_start(args, fmt);
 
     if (ttyout)
-        snprintf(fmtx, sizeof(fmtx), COL_YEL "[          ] -  %s%s\n",
-                 fmt, COL_RST);
+        snprintf(fmtx, sizeof(fmtx), "%s[          ] -  %s%s\n",
+                 col, fmt, COL_RST);
     else
         snprintf(fmtx, sizeof(fmtx), "[          ] -  %s\n", fmt);
     fmt = fmtx;
 
     vprintf(fmt, args);
+}
 
+static void
+pr_text(const char *col, const char *fmt, ...)
+{
+    va_list         args;
+
+    va_start(args, fmt);
+    _pr_text(col, fmt, args);
+    va_end(args);
+}
+
+void
+pr_info(const char *fmt, ...)
+{
+    va_list         args;
+
+    va_start(args, fmt);
+    _pr_text(COL_YEL, fmt, args);
     va_end(args);
 }
 
@@ -114,7 +129,7 @@ file_skip(const char *file)
     {
         if (strstr(file, skiplist[i]))
         {
-            printf("skip c %s\n", file);
+            pr_text(COL_MAG, "Skip '%s'", file);
             return true;
         }
     }
