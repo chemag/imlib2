@@ -4,6 +4,7 @@
 #include <math.h>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcomment"
+#pragma GCC diagnostic ignored "-Wexpansion-to-defined"
 #include <librsvg/rsvg.h>
 #pragma GCC diagnostic pop
 
