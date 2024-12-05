@@ -5,6 +5,9 @@
 #include <Imlib2.h>
 
 #include <fcntl.h>
+#ifdef BUILD_HEIF_LOADER
+#include <libheif/heif.h>
+#endif
 #ifdef BUILD_JXL_LOADER
 #include <jxl/version.h>
 #endif
@@ -37,7 +40,11 @@ static tii_t    tii[] = {
    { "icon-64.gif",             4016720483 },
 #endif
 #ifdef BUILD_HEIF_LOADER
+#if LIBHEIF_HAVE_VERSION(1, 19, 0)
+   { "icon-64.heif",            2890558091 },
+#else
    { "icon-64.heif",            1346959048 },
+#endif
 #endif
    { "icon-64.ico",             1153555547 },
    { "icon-64.ilbm",            1153555547 },
