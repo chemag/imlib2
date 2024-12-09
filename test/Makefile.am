@@ -23,6 +23,7 @@ endif
 
  AM_CFLAGS  = -Wall -Wextra -Werror -Wno-unused-parameter
  AM_CFLAGS += $(CFLAGS_ASAN)
+ AM_CFLAGS += $(HEIF_CFLAGS) $(JXL_CFLAGS)
 
  AM_CXXFLAGS = $(AM_CFLAGS)
 
