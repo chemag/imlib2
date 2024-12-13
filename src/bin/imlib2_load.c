@@ -286,8 +286,10 @@ main(int argc, char **argv)
             }
 
             imlib_context_set_image(im);
-            V2printf("- Image: fmt=%s WxH=%dx%d\n", imlib_image_format(),
-                     imlib_image_get_width(), imlib_image_get_height());
+            V2printf("- Image: fmt=%s WxH=%dx%d alpha=%c\n",
+                     imlib_image_format(),
+                     imlib_image_get_width(), imlib_image_get_height(),
+                     imlib_image_has_alpha()? 'y' : 'n');
 
             if (load_mode == LOAD_DEFER)
             {

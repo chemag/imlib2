@@ -411,8 +411,10 @@ progress(Imlib_Image im, char percent, int update_x, int update_y,
         }
         Dprintf(" Window WxH=%dx%d\n", window_width, window_height);
 
-        V2printf(" Image  WxH=%dx%d fmt='%s'\n",
-                 up_ww, up_wh, imlib_image_format());
+        V2printf("- Image: fmt=%s WxH=%dx%d alpha=%c\n",
+                 imlib_image_format(),
+                 imlib_image_get_width(), imlib_image_get_height(),
+                 imlib_image_has_alpha()? 'y' : 'n');
 
         /* Initialize checkered background image */
         bg_im_init(image_width, image_height);
