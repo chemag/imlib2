@@ -24,90 +24,104 @@ typedef struct {
 
 static tii_t    tii[] = {
 /**INDENT-OFF**/
-   { "icon-64.argb",            1153555547 },
-   { "icon-64.bmp",             1153555547 },
-   { "icon-64.ff",              1153555547 },
+   { "image-noalp-64.argb",             1636116234 },
+   { "image-noalp-64.bmp",              1636116234 },
+   { "image-noalp-64.ff",               1636116234 },
+   { "image-alpha-64.ff",                169859126 },
 #ifdef BUILD_BZ2_LOADER
-   { "icon-64.ff.bz2",          1153555547 },
+   { "image-noalp-64.ff.bz2",           1636116234 },
 #endif
 #ifdef BUILD_ZLIB_LOADER
-   { "icon-64.ff.gz",           1153555547 },
+   { "image-noalp-64.ff.gz",            1636116234 },
 #endif
 #ifdef BUILD_LZMA_LOADER
-   { "icon-64.ff.xz",           1153555547 },
+   { "image-noalp-64.ff.xz",            1636116234 },
 #endif
 #ifdef BUILD_GIF_LOADER
-   { "icon-64.gif",             4016720483 },
+   { "image-noalp-64.gif",               424929245 },
 #endif
 #ifdef BUILD_HEIF_LOADER
 #if LIBHEIF_HAVE_VERSION(1, 19, 0)
-   { "icon-64.heif",            2890558091 },
+   { "image-noalp-64.heif",             2791706719 },
+   { "image-alpha-64.heif",             2131715016 },
 #else
-   { "icon-64.heif",            1346959048 },
+   { "image-noalp-64.heif",             2910467726 },
+   { "image-alpha-64.heif",              722818128 },
 #endif
 #endif
-   { "icon-64.ico",             1153555547 },
-   { "icon-64.ilbm",            1153555547 },
+   { "image-noalp-64.ico",              1636116234 },
+   { "image-noalp-64.ilbm",             1636116234 },
 #ifdef BUILD_JPEG_LOADER
-   { "icon-64.jpg",             4132154843 },
+   { "image-noalp-64.jpg",              3363041416 },
 #endif
 #ifdef BUILD_ID3_LOADER
-   { "icon-64.jpg.mp3",         4132154843 },
+#ifdef BUILD_PNG_LOADER
+   { "image-noalp-64.png.mp3",          1636116234 },
+#endif
 #endif
 #ifdef BUILD_J2K_LOADER
-   { "icon-64.jp2",              451428725 },
-   { "icon-64.j2k",              451428725 },
-   { "xeyes.jp2",               2937827957 },
-   { "xeyes.j2k",               2937827957 },
-   { "icon-64-gray.jp2",        2437152898 },
-   { "icon-64-gray.j2k",        2437152898 },
-   { "xeyes-gray.jp2",          3377113384 },
-   { "xeyes-gray.j2k",          3377113384 },
+   { "image-noalp-64.jp2",              1636116234 },
+   { "image-noalp-64.j2k",              1636116234 },
+   { "image-alpha-64.jp2",               169859126 },
+   { "image-alpha-64.j2k",               169859126 },
+   { "image-noalp-64-gray.jp2",          479878920 },
+   { "image-noalp-64-gray.j2k",          479878920 },
+   { "image-alpha-64-gray.jp2",         1639956975 },
+   { "image-alpha-64-gray.j2k",         1639956975 },
 #endif
 #ifdef BUILD_JXL_LOADER
 #if JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 10, 0)
 #ifdef __i386__
-   { "icon-64.jxl",             2700566991 },
+   { "image-noalp-64.jxl",              2550658206 },
 #else
-   { "icon-64.jxl",             2773434955 },
+   { "image-noalp-64.jxl",              3151654577 },
 #endif
 #else
-   { "icon-64.jxl",             2534597492 },
+   { "image-noalp-64.jxl",              2534597492 },
 #endif
 #endif
 #ifdef BUILD_PNG_LOADER
-   { "icon-64.png",             1153555547 },
-   { "xeyes.png",               2937827957 },
-   { "xeyes-gray.png",          3493264608 },
+   { "image-noalp-64.png",              1636116234 },
+   { "image-alpha-64.png",               169859126 },
+   { "image-alpha-64-gray.png",         1639956975 },
 #endif
-   { "icon-64.ppm",             1153555547 },
-   { "icon-64.pgm",              140949526 },
-   { "icon-64.pbm",             3936773892 },
-   { "icon-64-P3.ppm",          1153555547 },
-   { "icon-64-P2.pgm",           140949526 },
-   { "icon-64-P1.pbm",          3936773892 },
-   { "icon-64-P7_332.ppm",      3790447752 },
-   { "xeyes-P8.ppm",            2937827957 },
-   { "icon-64.pam",             1153555547 },
-   { "icon-64-gray.pam",         140949526 },
-   { "icon-64-mono.pam",        2165106090 },
-   { "xeyes.pam",               2937827957 },
-   { "xeyes-gray.pam",          1280677270 },
-   { "xeyes-mono.pam",            17480910 },
-   { "icon-64.qoi",             1153555547 },
-   { "icon-64.tga",             1153555547 },
+   { "image-noalp-64.ppm",              1636116234 },
+   { "image-noalp-64.pgm",               479878920 },
+   { "image-noalp-64.pbm",              1318187821 },
+   { "image-noalp-64-P3.ppm",           1636116234 },
+   { "image-noalp-64-P2.pgm",            479878920 },
+   { "image-noalp-64-P1.pbm",           1318187821 },
+   { "image-noalp-64-P7_332.ppm",       1359309240 },
+   { "image-alpha-64-P8.ppm",            169859126 },
+   { "image-noalp-64.pam",              1636116234 },
+   { "image-noalp-64-gray.pam",          479878920 },
+   { "image-noalp-64-mono.pam",         1880264618 },
+   { "image-alpha-64.pam",               169859126 },
+   { "image-alpha-64-gray.pam",         1639956975 },
+   { "image-alpha-64-mono.pam",         3339433956 },
+   { "image-noalp-64.qoi",              1636116234 },
+   { "image-noalp-64.tga",              1636116234 },
+#ifdef BUILD_SVG_LOADER
+   { "image-noalp-64.svg",              1636116234 },
+   { "image-alpha-64.svg",               169859126 },
+#endif
 #ifdef BUILD_TIFF_LOADER
-   { "icon-64.tiff",            1153555547 },
+   { "image-noalp-64.tiff",             1636116234 },
 #endif
 #ifdef BUILD_WEBP_LOADER
-   { "icon-64.webp",            1698406918 },
+   { "image-noalp-64.webp",             3702954496 },
 #endif
-   { "icon-64.xbm",             3936773892 },
-   { "icon-64.xpm",             4016720483 },
+   { "image-noalp-64.xbm",              1318187821 },
+   { "image-noalp-64.xpm",               424929245 },
 #ifdef BUILD_Y4M_LOADER
-   { "icon-64.yuv420p.y4m",     3810593176 },
-   { "icon-64.yuv422p.y4m",     2809447983 },
-   { "icon-64.yuv444p.y4m",     2400380696 },
+   { "image-noalp-64-yuv444p.y4m",      1981141086 },
+   { "image-noalp-64-yuv422p.y4m",      4153669830 },
+   { "image-noalp-64-yuv420p.y4m",      2788407927 },
+   // Old ones, not sure which are useful
+   // If useful it would be nice to have them generated by the image Makefile
+   { "icon-64.yuv420p.y4m",             3810593176 },
+   { "icon-64.yuv422p.y4m",             2809447983 },
+   { "icon-64.yuv444p.y4m",             2400380696 },
    { "icon-64.yuv420jpeg.y4m",          3810593176 },
    { "icon-64.yuv420mpeg2.y4m",         3810593176 },
    { "icon-64.yuv420paldv.y4m",         3810593176 },
@@ -120,10 +134,10 @@ static tii_t    tii[] = {
    { "img-8x8.yuv420p10.full_range.framerate_no.y4m",   1737487406 },
 #endif
 
-   { "icon-128.ico",             218415319 },
-   { "icon-128-d1.ico",         3776822558 },
-   { "icon-128-d4.ico",         1822311162 },
-   { "icon-128-d8.ico",         2584400446 },
+   { "icon-128.ico",                     218415319 },
+   { "icon-128-d1.ico",                 3776822558 },
+   { "icon-128-d4.ico",                 1822311162 },
+   { "icon-128-d8.ico",                 2584400446 },
 /**INDENT-ON**/
 };
 #define NT3_IMGS (sizeof(tii) / sizeof(tii_t))

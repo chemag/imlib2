@@ -4,6 +4,9 @@
 #define IMG_SRC     SRC_DIR "/images"
 #define IMG_GEN     BLD_DIR "/generated"
 
+#define FILE_PFX1   "image-noalp-64"    // RGB
+#define FILE_PFX2   "image-alpha-64"    // ARGB (shaped)
+
 #define D(...)  do{ if (debug)     printf(__VA_ARGS__); }while(0)
 #define D2(...) do{ if (debug > 1) printf(__VA_ARGS__); }while(0)
 

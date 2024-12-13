@@ -12,7 +12,7 @@
 #define EXPECT_OK(x)  EXPECT_FALSE(x)
 #define EXPECT_ERR(x) EXPECT_TRUE(x)
 
-#define FILE_REF    "icon-64.png"
+#define FILE_REF    FILE_PFX1 ".png"
 
 static const char *const pfxs[] = {
     "argb",
@@ -71,7 +71,9 @@ static const char *const pfxs[] = {
 #endif
 
 #ifdef BUILD_ID3_LOADER
-    "jpg.mp3",                  // id3
+#ifdef BUILD_PNG_LOADER
+    "png.mp3",                  // id3
+#endif
 #endif
 };
 #define N_PFX (sizeof(pfxs) / sizeof(char*))
@@ -122,7 +124,7 @@ test_load(void)
 #endif
 
         // Load files of all types
-        snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
+        snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, FILE_PFX1, pfxs[i]);
         pr_info("Load '%s'", fileo);
 
         D("Load '%s' (deferred)\n", fileo);
@@ -150,12 +152,12 @@ test_load(void)
         if (strchr(pfxs[i], '.') == 0)
         {
             snprintf(filei, sizeof(filei),
-                     "../%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
+                     "../%s/%s.%s", IMG_SRC, FILE_PFX1, pfxs[i]);
             for (j = 0; j < N_PFX; j++)
             {
                 // Load certain types pretending they are something else
                 snprintf(fileo, sizeof(fileo), "%s/%s.%s.%s", IMG_GEN,
-                         "icon-64", pfxs[i], pfxs[j]);
+                         FILE_PFX1, pfxs[i], pfxs[j]);
                 unlink(fileo);
                 symlink(filei, fileo);
                 D("Load incorrect suffix '%s'\n", fileo);
@@ -215,7 +217,7 @@ test_load(void)
         EXPECT_EQ(lerr, IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST);
 
         // Load via fd
-        snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
+        snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, FILE_PFX1, pfxs[i]);
         fd = open(fileo, O_RDONLY);
         D("Load fd %d '%s'\n", fd, fileo);
         snprintf(fileo, sizeof(fileo), ".%s", pfxs[i]);
@@ -228,11 +230,11 @@ test_load(void)
         err = close(fd);
         EXPECT_NE(err, 0);
 
-        if (!strcmp(pfxs[i], "jpg.mp3"))        // id3 cannot do mem
+        if (strstr(pfxs[i], ".mp3"))    // id3 cannot do mem
             continue;
 
         // Load via mem
-        snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, "icon-64", pfxs[i]);
+        snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_SRC, FILE_PFX1, pfxs[i]);
         fd = open(fileo, O_RDONLY);
         void           *fdata;
         struct stat     st;

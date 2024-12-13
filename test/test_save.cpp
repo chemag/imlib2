@@ -20,24 +20,24 @@ typedef struct {
 /**INDENT-OFF**/
 static const test_rec_t exts[] = {
 // { "ani",  { 0, 0 } },
-   { "argb", { 1153555547, 2937827957 } },
-   { "bmp",  { 1153555547, 1920678052 } },
+   { "argb", { 1636116234,  169859126 } },
+   { "bmp",  { 1636116234,  247945219 } },
 // { "bz2",  { 0, 0 } },
-   { "ff",   { 1153555547, 2937827957 } },
+   { "ff",   { 1636116234,  169859126 } },
 // { "gif",  { 0, 0 } },
 // { "heif", { 0, 0 } },
 // { "ico",  { 0, 0 } },
 // { "id3",  { 0, 0 } },
 // { "j2k",  { 0, 0 } },
 #ifdef BUILD_JPEG_LOADER
-   { "jpeg", { 2458451111, 3483232328 } },
+   { "jpeg", {  372259931,  649473747 } },
 #endif
 #ifdef BUILD_JXL_LOADER
 #if JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 10, 0)
 #ifdef __i386__
-   { "jxl",  {  911944613, 1271262469 } },
+   { "jxl",  { 2550658206,  604351119 } },
 #else
-   { "jxl",  { 2884987131, 3285665573 } },
+   { "jxl",  { 3151654577, 2616864169 } },
 #endif
 #elif JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 8, 0)
 #ifdef __i386__
@@ -55,16 +55,16 @@ static const test_rec_t exts[] = {
 #endif // BUILD_JXL_LOADER
 // { "lbm",  { 0, 0 } },
 // { "lzma", { 0, 0 } },
-   { "png",  { 1153555547, 2937827957 } },
-   { "pnm",  { 1153555547, 2937827957 } },
+   { "png",  { 1636116234,  169859126 } },
+   { "pnm",  { 1636116234,  169859126 } },
 // { "ps",   { 0, 0 } },
 // { "svg",  { 0, 0 } },
-   { "tga",  { 1153555547, 2937827957 } },
-   { "tiff", { 1153555547, 2937827957 } },
+   { "tga",  { 1636116234,  169859126 } },
+   { "tiff", { 1636116234, 2443461544 } },
 #ifdef BUILD_WEBP_LOADER
-   { "webp", { 1698406918, 1844000264 } },
+   { "webp", { 3702954496, 1070534241 } },
 #endif
-   { "xbm",  { 4292907803,  914370483 } },
+   { "xbm",  { 2432994606, 2367802683 } },
 // { "xpm",  { 0, 0 } },
 // { "zlib", { 0, 0 } },
 };
@@ -199,22 +199,22 @@ test_save_1(const char *file, int prog, int check = 0)
 
 TEST(SAVE, save_1n_rgb)
 {
-    test_save_1("icon-64.png", 0, 1);
+    test_save_1("image-noalp-64.png", 0, 1);
 }
 
 TEST(SAVE, save_1p_rgb)
 {
-    test_save_1("icon-64.png", 1);
+    test_save_1("image-noalp-64.png", 1);
 }
 
 TEST(SAVE, save_1n_argb)
 {
-    test_save_1("xeyes.png", 0, 2);
+    test_save_1("image-alpha-64.png", 0, 2);
 }
 
 TEST(SAVE, save_1p_argb)
 {
-    test_save_1("xeyes.png", 1);
+    test_save_1("image-alpha-64.png", 1);
 }
 
 static void
@@ -311,36 +311,36 @@ TEST(SAVE, save_2a_immed)
 {
     bool            immed = true;
 
-    test_save_2("icon-64.png", "png", immed, true, 1153555547);
-    test_save_2("icon-64.png", "ppm", immed, true, 1153555547);
-    test_save_2("icon-64.ppm", "ppm", immed, true, 1153555547);
-    test_save_2("icon-64.ppm", "png", immed, true, 1153555547);
+    test_save_2("image-noalp-64.png", "png", immed, true, 1636116234);
+    test_save_2("image-noalp-64.png", "ppm", immed, true, 1636116234);
+    test_save_2("image-noalp-64.ppm", "ppm", immed, true, 1636116234);
+    test_save_2("image-noalp-64.ppm", "png", immed, true, 1636116234);
 }
 
 TEST(SAVE, save_2a_defer)
 {
     bool            immed = false;
 
-    test_save_2("icon-64.png", "png", immed, true, 1153555547);
-    test_save_2("icon-64.png", "ppm", immed, true, 1153555547);
-    test_save_2("icon-64.ppm", "ppm", immed, true, 1153555547);
-    test_save_2("icon-64.ppm", "png", immed, true, 1153555547);
+    test_save_2("image-noalp-64.png", "png", immed, true, 1636116234);
+    test_save_2("image-noalp-64.png", "ppm", immed, true, 1636116234);
+    test_save_2("image-noalp-64.ppm", "ppm", immed, true, 1636116234);
+    test_save_2("image-noalp-64.ppm", "png", immed, true, 1636116234);
 }
 
 TEST(SAVE, save_2b_immed)
 {
     bool            immed = true;
 
-    test_save_2("icon-64.gif", "svg", immed, false);
-    test_save_2("icon-64.gif", "png", immed, true, 4016720483);
+    test_save_2("image-noalp-64.gif", "svg", immed, false);
+    test_save_2("image-noalp-64.gif", "png", immed, true, 424929245);
 }
 
 TEST(SAVE, save_2b_defer)
 {
     bool            immed = false;
 
-    test_save_2("icon-64.gif", "svg", immed, false);
-    test_save_2("icon-64.gif", "png", immed, true, 4016720483);
+    test_save_2("image-noalp-64.gif", "svg", immed, false);
+    test_save_2("image-noalp-64.gif", "png", immed, true, 424929245);
 }
 
 static void
@@ -390,20 +390,20 @@ test_save_3(const char *file, const char *dest, int err_new, int err_old)
 
 TEST(SAVE, save_3_full)
 {
-    test_save_3("icon-64.png", "/dev/full",
+    test_save_3("image-noalp-64.png", "/dev/full",
                 ENOSPC, IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE);
 }
 
 #if 0
 TEST(SAVE, save_3_dir)
 {
-    test_save_3("icon-64.png", "/tmp",
+    test_save_3("image-noalp-64.png", "/tmp",
                 EISDIR, IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY);
 }
 
 TEST(SAVE, save_3_rdonly)
 {
-    test_save_3("icon-64.png", IMG_GEN "/rdonly",
+    test_save_3("image-noalp-64.png", IMG_GEN "/rdonly",
                 EACCES, IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE);
 }
 #endif

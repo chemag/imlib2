@@ -1,63 +1,93 @@
 # Makefile for generation of the test images
 # Some images are not reproduced exactly so therefore they are committed to git.
+# Unstable images (change when make is rerun):
+# image-alpha-64-gray.png	# convert
+
+  IMG_REF = image-ref.svg
 
  CONVERT        = convert
  CONVERT_BITMAP = $(CONVERT) -dither Floyd-Steinberg -colors 2
 
- TYPES += argb
- TYPES += bmp
- TYPES += ff
- TYPES += heif
- TYPES += gif
- TYPES += ico
- TYPES += jpg
- TYPES += j2k
- TYPES += jp2
- TYPES += jxl
-#TYPES += lbm
- TYPES += ilbm
-#TYPES += png
- TYPES += ppm
- TYPES += pgm
- TYPES += pbm
- TYPES += pam
- TYPES += qoi
- TYPES += tga
- TYPES += tiff
- TYPES += webp
- TYPES += xbm
- TYPES += xpm
-#TYPES += bz2
-#TYPES += xz
-#TYPES += gz
-#TYPES += id3
+ IMCONV = imlib2_conv
 
-.PHONY: all imgs_64 imgs_misc
-all: imgs_64 imgs_misc
+ FFMPEG = ffmpeg -y -v -1
 
- TYPES_64 = $(filter-out png, $(TYPES)) ff.bz2 ff.gz ff.xz # png.mp3
- ALL_64  = $(addprefix icon-64., $(TYPES_64))
- ALL_64 += icon-64-P1.pbm icon-64-P2.pgm icon-64-P3.ppm icon-64-P7_332.ppm
-$(warning imgs_64=$(ALL_64))
-imgs_64:  $(ALL_64)
+ TYPES_NOALP += .png
+ TYPES_NOALP += .argb
+ TYPES_NOALP += .bmp
+ TYPES_NOALP += .ff
+ TYPES_NOALP += .heif
+ TYPES_NOALP += .gif
+ TYPES_NOALP += .ico
+ TYPES_NOALP += .jpg
+ TYPES_NOALP += .j2k -gray.j2k
+ TYPES_NOALP += .jp2 -gray.jp2
+ TYPES_NOALP += .jxl
+#TYPES_NOALP += .lbm
+ TYPES_NOALP += .ilbm
+ TYPES_NOALP += .ppm -P3.ppm -P7_332.ppm
+ TYPES_NOALP += .pgm -P2.pgm
+ TYPES_NOALP += .pbm -P1.pbm
+ TYPES_NOALP += .pam -gray.pam -mono.pam
+ TYPES_NOALP += .qoi
+ TYPES_NOALP += .svg
+ TYPES_NOALP += .tga
+ TYPES_NOALP += .tiff
+ TYPES_NOALP += .webp
+ TYPES_NOALP += .xbm
+ TYPES_NOALP += .xpm
+ TYPES_NOALP += -yuv444p.y4m -yuv422p.y4m -yuv420p.y4m
+#TYPES_NOALP += .bz2
+#TYPES_NOALP += .xz
+#TYPES_NOALP += .gz
+#TYPES_NOALP += .id3
 
- ALL_MISC  = icon-64-gray.jp2 icon-64-gray.j2k
- ALL_MISC += icon-64-gray.pam icon-64-mono.pam
- ALL_MISC += xeyes.jp2 xeyes.j2k
- ALL_MISC += xeyes-gray.png
- ALL_MISC += xeyes-gray.jp2 xeyes-gray.j2k
- ALL_MISC += xeyes-P8.ppm
- ALL_MISC += xeyes.pam xeyes-gray.pam xeyes-mono.pam
-imgs_misc: $(ALL_MISC)
+ TYPES_ALPHA += .ff
+ TYPES_ALPHA += .heif
+ TYPES_ALPHA += .png -gray.png
+ TYPES_ALPHA += .jp2 -gray.jp2
+ TYPES_ALPHA += .j2k -gray.j2k
+ TYPES_ALPHA += .pam -gray.pam -mono.pam
+ TYPES_ALPHA += -P8.ppm
+ TYPES_ALPHA += .svg
+
+.PHONY: all imgs_noalp_64 imgs_alpha_64
+all: imgs_noalp_64 imgs_alpha_64
+
+ TYPES_NOALP_64 = $(TYPES_NOALP) .ff.bz2 .ff.gz .ff.xz .png.mp3
+ ALL_NOALP_64  = $(addprefix image-noalp-64, $(TYPES_NOALP_64))
+imgs_noalp_64:  $(ALL_NOALP_64)
+
+ TYPES_ALPHA_64 = $(TYPES_ALPHA)
+ ALL_ALPHA_64  = $(addprefix image-alpha-64, $(TYPES_ALPHA_64))
+
+imgs_alpha_64: $(ALL_ALPHA_64)
+
+# Not sure how to generate
+ ALL_MORE += icon-*.y4m
+ ALL_MORE += img-*.y4m
+ ALL_MORE += icon-128*.ico
+
+
+# Reference images
+image-alpha-64.svg: $(IMG_REF)
+	perl -p -e 's/svg width="400" height="400"/svg width="64" height="64"/' $< > $@
+
+image-noalp-64.svg: image-alpha-64.svg
+	perl -p -e 's/xrect/rect/' $< > $@
+
+
+%.png: %.svg
+	$(IMCONV) $< $@
 
 %.argb: %.png
-	imlib2_conv $< $@
+	$(IMCONV) $< $@
 
 %.bmp: %.png
 	$(CONVERT) $< $@
 
 %.ff: %.png
-	imlib2_conv $< $@
+	$(IMCONV) $< $@
 
 %.gif: %.png
 	$(CONVERT) $< $@
@@ -114,7 +144,7 @@ imgs_misc: $(ALL_MISC)
 	pnmtopnm -plain <$< >$@
 
 %-P8.ppm: %.png
-	imlib2_conv $< $@
+	$(IMCONV) $< $@
 
 %-P7_332.ppm: %.ppm
 	pamtoxvmini <$< >$@
@@ -123,8 +153,8 @@ imgs_misc: $(ALL_MISC)
 	$(CONVERT) $< $@
 
 %.tga: %.png
-#	$(CONVERT) $< $@
-	$(CONVERT) -flip $< $@	# Bug in convert?
+	$(CONVERT) $< $@
+#	$(CONVERT) -flip $< $@	# Bug in convert?
 
 %.tiff: %.png
 	$(CONVERT) $< $@
@@ -134,6 +164,13 @@ imgs_misc: $(ALL_MISC)
 
 %.xbm: %.png
 	$(CONVERT_BITMAP) $< $@
+
+%-yuv444p.y4m: %.png
+	$(FFMPEG) -i $< -pix_fmt yuv444p $@
+%-yuv422p.y4m: %.png
+	$(FFMPEG) -i $< -pix_fmt yuv422p $@
+%-yuv420p.y4m: %.png
+	$(FFMPEG) -i $< -pix_fmt yuv420p $@
 
 %.xpm: %.png
 	$(CONVERT) $< $@
@@ -145,6 +182,14 @@ imgs_misc: $(ALL_MISC)
 %.gz: %
 	gzip -n -c $< > $@
 
+%.png.mp3: %.png null.wav
+	$(FFMPEG) -i null.wav -i $< -map 0 -map 1 $@
+
+null.wav:
+	sox -n -r 44100 -c 2 null.wav trim 0.0 0.0
+
 .PHONY: clean
 clean:
-	rm -f $(ALL_64) $(ALL_MISC)
+	rm -f $(ALL_NOALP_64) $(ALL_ALPHA_64)
+	rm -f $(ALL_MORE)
+	git checkout -- $(ALL_MORE)
