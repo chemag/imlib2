@@ -16,6 +16,11 @@
 
 #include "prog_util.h"
 
+#define PIXEL_A(argb)  (((argb) >> 24) & 0xff)
+#define PIXEL_R(argb)  (((argb) >> 16) & 0xff)
+#define PIXEL_G(argb)  (((argb) >>  8) & 0xff)
+#define PIXEL_B(argb)  (((argb)      ) & 0xff)
+
 #define DEBUG 0
 #if DEBUG
 #define Dprintf(fmt...)  printf(fmt)
@@ -30,6 +35,7 @@
    "\n" \
    "OPTIONS:\n" \
    "  -h            : Show this help\n" \
+   "  -b 0xRRGGBB   : Render on solid background before saving\n" \
    "  -i key=value  : Attach tag with integer value for saver\n" \
    "  -j key=string : Attach tag with string value for saver\n" \
    "  -g WxH        : Specify output image size\n"
@@ -83,6 +89,7 @@ main(int argc, char **argv)
     int             opt, err;
     const char     *fin, *fout;
     int             wo, ho;
+    unsigned int    bgcol;
     char           *dot;
     Imlib_Image     im;
     int             cnt, save_cnt;
@@ -91,11 +98,12 @@ main(int argc, char **argv)
     double          dt;
 
     wo = ho = 0;
+    bgcol = 0x80000000;
     show_time = false;
     save_cnt = 1;
     t0 = 0;
 
-    while ((opt = getopt(argc, argv, "hi:j:g:n:")) != -1)
+    while ((opt = getopt(argc, argv, "b:hi:j:g:n:")) != -1)
     {
         switch (opt)
         {
@@ -103,6 +111,9 @@ main(int argc, char **argv)
         case 'h':
             usage();
             exit(0);
+        case 'b':
+            sscanf(optarg, "%x", &bgcol);
+            break;
         case 'i':
         case 'j':
             break;              /* Ignore this time around */
@@ -152,11 +163,31 @@ main(int argc, char **argv)
         imlib_free_image_and_decache();
 #endif
         imlib_context_set_image(im2);
+        im = im2;
+    }
+
+    wo = imlib_image_get_width();
+    ho = imlib_image_get_height();
+
+    if (bgcol != 0x80000000)
+    {
+        Imlib_Image     im2;
+        im2 = imlib_create_image(wo, ho);
+        if (!im2)
+        {
+            fprintf(stderr, "*** Error: Failed to create background image\n");
+            return 1;
+        }
+        imlib_context_set_image(im2);
+        imlib_context_set_color(PIXEL_R(bgcol), PIXEL_G(bgcol), PIXEL_B(bgcol),
+                                255);
+        imlib_image_fill_rectangle(0, 0, wo, ho);
+        imlib_blend_image_onto_image(im, 1, 0, 0, wo, wo, 0, 0, wo, wo);
     }
 
     /* Re-parse options to attach parameters to be used by savers */
     optind = 1;
-    while ((opt = getopt(argc, argv, "hi:j:g:n:")) != -1)
+    while ((opt = getopt(argc, argv, "b:hi:j:g:n:")) != -1)
     {
         switch (opt)
         {
