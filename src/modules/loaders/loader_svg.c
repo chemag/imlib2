@@ -199,7 +199,7 @@ _load(ImlibImage *im, int load_data)
     if (!IMAGE_DIMENSIONS_OK(im->w, im->h))
         goto quit;
 
-    im->has_alpha = 1;
+    im->has_alpha = LDR_ALPHA_CHECK;
 
     if (!load_data)
         QUIT_WITH_RC(LOAD_SUCCESS);
