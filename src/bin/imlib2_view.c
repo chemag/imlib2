@@ -85,6 +85,7 @@ static int      animloop = 0;   /* Animation loop count          */
    "  -c         : Enable image caching (implies -e)\n" \
    "  -d         : Enable debug\n" \
    "  -e         : Do rendering explicitly (not via progress callback)\n" \
+   "  -h         : Show help\n" \
    "  -g N       : Set progress granularity to N%% (default 10(%%))\n" \
    "  -l N       : Introduce N ms delay in progress callback (default 0)\n" \
    "  -p         : Print info in progress callback (default no)\n" \
@@ -631,10 +632,14 @@ main(int argc, char **argv)
 
     verbose = 0;
 
-    while ((opt = getopt(argc, argv, "ab:cdeg:l:ps:S:t:T:v")) != -1)
+    while ((opt = getopt(argc, argv, "ab:cdeg:hl:ps:S:t:T:v")) != -1)
     {
         switch (opt)
         {
+        default:
+        case 'h':
+            usage();
+            return 1;
         case 'a':
             opt_aa_final = false;
             break;
@@ -691,9 +696,6 @@ main(int argc, char **argv)
         case 'v':
             verbose += 1;
             break;
-        default:
-            usage();
-            return 1;
         }
     }
 
