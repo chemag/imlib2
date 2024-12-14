@@ -422,17 +422,13 @@ __imlib_LoadImageWrapper(const ImlibLoader *l, ImlibImage *im, int load_data)
     unsigned int    t0 = __imlib_time_us();
 #endif
 
-    if (l->module->load)
-    {
-        if (!im->format)
-            im->format = strdup(l->name);
-
-        rc = l->module->load(im, load_data);
-    }
-    else
-    {
+    if (!l->module->load)
         return LOAD_FAIL;
-    }
+
+    if (!im->format)
+        im->format = strdup(l->name);
+
+    rc = l->module->load(im, load_data);
 
     DP("%s: %-4s: %s: Elapsed time: %.3f ms\n", __func__,
        l->name, im->fi->name, 1e-3 * (__imlib_time_us() - t0));
