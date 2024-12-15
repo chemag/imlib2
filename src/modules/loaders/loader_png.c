@@ -1,5 +1,6 @@
 #include "config.h"
 #include "Imlib2_Loader.h"
+#include "ldrs_util.h"
 
 #include <png.h>
 #include <stdbool.h>
@@ -606,8 +607,7 @@ _save(ImlibImage *im)
     int             x, y, j, interlace;
     png_bytep       row_buf, row_ptr;
     png_color_8     sig_bit;
-    ImlibImageTag  *tag;
-    int             quality = 75, compression = 3;
+    ImlibSaverParam imsp;
     int             pass, n_passes = 1;
 
     row_ptr = NULL;
@@ -634,14 +634,16 @@ _save(ImlibImage *im)
     if (setjmp(png_jmpbuf(png_ptr)))
         QUIT_WITH_RC(LOAD_BADFILE);
 
+    get_saver_params(im, &imsp);
+
     /* check whether we should use interlacing */
     interlace = PNG_INTERLACE_NONE;
-    if ((tag = __imlib_GetTag(im, "interlacing")) && tag->val)
-    {
 #ifdef PNG_WRITE_INTERLACING_SUPPORTED
+    if (imsp.interlacing)
+    {
         interlace = PNG_INTERLACE_ADAM7;
-#endif
     }
+#endif
 
     png_init_io(png_ptr, f);
     if (im->has_alpha)
@@ -667,30 +669,10 @@ _save(ImlibImage *im)
     sig_bit.alpha = 8;
     png_set_sBIT(png_ptr, info_ptr, &sig_bit);
 
-    /* quality */
-    tag = __imlib_GetTag(im, "quality");
-    if (tag)
-    {
-        quality = tag->val;
-        if (quality < 1)
-            quality = 1;
-        if (quality > 99)
-            quality = 99;
-    }
-    /* convert to compression */
-    quality = quality / 10;
-    compression = 9 - quality;
-    /* compression */
-    tag = __imlib_GetTag(im, "compression");
-    if (tag)
-        compression = tag->val;
-    if (compression < 0)
-        compression = 0;
-    if (compression > 9)
-        compression = 9;
-    png_set_compression_level(png_ptr, compression);
+    png_set_compression_level(png_ptr, imsp.compression);
 
 #if USE_IMLIB2_COMMENT_TAG
+    ImlibImageTag  *tag;
     tag = __imlib_GetTag(im, "comment");
     if (tag)
     {

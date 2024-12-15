@@ -30,14 +30,14 @@ static const test_rec_t exts[] = {
 // { "id3",  { 0, 0 } },
 // { "j2k",  { 0, 0 } },
 #ifdef BUILD_JPEG_LOADER
-   { "jpeg", {  372259931,  649473747 } },
+   { "jpeg", {  631237512, 1120421740 } },
 #endif
 #ifdef BUILD_JXL_LOADER
 #if JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 10, 0)
 #ifdef __i386__
-   { "jxl",  { 2550658206,  604351119 } },
+   { "jxl",  { 1626654164, 2937200044 } },
 #else
-   { "jxl",  { 3151654577, 2616864169 } },
+   { "jxl",  { 2415497566, 2734910059 } },
 #endif
 #elif JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 8, 0)
 #ifdef __i386__
@@ -62,7 +62,7 @@ static const test_rec_t exts[] = {
    { "tga",  { 1636116234,  169859126 } },
    { "tiff", { 1636116234, 2443461544 } },
 #ifdef BUILD_WEBP_LOADER
-   { "webp", { 3702954496, 1070534241 } },
+   { "webp", {  902703844, 3830549848 } },
 #endif
    { "xbm",  { 2432994606, 2367802683 } },
 // { "xpm",  { 0, 0 } },

@@ -68,6 +68,9 @@ if BUILD_ID3_LOADER
 pkg_LTLIBRARIES += id3.la
 endif
 
+ SRCS_EXIF = exif.c exif.h
+ SRCS_SAVE = ldrs_util.c ldrs_util.h
+
 ani_la_SOURCES       = loader_ani.c
 ani_la_LDFLAGS       = -module -avoid-version
 ani_la_LIBADD        = $(top_builddir)/src/lib/libImlib2.la
@@ -104,7 +107,7 @@ ico_la_LDFLAGS       = -module -avoid-version
 ico_la_LIBADD        = $(top_builddir)/src/lib/libImlib2.la
 ico_la_LIBTOOLFLAGS  = --tag=disable-static
 
-jpeg_la_SOURCES      = loader_jpeg.c exif.c exif.h
+jpeg_la_SOURCES      = loader_jpeg.c $(SRCS_EXIF) $(SRCS_SAVE)
 jpeg_la_CPPFLAGS     = $(AM_CPPFLAGS) $(JPEG_CFLAGS)
 jpeg_la_LDFLAGS      = -module -avoid-version
 jpeg_la_LIBADD       = $(JPEG_LIBS) $(top_builddir)/src/lib/libImlib2.la
@@ -116,7 +119,7 @@ j2k_la_LDFLAGS       = -module -avoid-version
 j2k_la_LIBADD        = $(J2K_LIBS) $(top_builddir)/src/lib/libImlib2.la
 j2k_la_LIBTOOLFLAGS  = --tag=disable-static
 
-jxl_la_SOURCES       = loader_jxl.c
+jxl_la_SOURCES       = loader_jxl.c $(SRCS_SAVE)
 jxl_la_CPPFLAGS      = $(AM_CPPFLAGS) $(JXL_CFLAGS)
 jxl_la_LDFLAGS       = -module -avoid-version
 jxl_la_LIBADD        = $(JXL_LIBS) $(top_builddir)/src/lib/libImlib2.la
@@ -127,7 +130,7 @@ lbm_la_LDFLAGS       = -module -avoid-version
 lbm_la_LIBADD        = $(top_builddir)/src/lib/libImlib2.la
 lbm_la_LIBTOOLFLAGS  = --tag=disable-static
 
-png_la_SOURCES       = loader_png.c
+png_la_SOURCES       = loader_png.c $(SRCS_SAVE)
 png_la_CPPFLAGS      = $(AM_CPPFLAGS) $(PNG_CFLAGS)
 png_la_LDFLAGS       = -module -avoid-version
 png_la_LIBADD        = $(PNG_LIBS) $(top_builddir)/src/lib/libImlib2.la
@@ -166,13 +169,13 @@ tga_la_LDFLAGS       = -module -avoid-version
 tga_la_LIBADD        = $(top_builddir)/src/lib/libImlib2.la
 tga_la_LIBTOOLFLAGS  = --tag=disable-static
 
-tiff_la_SOURCES      = loader_tiff.c
+tiff_la_SOURCES      = loader_tiff.c $(SRCS_SAVE)
 tiff_la_CPPFLAGS     = $(AM_CPPFLAGS) $(TIFF_CFLAGS)
 tiff_la_LDFLAGS      = -module -avoid-version
 tiff_la_LIBADD       = $(TIFF_LIBS) $(top_builddir)/src/lib/libImlib2.la
 tiff_la_LIBTOOLFLAGS = --tag=disable-static
 
-webp_la_SOURCES      = loader_webp.c
+webp_la_SOURCES      = loader_webp.c $(SRCS_SAVE)
 webp_la_CPPFLAGS     = $(AM_CPPFLAGS) $(WEBP_CFLAGS)
 webp_la_LDFLAGS      = -module -avoid-version
 webp_la_LIBADD       = $(WEBP_LIBS) $(top_builddir)/src/lib/libImlib2.la
