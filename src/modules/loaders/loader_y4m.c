@@ -296,14 +296,14 @@ y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
 Y4M_PARSE_API enum Y4mParseStatus
 y4m_parse_init(Y4mParse *res, const void *buffer, ptrdiff_t size)
 {
-    const char      magic[10] = "YUV4MPEG2 ";
+    static const char magic[] = "YUV4MPEG2 ";
 
     memset(res, 0x0, sizeof(*res));
     res->w = res->h = -1;
     res->p = buffer;
     res->end = res->p + size;
 
-    if (!y4m__match(magic, sizeof(magic), &res->p, res->end))
+    if (!y4m__match(magic, sizeof(magic) - 1, &res->p, res->end))
     {
         return Y4M_PARSE_NOT_Y4M;
     }

@@ -49,7 +49,7 @@ QOIDEC_API QoiDecStatus qoi_dec(QoiDecCtx * ctx);
 QOIDEC_API      QoiDecStatus
 qoi_dec_init(QoiDecCtx *ctx, const void *buffer, ptrdiff_t size)
 {
-    static const uint8_t magic[4] = "qoif";
+    static const char magic[] = "qoif";
 
     QOIDEC_ASSERT(size >= 0);
 
@@ -57,7 +57,7 @@ qoi_dec_init(QoiDecCtx *ctx, const void *buffer, ptrdiff_t size)
 
     ctx->p = buffer;
     ctx->end = ctx->p + size;
-    if (size < 14 || memcmp(ctx->p, magic, sizeof(magic)) != 0)
+    if (size < 14 || memcmp(ctx->p, magic, sizeof(magic) - 1) != 0)
         return QOIDEC_NOT_QOI;
     ctx->p += 4;
 
