@@ -55,6 +55,12 @@ prog_x11_create_window(const char *name, int w, int h)
     return win;
 }
 
+void
+prog_x11_set_title(Window win, const char *name)
+{
+    XStoreName(disp, win, name);
+}
+
 int
 prog_x11_event(XEvent *ev)
 {

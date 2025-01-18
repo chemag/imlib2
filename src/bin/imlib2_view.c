@@ -561,6 +561,8 @@ load_image(int no, const char *name)
     char           *ptr;
     Drawable        draw;
 
+    prog_x11_set_title(win, name);
+
     Vprintf("Show  %d: '%s'\n", no, name);
 
     anim_update(NULL, NULL, NULL, NULL, 0);     /* Clean up previous animation */
