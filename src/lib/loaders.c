@@ -60,7 +60,7 @@ static const char *const ext_raw[] = { "raw",
 };
 #endif
 #ifdef BUILD_SVG_LOADER
-static const char *const ext_svg[] = { "svg", NULL };
+static const char *const ext_svg[] = { "svg", "svgz", NULL };
 #endif
 static const char *const ext_tga[] = { "tga", NULL };
 #ifdef BUILD_TIFF_LOADER

@@ -10,7 +10,7 @@
 
 #define DBG_PFX "LDR-svg"
 
-static const char *const _formats[] = { "svg" };
+static const char *const _formats[] = { "svg", "svgz" };
 
 #define DPI 96
 
@@ -18,9 +18,19 @@ static const char *const _formats[] = { "svg" };
 #define FINDSTR(ptr, len, str) (memmem(ptr, len, str, sizeof(str) - 1) != 0)
 
 static int
-_sig_check(const unsigned char *buf, unsigned int len)
+_sig_check(const char *name, const unsigned char *buf, unsigned int len)
 {
-    /* May also be compressed? - forget for now */
+    const char     *s;
+
+    if (len < 32)
+        return 1;               /* Not likely */
+
+    if (buf[0] == 0x1f && buf[1] == 0x8b)
+    {
+        /* Assume gzip compressed data */
+        s = strrchr(name, '.');
+        return !(s && strcmp(s, ".svgz") == 0);
+    }
 
     if (len > 4096)
         len = 4096;
@@ -85,7 +95,7 @@ _load(ImlibImage *im, int load_data)
     cr = NULL;
 
     /* Signature check */
-    if (_sig_check(im->fi->fdata, im->fi->fsize))
+    if (_sig_check(im->fi->name, im->fi->fdata, im->fi->fsize))
         goto quit;
 
     rsvg = rsvg_handle_new_from_data(im->fi->fdata, im->fi->fsize, &error);
