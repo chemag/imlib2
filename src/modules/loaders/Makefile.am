@@ -17,6 +17,9 @@ tga.la \
 xbm.la \
 xpm.la
 
+if BUILD_AVIF_LOADER
+pkg_LTLIBRARIES += avif.la
+endif
 if BUILD_GIF_LOADER
 pkg_LTLIBRARIES += gif.la
 endif
@@ -80,6 +83,12 @@ argb_la_SOURCES      = loader_argb.c
 argb_la_LDFLAGS      = -module -avoid-version
 argb_la_LIBADD       = $(top_builddir)/src/lib/libImlib2.la
 argb_la_LIBTOOLFLAGS = --tag=disable-static
+
+avif_la_SOURCES       = loader_avif.c
+avif_la_CPPFLAGS      = $(AM_CPPFLAGS) $(AVIF_CFLAGS)
+avif_la_LDFLAGS       = -module -avoid-version
+avif_la_LIBADD        = $(AVIF_LIBS) $(top_builddir)/src/lib/libImlib2.la
+avif_la_LIBTOOLFLAGS  = --tag=disable-static
 
 bmp_la_SOURCES       = loader_bmp.c
 bmp_la_LDFLAGS       = -module -avoid-version

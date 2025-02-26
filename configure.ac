@@ -215,6 +215,7 @@ loader_check_gif() {
   fi
 }
 
+EC_LOADER_CHECK(AVIF, auto, libavif)
 EC_LOADER_CHECK(GIF,  auto, , loader_check_gif)
 EC_LOADER_CHECK(HEIF, auto, libheif)
 EC_LOADER_CHECK(JPEG, auto, libjpeg)
@@ -313,6 +314,7 @@ echo "Configuration Options Summary:"
 echo
 echo "Image loaders:"
 echo " Regular image loaders"
+echo "  AVIF....................: $avif_ok"
 echo "  GIF.....................: $gif_ok"
 echo "  HEIF....................: $heif_ok"
 echo "  JPEG....................: $jpeg_ok"
