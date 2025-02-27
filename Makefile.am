@@ -24,7 +24,7 @@ EXTRA_DIST = AUTHORS COPYING COPYING-PLAIN \
 	     $(PACKAGE).spec.in
 
 clean-local:
-	$(MAKE) -C test clean
+	test ! -f test/Makefile || $(MAKE) -C test clean
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = $(PACKAGE).pc
