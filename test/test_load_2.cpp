@@ -25,6 +25,10 @@ typedef struct {
 static tii_t    tii[] = {
 /**INDENT-OFF**/
    { "image-noalp-64.argb",             1636116234 },
+#ifdef BUILD_AVIF_LOADER
+   { "image-noalp-64.avif",             1550669574 },
+   { "image-alpha-64.avif",             3518810777 },
+#endif
    { "image-noalp-64.bmp",              1636116234 },
    { "image-noalp-64.ff",               1636116234 },
    { "image-alpha-64.ff",                169859126 },

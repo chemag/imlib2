@@ -16,6 +16,9 @@
 
 static const char *const pfxs[] = {
     "argb",
+#ifdef BUILD_AVIF_LOADER
+    "avif",
+#endif
     "bmp",
     "ff",
 #ifdef BUILD_GIF_LOADER

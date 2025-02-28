@@ -13,6 +13,7 @@
  FFMPEG = ffmpeg -y -v -1
 
  TYPES_NOALP += .png
+ TYPES_NOALP += .avif
  TYPES_NOALP += .argb
  TYPES_NOALP += .bmp
  TYPES_NOALP += .ff
@@ -42,6 +43,7 @@
 #TYPES_NOALP += .gz
 #TYPES_NOALP += .id3
 
+ TYPES_ALPHA += .avif
  TYPES_ALPHA += .ff
  TYPES_ALPHA += .gif
  TYPES_ALPHA += .heif
@@ -85,6 +87,9 @@ image-noalp-64.svg: image-alpha-64.svg
 
 %.argb: %.png
 	$(IMCONV) $< $@
+
+%.avif: %.png
+	avifenc -o $@ $<
 
 %.bmp: %.png
 	$(CONVERT) $< $@

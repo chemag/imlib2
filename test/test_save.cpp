@@ -24,6 +24,9 @@ typedef struct {
 static const test_rec_t exts[] = {
 // { "ani",  { 0, 0 } },
    { "argb", { 1636116234,  169859126 } },
+#ifdef BUILD_AVIF_LOADER
+   { "avif", { 3693319173, 2634318821 } },
+#endif
    { "bmp",  { 1636116234,  247945219 } },
 // { "bz2",  { 0, 0 } },
    { "ff",   { 1636116234,  169859126 } },
@@ -31,10 +34,14 @@ static const test_rec_t exts[] = {
 #ifdef BUILD_HEIF_LOADER
 #ifndef __SANITIZE_ADDRESS__
 #if LIBHEIF_HAVE_VERSION(1, 19, 0)
+#ifndef BUILD_AVIF_LOADER
    { "avif", {  271316575,  632516970 } },
+#endif
    { "heic", { 2429908023, 1720725349 } },
 #else
+#ifndef BUILD_AVIF_LOADER
    { "avif", {  458570512, 4237984766 } },
+#endif
    { "heic", { 4046271191,  793249753 } },
 #endif
 #endif
@@ -89,8 +96,8 @@ static int
 progress(Imlib_Image im, char percent, int update_x, int update_y,
          int update_w, int update_h)
 {
-    D("%s: %3d%% %4d,%4d %4dx%4d\n",
-      __func__, percent, update_x, update_y, update_w, update_h);
+    D2("%s: %3d%% %4d,%4d %4dx%4d\n",
+       __func__, percent, update_x, update_y, update_w, update_h);
 
     return 1;                   /* Continue */
 }
