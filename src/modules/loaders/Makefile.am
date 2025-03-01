@@ -82,7 +82,7 @@ argb_la_SOURCES      = loader_argb.c
 argb_la_LDFLAGS      = -module -avoid-version
 argb_la_LIBTOOLFLAGS = --tag=disable-static
 
-avif_la_SOURCES       = loader_avif.c
+avif_la_SOURCES       = loader_avif.c $(SRCS_SAVE)
 avif_la_CPPFLAGS      = $(AM_CPPFLAGS) $(AVIF_CFLAGS)
 avif_la_LDFLAGS       = -module -avoid-version
 avif_la_LIBADD        = $(AVIF_LIBS)

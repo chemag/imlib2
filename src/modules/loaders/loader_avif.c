@@ -1,5 +1,6 @@
 #include "config.h"
 #include "Imlib2_Loader.h"
+#include "ldrs_util.h"
 
 #include <avif/avif.h>
 
@@ -105,4 +106,72 @@ _load(ImlibImage *im, int load_data)
     return rc;
 }
 
-IMLIB_LOADER(_formats, _load, NULL);
+static int
+_save(ImlibImage *im)
+{
+    int             rc;
+    ImlibSaverParam imsp;
+    avifResult      avrc;
+    avifEncoder    *enc;
+    avifImage      *avim = NULL;
+    avifRGBImage    rgb;
+    avifRWData      avout = AVIF_DATA_EMPTY;
+    unsigned int    nw;
+
+    enc = avifEncoderCreate();
+    if (!enc)
+        return LOAD_OOM;
+
+    rc = LOAD_FAIL;
+
+    avim = avifImageCreate(im->w, im->h, 8, AVIF_PIXEL_FORMAT_YUV444);
+    if (!avim)
+        QUIT_WITH_RC(LOAD_OOM);
+
+    avifRGBImageSetDefaults(&rgb, avim);
+
+    rgb.pixels = (uint8_t *) im->data;
+    rgb.rowBytes = im->w * 4;
+    rgb.format = AVIF_RGB_FORMAT_RGBA;
+    rgb.ignoreAlpha = !im->has_alpha;
+
+    avrc = avifImageRGBToYUV(avim, &rgb);
+    if (avrc != AVIF_RESULT_OK)
+        QUIT_WITH_RC(LOAD_FAIL);
+
+    get_saver_params(im, &imsp);
+
+    enc->speed = 10 - imsp.compression;
+    if (imsp.quality == 100)
+        enc->quality = enc->qualityAlpha = AVIF_QUALITY_LOSSLESS;
+    else
+        enc->quality = enc->qualityAlpha = imsp.quality;
+
+    D("Quality/compr: %d/%d\n", imsp.quality, imsp.compression);
+    D("Quality/speed: %d/%d\n", enc->quality, enc->speed);
+
+    avrc = avifEncoderAddImage(enc, avim, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
+    if (avrc != AVIF_RESULT_OK)
+        QUIT_WITH_RC(LOAD_FAIL);
+
+    avrc = avifEncoderFinish(enc, &avout);
+    if (avrc != AVIF_RESULT_OK)
+        QUIT_WITH_RC(LOAD_FAIL);
+
+    nw = fwrite(avout.data, 1, avout.size, im->fi->fp);
+    if (nw != avout.size)
+        QUIT_WITH_RC(LOAD_FAIL);
+
+    rc = LOAD_SUCCESS;
+
+  quit:
+    if (avim)
+        avifImageDestroy(avim);
+    if (enc)
+        avifEncoderDestroy(enc);
+    avifRWDataFree(&avout);
+
+    return rc;
+}
+
+IMLIB_LOADER(_formats, _load, _save);
