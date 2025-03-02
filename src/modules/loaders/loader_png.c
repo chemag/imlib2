@@ -134,7 +134,7 @@ info_callback(png_struct *png_ptr, png_info *info_ptr)
     ImlibImage     *im = ctx->im;
     png_uint_32     w32, h32;
     int             bit_depth, color_type, interlace_type;
-    int             hasa;
+    bool            hasa, has_tRNS;
 
     rc = LOAD_BADIMAGE;         /* Format accepted */
 
@@ -151,9 +151,9 @@ info_callback(png_struct *png_ptr, png_info *info_ptr)
     if (!IMAGE_DIMENSIONS_OK(w32, h32))
         goto quit;
 
-    hasa = 0;
-    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-        hasa = 1;
+    has_tRNS = png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS);
+    hasa = has_tRNS;
+    D(" color type=%d has_tRNS=%d\n", color_type, has_tRNS);
     if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
         hasa = 1;
     if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
@@ -179,7 +179,7 @@ info_callback(png_struct *png_ptr, png_info *info_ptr)
             png_set_expand_gray_1_2_4_to_8(png_ptr);
     }
     /* expand transparency entry -> alpha channel if present */
-    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+    if (has_tRNS)
         png_set_tRNS_to_alpha(png_ptr);
     /* reduce 16bit color -> 8bit color if necessary */
     if (bit_depth > 8)
@@ -347,15 +347,15 @@ _load(ImlibImage *im, int load_data)
         chunk = PCAST(const png_chunk_t *, fptr);
 
         len = htonl(chunk->hdr.len);
-        D("Scan %3d: %06lx: %6d: %.4s: ", ic++,
-          (long)(fptr - (unsigned char *)im->fi->fdata), len, chunk->hdr.name);
+        DL("Scan %3d: %06lx: %6d: %.4s: ", ic++,
+           (long)(fptr - (unsigned char *)im->fi->fdata), len, chunk->hdr.name);
         if (!mm_check(fptr + len))
             break;
 
         switch (chunk->hdr.type)
         {
         case PNG_TYPE_IDAT:
-            D("\n");
+            DL("\n");
             if (!seen_actl)
                 goto scan_done; /* No acTL before IDAT - Regular PNG */
 #if IMLIB2_DEBUG
@@ -374,8 +374,8 @@ _load(ImlibImage *im, int load_data)
                 QUIT_WITH_RC(LOAD_OOM);
             pf->frame_count = htonl(P->num_frames);
             pf->loop_count = htonl(P->num_plays);
-            D("num_frames=%d num_plays=%d\n", pf->frame_count,
-              htonl(P->num_plays));
+            DL("num_frames=%d num_plays=%d\n", pf->frame_count,
+               htonl(P->num_plays));
             if (frame > pf->frame_count)
                 QUIT_WITH_RC(LOAD_BADFRAME);
             break;
@@ -384,11 +384,11 @@ _load(ImlibImage *im, int load_data)
         case PNG_TYPE_fcTL:
 #define P (&chunk->fctl)
             fcount++;
-            D("frame=%d(%d) x,y=%d,%d wxh=%dx%d delay=%d/%d disp=%d blend=%d\n",        //
-              fcount, htonl(P->frame),
-              htonl(P->x), htonl(P->y), htonl(P->w), htonl(P->h),
-              htons(P->delay_num), htons(P->delay_den),
-              P->dispose_op, P->blend_op);
+            DL("frame=%d(%d) x,y=%d,%d wxh=%dx%d delay=%d/%d disp=%d blend=%d\n",       //
+               fcount, htonl(P->frame),
+               htonl(P->x), htonl(P->y), htonl(P->w), htonl(P->h),
+               htons(P->delay_num), htons(P->delay_den),
+               P->dispose_op, P->blend_op);
             if (frame != fcount)
                 break;
             ctx.pch_fctl = chunk;       /* Remember fcTL location */
@@ -396,7 +396,7 @@ _load(ImlibImage *im, int load_data)
 #undef P
 
         case PNG_TYPE_fdAT:
-            D("\n");
+            DL("\n");
 #if IMLIB2_DEBUG
             break;              /* Show all frames */
 #else
@@ -406,11 +406,11 @@ _load(ImlibImage *im, int load_data)
 #endif
 
         case PNG_TYPE_IEND:
-            D("\n");
+            DL("\n");
             goto scan_check;
 
         default:
-            D("\n");
+            DL("\n");
             break;
         }
     }
@@ -439,8 +439,8 @@ _load(ImlibImage *im, int load_data)
         chunk = PCAST(const png_chunk_t *, fptr);
 
         len = htonl(chunk->hdr.len);
-        D("Chunk %3d: %06lx: %6d: %.4s: ", ic++,
-          (long)(fptr - (unsigned char *)im->fi->fdata), len, chunk->hdr.name);
+        DL("Chunk %3d: %06lx: %6d: %.4s: ", ic++,
+           (long)(fptr - (unsigned char *)im->fi->fdata), len, chunk->hdr.name);
         if (!mm_check(fptr + len))
             break;
 
@@ -452,8 +452,8 @@ _load(ImlibImage *im, int load_data)
             h = htonl(P->h);
             if (!ctx.pch_fctl)
             {
-                D("WxH=%dx%d depth=%d color=%d comp=%d filt=%d interlace=%d\n", //
-                  w, h, P->depth, P->color, P->comp, P->filt, P->interl);
+                DL("WxH=%dx%d depth=%d color=%d comp=%d filt=%d interlace=%d\n",        //
+                   w, h, P->depth, P->color, P->comp, P->filt, P->interl);
                 break;          /* Process actual IHDR chunk */
             }
 
@@ -480,12 +480,12 @@ _load(ImlibImage *im, int load_data)
                     val = 100;
                 pf->frame_delay = 1000 * htons(pfctl->delay_num) / val;
 
-                D("WxH=%dx%d(%dx%d) X,Y=%d,%d depth=%d color=%d comp=%d filt=%d interlace=%d disp=%d blend=%d delay=%d/%d\n",   //
-                  htonl(pfctl->w), htonl(pfctl->h),
-                  pf->canvas_w, pf->canvas_h, pf->frame_x, pf->frame_y,
-                  P->depth, P->color, P->comp, P->filt, P->interl,
-                  pfctl->dispose_op, pfctl->blend_op,
-                  pfctl->delay_num, pfctl->delay_den);
+                DL("WxH=%dx%d(%dx%d) X,Y=%d,%d depth=%d color=%d comp=%d filt=%d interlace=%d disp=%d blend=%d delay=%d/%d\n",  //
+                   htonl(pfctl->w), htonl(pfctl->h),
+                   pf->canvas_w, pf->canvas_h, pf->frame_x, pf->frame_y,
+                   P->depth, P->color, P->comp, P->filt, P->interl,
+                   pfctl->dispose_op, pfctl->blend_op,
+                   pfctl->delay_num, pfctl->delay_den);
             }
 
             if (!pf || frame <= 1)
@@ -502,7 +502,7 @@ _load(ImlibImage *im, int load_data)
 #undef P
 
         case PNG_TYPE_IDAT:
-            D("\n");
+            DL("\n");
             /* Needed chunks should now be read */
             /* Note - Just before starting to process data chunks libpng will
              * call info_callback() */
@@ -523,13 +523,13 @@ _load(ImlibImage *im, int load_data)
                 continue;
             if (pf->frame_count > 1)
                 pf->frame_flags |= FF_IMAGE_ANIMATED;
-            D("num_frames=%d num_plays=%d\n",
-              pf->frame_count, htonl(P->num_plays));
+            DL("num_frames=%d num_plays=%d\n",
+               pf->frame_count, htonl(P->num_plays));
             continue;
 #undef P
 
         case PNG_TYPE_fcTL:
-            D("\n");
+            DL("\n");
             if (save_fdat)
                 goto done;      /* First fcTL after frame's fdAT's - done */
             seen_fctl = true;
@@ -537,7 +537,7 @@ _load(ImlibImage *im, int load_data)
 
         case PNG_TYPE_fdAT:
 #define P (&chunk->fdat)
-            D("\n");
+            DL("\n");
             if (!save_fdat)
                 continue;
             /* Process fake IDAT frame data */
@@ -552,7 +552,7 @@ _load(ImlibImage *im, int load_data)
 #undef P
 
         default:
-            D("\n");
+            DL("\n");
             break;
         }
 
