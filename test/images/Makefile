@@ -76,6 +76,8 @@ image-alpha-64.svg: $(IMG_REF)
 image-noalp-64.svg: image-alpha-64.svg
 	perl -p -e 's/xrect/rect/' $< > $@
 
+#image-noalp-64.png: image-noalp-64.svg
+#	$(CONVERT) -define png:color-type=2 $< $@
 
 %.png: %.svg
 	$(IMCONV) $< $@
