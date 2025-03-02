@@ -39,6 +39,7 @@ static tii_t    tii[] = {
 #endif
 #ifdef BUILD_GIF_LOADER
    { "image-noalp-64.gif",              3493023514 },
+   { "image-alpha-64.gif",              2852291560 },
 #endif
 #ifdef BUILD_HEIF_LOADER
 #if LIBHEIF_HAVE_VERSION(1, 19, 0)

@@ -43,6 +43,7 @@
 #TYPES_NOALP += .id3
 
  TYPES_ALPHA += .ff
+ TYPES_ALPHA += .gif
  TYPES_ALPHA += .heif
  TYPES_ALPHA += .png -gray.png
  TYPES_ALPHA += .jp2 -gray.jp2
