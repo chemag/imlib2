@@ -156,7 +156,7 @@ test_save_1(const char *file, int prog, int check = 0)
             imr = imlib_load_image(fileo);
             ASSERT_TRUE(imr);
             crc = image_get_crc32(imr);
-            EXPECT_EQ(exts[i].crc[check - 1], crc);
+            EXPECT_EQ(crc, exts[i].crc[check - 1]);
             imlib_context_set_image(imr);
             imlib_free_image_and_decache();
         }
@@ -282,7 +282,7 @@ test_save_2(const char *file, const char *fmt, bool load_imm, bool sok,
     im = imlib_load_image(fileo);
     ASSERT_TRUE(im);
     crc = image_get_crc32(im);
-    EXPECT_EQ(crc_exp, crc);
+    EXPECT_EQ(crc, crc_exp);
     D("ok\n");
     unlink(fileo);
 
@@ -315,7 +315,7 @@ test_save_2(const char *file, const char *fmt, bool load_imm, bool sok,
     im = imlib_load_image(fileo);
     ASSERT_TRUE(im);
     crc = image_get_crc32(im);
-    EXPECT_EQ(crc_exp, crc);
+    EXPECT_EQ(crc, crc_exp);
     D("ok\n");
 }
 

@@ -165,28 +165,22 @@ TEST(LOAD2, load_1)
 
         im = imlib_load_image(fn);
         ASSERT_TRUE(im) << "cannot load file: " << fn;
-
         crc = image_get_crc32(im);
-        EXPECT_EQ(crc, tii[i].crc) << "wrong crc file: " << fn
-            << " expected: " << tii[i].crc << " actual: " << crc;
+        EXPECT_EQ(crc, tii[i].crc) << "imlib_load_image";
         imlib_context_set_image(im);
         imlib_free_image_and_decache();
 
         im = imlib_load_image_frame(fn, 0);
         ASSERT_TRUE(im) << "cannot load file: " << fn;
         crc = image_get_crc32(im);
-        EXPECT_EQ(crc, tii[i].crc) << "wrong crc file: " << fn
-            << " expected: " << tii[i].crc << " actual: " << crc;
-
+        EXPECT_EQ(crc, tii[i].crc) << "imlib_load_frame 0";
         imlib_context_set_image(im);
         imlib_free_image_and_decache();
 
         im = imlib_load_image_frame(fn, 1);
         ASSERT_TRUE(im) << "cannot load file: " << fn;
         crc = image_get_crc32(im);
-        EXPECT_EQ(crc, tii[i].crc) << "wrong crc file: " << fn
-            << " expected: " << tii[i].crc << " actual: " << crc;
-
+        EXPECT_EQ(crc, tii[i].crc) << "imlib_load_frame 1";
         imlib_context_set_image(im);
         imlib_free_image_and_decache();
     }
