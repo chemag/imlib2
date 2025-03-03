@@ -41,7 +41,7 @@ imlib2_colorspace_SOURCES = imlib2_colorspace.c $(SRCS_X11)
 imlib2_colorspace_LDADD   = $(top_builddir)/src/lib/libImlib2.la -lX11
 
 imlib2_view_SOURCES = imlib2_view.c $(SRCS_X11)
-imlib2_view_LDADD   = $(top_builddir)/src/lib/libImlib2.la -lX11
+imlib2_view_LDADD   = $(top_builddir)/src/lib/libImlib2.la -lz -lX11
 
 imlib2_grab_SOURCES = imlib2_grab.c $(SRCS_X11)
 imlib2_grab_LDADD   = $(top_builddir)/src/lib/libImlib2.la -lX11

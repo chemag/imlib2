@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <zlib.h>
 
 #include "prog_x11.h"
 
@@ -55,6 +56,7 @@ static int      opt_cbfs = 8;   /* Background checkerboard field size */
 static char     opt_progress_granularity = 10;
 static char     opt_progress_print = 0;
 static int      opt_progress_delay = 0;
+bool            opt_show_crc;
 static unsigned int bg_cb_col_a = PIXEL_ARGB(255, 144, 144, 144);
 static unsigned int bg_cb_col_b = PIXEL_ARGB(255, 100, 100, 100);
 
@@ -80,6 +82,7 @@ static int      animloop = 0;   /* Animation loop count          */
    "Usage:\n" \
    "  imlib2_view [OPTIONS] {FILE | XID}...\n" \
    "OPTIONS:\n" \
+   "  -C         : Print CRC32 of image data\n" \
    "  -a         : Disable final anti-aliased rendering\n" \
    "  -b L,R,T,B : Set border\n" \
    "  -c         : Enable image caching (implies -e)\n" \
@@ -99,6 +102,21 @@ static void
 usage(void)
 {
     printf(HELP);
+}
+
+static unsigned int
+image_get_crc32(Imlib_Image im)
+{
+    const unsigned char *data;
+    unsigned int    crc, w, h;
+
+    imlib_context_set_image(im);
+    w = imlib_image_get_width();
+    h = imlib_image_get_height();
+    data = (const unsigned char *)imlib_image_get_data_for_reading_only();
+    crc = crc32(0, data, w * h * sizeof(uint32_t));
+
+    return crc;
 }
 
 static void
@@ -608,6 +626,9 @@ load_image(int no, const char *name)
         memset(&finfo, 0, sizeof(finfo));
         im = load_image_frame(nbuf, frame, 0);
 
+        if (opt_show_crc)
+            printf("%08x %s\n", image_get_crc32(im), name);
+
         animate = animate && animated;
 
         if (!im)
@@ -631,8 +652,9 @@ main(int argc, char **argv)
     static struct pollfd afds[1];
 
     verbose = 0;
+    opt_show_crc = false;
 
-    while ((opt = getopt(argc, argv, "ab:cdeg:hl:ps:S:t:T:v")) != -1)
+    while ((opt = getopt(argc, argv, "Cab:cdeg:hl:ps:S:t:T:v")) != -1)
     {
         switch (opt)
         {
@@ -640,6 +662,9 @@ main(int argc, char **argv)
         case 'h':
             usage();
             return 1;
+        case 'C':
+            opt_show_crc = true;
+            break;
         case 'a':
             opt_aa_final = false;
             break;
