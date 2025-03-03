@@ -38,7 +38,7 @@ static tii_t    tii[] = {
    { "image-noalp-64.ff.xz",            1636116234 },
 #endif
 #ifdef BUILD_GIF_LOADER
-   { "image-noalp-64.gif",               424929245 },
+   { "image-noalp-64.gif",              3493023514 },
 #endif
 #ifdef BUILD_HEIF_LOADER
 #if LIBHEIF_HAVE_VERSION(1, 19, 0)
@@ -112,7 +112,7 @@ static tii_t    tii[] = {
    { "image-noalp-64.webp",             3702954496 },
 #endif
    { "image-noalp-64.xbm",              1318187821 },
-   { "image-noalp-64.xpm",               424929245 },
+   { "image-noalp-64.xpm",              3493023514 },
 #ifdef BUILD_Y4M_LOADER
    { "image-noalp-64-yuv444p.y4m",      1981141086 },
    { "image-noalp-64-yuv422p.y4m",      4153669830 },

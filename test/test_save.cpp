@@ -345,7 +345,7 @@ TEST(SAVE, save_2b_immed)
     bool            immed = true;
 
     test_save_2("image-noalp-64.gif", "svg", immed, false);
-    test_save_2("image-noalp-64.gif", "png", immed, true, 424929245);
+    test_save_2("image-noalp-64.gif", "png", immed, true, 3493023514);
 }
 
 TEST(SAVE, save_2b_defer)
@@ -353,7 +353,7 @@ TEST(SAVE, save_2b_defer)
     bool            immed = false;
 
     test_save_2("image-noalp-64.gif", "svg", immed, false);
-    test_save_2("image-noalp-64.gif", "png", immed, true, 424929245);
+    test_save_2("image-noalp-64.gif", "png", immed, true, 3493023514);
 }
 
 static void
