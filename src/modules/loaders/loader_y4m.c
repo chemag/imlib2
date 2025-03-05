@@ -54,15 +54,7 @@ typedef struct {
         Y4M_PARSE_IL_BOTTOM,
         Y4M_PARSE_IL_MIXED,
     } interlacing;
-    enum {
-        Y4M_PARSE_ASPECT_DEFAULT,
-        Y4M_PARSE_ASPECT_UNKNOWN,
-        Y4M_PARSE_ASPECT_1_1,
-        Y4M_PARSE_ASPECT_4_3,
-        Y4M_PARSE_ASPECT_4_5,
-        Y4M_PARSE_ASPECT_32_27,
-        Y4M_PARSE_ASPECT_OTHER,
-    } aspect;
+    int             pixel_aspect_w, pixel_aspect_h;
     enum {
         Y4M_PARSE_RANGE_UNSPECIFIED,
         Y4M_PARSE_RANGE_LIMITED,
@@ -121,6 +113,7 @@ static enum Y4mParseStatus
 y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
 {
     ptrdiff_t       number_of_frames, seconds;
+    ptrdiff_t       tmp_w, tmp_h;
     const uint8_t  *p = *start;
     const uint8_t  *peek;
 
@@ -248,22 +241,13 @@ y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
 
             break;
         case 'A':
-            if (y4m__match("0:0", 3, &p, end))
-                res->aspect = Y4M_PARSE_ASPECT_UNKNOWN;
-            else if (y4m__match("1:1", 3, &p, end))
-                res->aspect = Y4M_PARSE_ASPECT_1_1;
-            else if (y4m__match("4:3", 3, &p, end))
-                res->aspect = Y4M_PARSE_ASPECT_4_3;
-            else if (y4m__match("4:5", 3, &p, end))
-                res->aspect = Y4M_PARSE_ASPECT_4_5;
-            else if (y4m__match("32:27", 5, &p, end))
-                res->aspect = Y4M_PARSE_ASPECT_32_27;
-            else
+            if (!y4m__int(&tmp_w, &p, end) ||
+                !y4m__match(":", 1, &p, end) || !y4m__int(&tmp_h, &p, end))
             {
-                res->aspect = Y4M_PARSE_ASPECT_OTHER;
-                for (; p < end && *p != ' ' && *p != '\n'; ++p)
-                    ;
+                return Y4M_PARSE_CORRUPTED;
             }
+            res->pixel_aspect_w = (int)tmp_w;
+            res->pixel_aspect_h = (int)tmp_h;
             break;
         case 'X':
             if (y4m__match("COLORRANGE=LIMITED", 18, &p, end))
@@ -462,6 +446,12 @@ _load(ImlibImage *im, int load_data)
     // no interlacing support
     if (y4m.interlacing != Y4M_PARSE_IL_PROGRESSIVE)
         return LOAD_BADIMAGE;
+
+    if (y4m.pixel_aspect_w != y4m.pixel_aspect_h || y4m.pixel_aspect_w == 0)
+    {
+        DL("Non-square pixel aspect ratio: %d:%d\n",
+           y4m.pixel_aspect_w, y4m.pixel_aspect_h);
+    }
 
     im->w = y4m.w;
     im->h = y4m.h;
