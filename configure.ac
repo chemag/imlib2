@@ -91,6 +91,17 @@ if test "$enable_text" = "yes"; then
 fi
 AM_CONDITIONAL(ENABLE_TEXT, test "$enable_text" = "yes")
 
+AC_ARG_ENABLE([progs],
+  [AS_HELP_STRING([--enable-progs], [Build demo programs @<:@default=yes@:>@])],
+  enable_progs="$enableval",
+  enable_progs="yes"
+)
+if test "$enable_progs" = "yes"; then
+  AC_DEFINE(ENABLE_PROGS, 1, [Build demo programs])
+  PKG_CHECK_MODULES(ZLIB, zlib)
+fi
+AM_CONDITIONAL(ENABLE_PROGS, test "$enable_progs" = "yes")
+
 
 mmx=no
 amd64=no
@@ -344,6 +355,8 @@ echo "Include filters...........: $enable_filters"
 echo "Include text functions....: $enable_text"
 echo "Use visibility hiding.....: $enable_visibility_hiding"
 echo "Use struct packing........: $enable_packing"
+echo
+echo "Build demo programss......: $enable_progs"
 echo
 echo "Installation path.........: $prefix"
 echo
