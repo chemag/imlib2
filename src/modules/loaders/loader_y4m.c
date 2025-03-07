@@ -494,9 +494,7 @@ _load(ImlibImage *im, int load_data)
     {
         pf->canvas_w = im->w;
         pf->canvas_h = im->h;
-        pf->frame_delay = y4m.frametime_us / 1000;
-        if (y4m.frametime_us % 1000 >= 500)     /* round up */
-            ++pf->frame_delay;
+        pf->frame_delay = (y4m.frametime_us + 500) / 1000;
     }
 
     if (!load_data)
