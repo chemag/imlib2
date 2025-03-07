@@ -356,7 +356,7 @@ echo "Include text functions....: $enable_text"
 echo "Use visibility hiding.....: $enable_visibility_hiding"
 echo "Use struct packing........: $enable_packing"
 echo
-echo "Build demo programss......: $enable_progs"
+echo "Build demo programs.......: $enable_progs"
 echo
 echo "Installation path.........: $prefix"
 echo
