@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// decoder code taken from commit 8691a3ba:
+// decoder code taken from commit 8431e3f7:
 // https://codeberg.org/NRK/slashtmp/src/branch/master/compression/qoi-dec.c
 //
 // simple qoi decoder: https://qoiformat.org/
@@ -97,7 +97,6 @@ qoi_dec(QoiDecCtx *ctx)
     } Clr;
     Clr             t[64] = { 0 };
     Clr             l = {.a = 0xFF };
-    uint8_t         lop = -1;
     static const uint8_t eof[8] = {[7] = 0x1 };
     const uint8_t  *p = ctx->p, *end = ctx->end;
 
@@ -150,10 +149,10 @@ qoi_dec(QoiDecCtx *ctx)
                 {
                     ctx->data[widx++] = c;
                 }
-                goto no_write;
+                goto next_iter;
                 break;
             case 0x0:
-                if (op == lop)
+                if (op == *p)
                 {
                     return QOIDEC_CORRUPTED;    // seriously?
                 }
@@ -180,8 +179,8 @@ qoi_dec(QoiDecCtx *ctx)
         t[(l.r * 3 + l.g * 5 + l.b * 7 + l.a * 11) % 64] = l;
       no_table:
         ctx->data[widx++] = (uint32_t) l.a << 24 | l.r << 16 | l.g << 8 | l.b;
-      no_write:
-        lop = op;
+      next_iter:
+        (void)0;                /* no-op */
     }
     if (end - p < (int)sizeof(eof) || memcmp(p, eof, sizeof(eof)) != 0)
         return QOIDEC_CORRUPTED;
