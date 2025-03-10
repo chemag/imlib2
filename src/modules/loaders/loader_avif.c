@@ -11,31 +11,32 @@ static const char *const _formats[] = { "avif", "avifs" };
 static int
 _load(ImlibImage *im, int load_data)
 {
-    avifDecoder      *dec;
-    avifRGBImage      rgb;
-    avifImageTiming   timing;
-    int               rc;
-    int               frame, fcount;
-    ImlibImageFrame  *pf;
+    avifDecoder    *dec;
+    avifRGBImage    rgb;
+    avifImageTiming timing;
+    int             rc;
+    int             frame, fcount;
+    ImlibImageFrame *pf;
 
     dec = avifDecoderCreate();
     if (!dec)
         return LOAD_OOM;
     dec->maxThreads = MAX_THREADS;
 
-    if (avifDecoderSetIOMemory(dec, im->fi->fdata, im->fi->fsize) != AVIF_RESULT_OK)
+    if (avifDecoderSetIOMemory(dec, im->fi->fdata, im->fi->fsize) !=
+        AVIF_RESULT_OK)
         QUIT_WITH_RC(LOAD_OOM);
 
     switch (avifDecoderParse(dec))
     {
-        case AVIF_RESULT_OK:
-            break;
-        case AVIF_RESULT_OUT_OF_MEMORY:
-            QUIT_WITH_RC(LOAD_OOM);
-            break;
-        default:
-            QUIT_WITH_RC(LOAD_FAIL);
-            break;
+    case AVIF_RESULT_OK:
+        break;
+    case AVIF_RESULT_OUT_OF_MEMORY:
+        QUIT_WITH_RC(LOAD_OOM);
+        break;
+    default:
+        QUIT_WITH_RC(LOAD_FAIL);
+        break;
     }
 
     im->w = dec->image->width;
@@ -56,13 +57,14 @@ _load(ImlibImage *im, int load_data)
         if (!pf)
             QUIT_WITH_RC(LOAD_OOM);
         pf->frame_count = fcount;
-        pf->loop_count = 0; /* loop forever */
+        pf->loop_count = 0;     /* loop forever */
         if (pf->frame_count > 1)
             pf->frame_flags |= FF_IMAGE_ANIMATED;
         pf->canvas_w = dec->image->width;
         pf->canvas_h = dec->image->height;
 
-        if (avifDecoderNthImageTiming(dec, frame - 1, &timing) != AVIF_RESULT_OK)
+        if (avifDecoderNthImageTiming(dec, frame - 1, &timing) !=
+            AVIF_RESULT_OK)
             QUIT_WITH_RC(LOAD_BADIMAGE);
         pf->frame_delay = (int)(timing.duration * 1000);
     }
@@ -82,10 +84,10 @@ _load(ImlibImage *im, int load_data)
 
     avifRGBImageSetDefaults(&rgb, dec->image);
     rgb.depth = 8;
-    rgb.pixels = (uint8_t *)im->data;
+    rgb.pixels = (uint8_t *) im->data;
     rgb.rowBytes = im->w * 4;
     rgb.maxThreads = MAX_THREADS;
-#ifdef WORDS_BIGENDIAN /* NOTE(NRK): untested on big endian */
+#ifdef WORDS_BIGENDIAN          /* NOTE(NRK): untested on big endian */
     rgb.format = AVIF_RGB_FORMAT_ARGB;
 #else
     rgb.format = AVIF_RGB_FORMAT_BGRA;
@@ -98,7 +100,7 @@ _load(ImlibImage *im, int load_data)
         __imlib_LoadProgressRows(im, 0, im->h);
     rc = LOAD_SUCCESS;
 
-quit:
+  quit:
     avifDecoderDestroy(dec);
     return rc;
 }
