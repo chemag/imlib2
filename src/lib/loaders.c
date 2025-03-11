@@ -34,8 +34,12 @@ static const char *const ext_ff[] = { "ff", NULL };
 static const char *const ext_gif[] = { "gif", NULL };
 #endif
 #ifdef BUILD_HEIF_LOADER
-static const char *const ext_heif[] =
-    { "heif", "heifs", "heic", "heics", "avci", "avcs", "avif", "avifs", NULL };
+static const char *const ext_heif[] = { "heif", "heifs", "heic", "heics",
+#ifndef BUILD_AVIF_LOADER
+    "avci", "avcs", "avif", "avifs",
+#endif
+    NULL
+};
 #endif
 static const char *const ext_ico[] = { "ico", NULL };
 #ifdef BUILD_JPEG_LOADER

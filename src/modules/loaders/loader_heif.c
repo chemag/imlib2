@@ -14,8 +14,12 @@
 
 #define DBG_PFX "LDR-heif"
 
-static const char *const _formats[] =
-    { "heif", "heifs", "heic", "heics", "avci", "avcs", "avif", "avifs" };
+static const char *const _formats[] = {
+    "heif", "heifs", "heic", "heics",
+#ifndef BUILD_AVIF_LOADER
+    "avci", "avcs", "avif", "avifs"
+#endif
+};
 
 #define HEIF_BYTES_TO_CHECK 12L
 #define HEIF_8BIT_TO_PIXEL_ARGB(plane, has_alpha) \
