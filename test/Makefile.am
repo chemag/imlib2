@@ -66,7 +66,7 @@ test_save_SOURCES = $(TEST_COMMON) test_save.cpp
 test_save_LDADD = $(LIBS)
 
 test_grab_SOURCES = $(TEST_COMMON) test_grab.cpp
-test_grab_LDADD = $(LIBS)
+test_grab_LDADD = $(LIBS) -lX11
 
 test_scale_SOURCES = $(TEST_COMMON) test_scale.cpp
 test_scale_LDADD = $(LIBS)
