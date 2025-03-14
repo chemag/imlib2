@@ -162,7 +162,8 @@ test_load(void)
                 snprintf(fileo, sizeof(fileo), "%s/%s.%s.%s", IMG_GEN,
                          FILE_PFX1, pfxs[i], pfxs[j]);
                 unlink(fileo);
-                symlink(filei, fileo);
+                err = symlink(filei, fileo);
+                ASSERT_EQ(err, 0);
                 D("Load incorrect suffix '%s'\n", fileo);
                 im = imlib_load_image_with_errno_return(fileo, &err);
                 EXPECT_TRUE(im);
@@ -200,7 +201,8 @@ test_load(void)
         // Non-existing files of all types
         snprintf(fileo, sizeof(fileo), "%s/%s.%s", IMG_GEN, "nonex", pfxs[i]);
         unlink(fileo);
-        symlink("non-existing", fileo);
+        err = symlink("non-existing", fileo);
+        ASSERT_EQ(err, 0);
         D("Load non-existing '%s'\n", fileo);
 
         im = imlib_load_image(fileo);
