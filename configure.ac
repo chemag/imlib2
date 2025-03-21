@@ -276,6 +276,12 @@ AC_ARG_ENABLE([doc-build],
 )
 AM_CONDITIONAL(BUILD_DOC, test "$enable_doc_build" = "yes")
 
+# If libImlib2 is loaded with RTLD_LOCAL, modules must be linked with libimlib2
+AC_ARG_ENABLE([rtld-local-support],
+  [AS_HELP_STRING([--enable-rtld-local-support], [Link modules with libImlib2 @<:@default=no@:>@])]
+)
+AM_CONDITIONAL(ENABLE_RTLD_LOCAL_SUPPORT, test "$enable_rtld_local_support" = "yes")
+
 EC_C_WARNINGS()
 EC_C_VISIBILITY(yes)
 EC_C_PACKING()
