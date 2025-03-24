@@ -278,7 +278,13 @@ AM_CONDITIONAL(BUILD_DOC, test "$enable_doc_build" = "yes")
 
 # If libImlib2 is loaded with RTLD_LOCAL, modules must be linked with libimlib2
 AC_ARG_ENABLE([rtld-local-support],
-  [AS_HELP_STRING([--enable-rtld-local-support], [Link modules with libImlib2 @<:@default=no@:>@])]
+  [AS_HELP_STRING([--enable-rtld-local-support], [Link modules with libImlib2 @<:@default=no@:>@])],,
+  [
+    case "$host_os" in
+    *android* | cygwin*) enable_rtld_local_support="yes" ;;
+    *) enable_rtld_local_support="no" ;;
+    esac
+  ]
 )
 AM_CONDITIONAL(ENABLE_RTLD_LOCAL_SUPPORT, test "$enable_rtld_local_support" = "yes")
 
@@ -361,6 +367,7 @@ echo "Include filters...........: $enable_filters"
 echo "Include text functions....: $enable_text"
 echo "Use visibility hiding.....: $enable_visibility_hiding"
 echo "Use struct packing........: $enable_packing"
+echo "Enable RTLD_LOCAL support.: $enable_rtld_local_support"
 echo
 echo "Build demo programs.......: $enable_progs"
 echo
