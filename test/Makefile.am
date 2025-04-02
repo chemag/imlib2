@@ -16,6 +16,7 @@ CLEANFILES = file.c img_save-*.*
  GTESTS += test_load_2
  GTESTS += test_save
  GTESTS += test_scale
+ GTESTS += test_scale_2
  GTESTS += test_rotate
 if BUILD_X11
  GTESTS += test_grab
@@ -70,6 +71,9 @@ test_grab_LDADD = $(LIBS) -lX11
 
 test_scale_SOURCES = $(TEST_COMMON) test_scale.cpp
 test_scale_LDADD = $(LIBS)
+
+test_scale_2_SOURCES = $(TEST_COMMON) test_scale_2.cpp
+test_scale_2_LDADD = $(LIBS)
 
 test_rotate_SOURCES = $(TEST_COMMON) test_rotate.cpp
 test_rotate_LDADD = $(LIBS)
