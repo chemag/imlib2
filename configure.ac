@@ -249,7 +249,7 @@ EC_LOADER_CHECK(RAW,  auto, libraw)
 EC_LOADER_CHECK(SVG,  auto, librsvg-2.0 >= 2.46)
 EC_LOADER_CHECK(TIFF, auto, libtiff-4)
 EC_LOADER_CHECK(WEBP, auto, libwebpdemux)
-EC_LOADER_CHECK(Y4M,  auto, , loader_check_y4m)
+EC_LOADER_CHECK(Y4M,  auto, libyuv, loader_check_y4m)
 
 # Decompressors
 loader_check_bz2() {
