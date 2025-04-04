@@ -226,6 +226,17 @@ loader_check_gif() {
   fi
 }
 
+loader_check_y4m() {
+  AC_CHECK_LIB(yuv, J420ToARGB, y4m_libs="-lyuv" y4m_ok=yes, y4m_ok=no)
+  if test "$y4m_ok" = yes; then
+    AC_CHECK_HEADER([libyuv.h], , y4m_ok=no)
+    if test "$y4m_ok" = yes; then
+      Y4M_LIBS=$y4m_libs
+      AC_SUBST(Y4M_LIBS)
+    fi
+  fi
+}
+
 EC_LOADER_CHECK(AVIF, auto, libavif)
 EC_LOADER_CHECK(GIF,  auto, , loader_check_gif)
 EC_LOADER_CHECK(HEIF, auto, libheif)
@@ -238,7 +249,7 @@ EC_LOADER_CHECK(RAW,  auto, libraw)
 EC_LOADER_CHECK(SVG,  auto, librsvg-2.0 >= 2.46)
 EC_LOADER_CHECK(TIFF, auto, libtiff-4)
 EC_LOADER_CHECK(WEBP, auto, libwebpdemux)
-EC_LOADER_CHECK(Y4M,  auto, libyuv)
+EC_LOADER_CHECK(Y4M,  auto, , loader_check_y4m)
 
 # Decompressors
 loader_check_bz2() {
