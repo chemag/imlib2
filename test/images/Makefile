@@ -193,6 +193,7 @@ image-noalp-64.svg: image-alpha-64.svg
 %.png.mp3: %.png null.wav
 	$(FFMPEG) -i null.wav -i $< -map 0 -map 1 $@
 
+.INTERMEDIATE: null.wav
 null.wav:
 	sox -n -r 44100 -c 2 null.wav trim 0.0 0.0
 
