@@ -44,7 +44,7 @@ prog_x11_create_window(const char *name, int w, int h)
 
     XSelectInput(disp, win, KeyPressMask |
                  ButtonPressMask | ButtonReleaseMask | ButtonMotionMask |
-                 PointerMotionMask | ExposureMask);
+                 PointerMotionMask | ExposureMask | StructureNotifyMask);
 
     XStoreName(disp, win, name);
 

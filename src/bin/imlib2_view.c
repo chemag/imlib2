@@ -806,7 +806,7 @@ main(int argc, char **argv)
             case KeyPress:
                 while (XCheckTypedWindowEvent(disp, win, KeyPress, &ev))
                     ;
-                key = XLookupKeysym(&ev.xkey, 0);
+                key = XLookupKeysym(&ev.xkey, ev.xkey.state);
                 switch (key)
                 {
                 default:
@@ -818,6 +818,10 @@ main(int argc, char **argv)
                 case XK_Escape:
                     goto quit;
                 case XK_r:
+                    goto show_cur;
+                case XK_R:
+                    opt_scale = true;
+                    opt_sc_out_x = opt_sc_out_y = 1.;
                     goto show_cur;
                 case XK_Right:
                     goto show_next;
@@ -923,6 +927,14 @@ main(int argc, char **argv)
                     image_width = 0;    /* Reset window size */
                 load_image_frame(argv[no], finfo.frame_num, inc);
                 break;
+            case ConfigureNotify:
+                if (ev.xconfigure.width == window_width &&
+                    ev.xconfigure.height == window_height)
+                    break;
+                opt_scale = true;
+                opt_sc_out_x = (double)ev.xconfigure.width / image_width;
+                opt_sc_out_y = (double)ev.xconfigure.height / image_height;
+                goto show_cur;
             }
         }
         while (XPending(disp));
