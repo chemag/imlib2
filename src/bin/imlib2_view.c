@@ -806,7 +806,7 @@ main(int argc, char **argv)
             case KeyPress:
                 while (XCheckTypedWindowEvent(disp, win, KeyPress, &ev))
                     ;
-                key = XLookupKeysym(&ev.xkey, ev.xkey.state);
+                key = XLookupKeysym(&ev.xkey, ev.xkey.state & ShiftMask);
                 switch (key)
                 {
                 default:
@@ -928,6 +928,8 @@ main(int argc, char **argv)
                 load_image_frame(argv[no], finfo.frame_num, inc);
                 break;
             case ConfigureNotify:
+                while (XCheckTypedWindowEvent(disp, win, ConfigureNotify, &ev))
+                    ;
                 if (ev.xconfigure.width == window_width &&
                     ev.xconfigure.height == window_height)
                     break;
