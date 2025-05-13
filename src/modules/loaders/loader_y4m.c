@@ -47,6 +47,7 @@ typedef struct {
         Y4M_PARSE_CS_444,
         Y4M_PARSE_CS_MONO,
         Y4M_PARSE_CS_420P10,
+        Y4M_PARSE_CS_444P10,
     } colour_space;
     enum {
         Y4M_PARSE_IL_PROGRESSIVE,
@@ -220,6 +221,11 @@ y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
                 res->colour_space = Y4M_PARSE_CS_422;
                 res->depth = 8;
             }
+            else if (y4m__match("444p10", 6, &p, end))
+            {
+                res->colour_space = Y4M_PARSE_CS_444P10;
+                res->depth = 10;
+            }
             else if (y4m__match("444", 3, &p, end))
             {
                 res->colour_space = Y4M_PARSE_CS_444;
@@ -342,6 +348,11 @@ y4m_parse_frame(Y4mParse *res)
         break;
     case Y4M_PARSE_CS_444:
         res->frame_data_len = npixels * 3;
+        sdiv = 1;
+        voff = npixels * 2;
+        break;
+    case Y4M_PARSE_CS_444P10:
+        res->frame_data_len = npixels * 3 * 2;
         sdiv = 1;
         voff = npixels * 2;
         break;
@@ -469,6 +480,7 @@ _load(ImlibImage *im, int load_data)
             conv = I422ToARGB;
         break;
     case Y4M_PARSE_CS_444:
+    case Y4M_PARSE_CS_444P10:
         if (y4m.range == Y4M_PARSE_RANGE_FULL)
             conv = J444ToARGB;
         else
@@ -503,33 +515,69 @@ _load(ImlibImage *im, int load_data)
     if (!__imlib_AllocateData(im))
         return LOAD_OOM;
 
-    if (y4m.depth == 10 && y4m.colour_space == Y4M_PARSE_CS_420P10)
+    if (y4m.depth == 10)
     {
-        /* allocate a small buffer to convert image data */
-        uint8_t        *buf =
-            calloc(((y4m.w * y4m.h * 3) >> 1), sizeof(uint8_t));
+        /* convert y4m (10-bit YUV) to 8-bit YUV (same subsampling) */
+
+        /* 1. allocate a small buffer to convert image data to 8-bit */
+        size_t          buf_size = 0;
+        if (y4m.colour_space == Y4M_PARSE_CS_420P10)
+        {
+            buf_size = (y4m.w * y4m.h * 3) >> 1;
+        }
+        else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
+        {
+            buf_size = (y4m.w * y4m.h * 3);
+        }
+        uint8_t        *buf = calloc((buf_size), sizeof(uint8_t));
         if (!buf)
             return LOAD_OOM;
 
-        /* convert 10-bit YUV to 8-bit YUV */
         uint8_t        *buf_y = buf;
         int             npixels = y4m.w * y4m.h;
         uint8_t        *buf_u = buf + npixels;
-        int             voff = (npixels * 5) / 4;
+        int             voff = 0;
+        if (y4m.colour_space == Y4M_PARSE_CS_420P10)
+        {
+            voff = (npixels * 5) / 4;
+        }
+        else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
+        {
+            voff = npixels * 2;
+        }
         uint8_t        *buf_v = buf + voff;
         int             buf_stride_y = y4m.w;
         ptrdiff_t       buf_stride_u;
         ptrdiff_t       buf_stride_v;
-        int             sdiv = 2;
+        int             sdiv = 0;
+        if (y4m.colour_space == Y4M_PARSE_CS_420P10)
+        {
+            sdiv = 2;
+        }
+        else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
+        {
+            sdiv = 1;
+        }
         buf_stride_u = buf_stride_v = y4m.w / sdiv;
-        I010ToI420(y4m.y, y4m.y_stride, y4m.u, y4m.u_stride,
-                   y4m.v, y4m.v_stride, buf_y, buf_stride_y,
-                   buf_u, buf_stride_u, buf_v, buf_stride_v, y4m.w, y4m.h);
 
-        /* convert 8-bit YUV to 8-bit ARGB */
-        res =
-            conv(buf_y, buf_stride_y, buf_u, buf_stride_u, buf_v, buf_stride_v,
-                 (uint8_t *) im->data, im->w * 4, im->w, im->h);
+        /* 2. run the color conversion */
+        if (y4m.colour_space == Y4M_PARSE_CS_420P10)
+        {
+            I010ToI420(y4m.y, y4m.y_stride, y4m.u, y4m.u_stride,
+                       y4m.v, y4m.v_stride, buf_y, buf_stride_y,
+                       buf_u, buf_stride_u, buf_v, buf_stride_v, y4m.w, y4m.h);
+        }
+        else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
+        {
+            I410ToI444(y4m.y, y4m.y_stride, y4m.u, y4m.u_stride,
+                       y4m.v, y4m.v_stride, buf_y, buf_stride_y,
+                       buf_u, buf_stride_u, buf_v, buf_stride_v, y4m.w, y4m.h);
+        }
+
+        /* 3. convert 8-bit YUV (original subsampling) to 8-bit ARGB */
+        res = conv(buf_y, buf_stride_y, buf_u, buf_stride_u,
+                   buf_v, buf_stride_v,
+                   (uint8_t *) im->data, im->w * 4, im->w, im->h);
 
         free(buf);
     }
