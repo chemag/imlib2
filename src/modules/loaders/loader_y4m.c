@@ -47,6 +47,7 @@ typedef struct {
         Y4M_PARSE_CS_444,
         Y4M_PARSE_CS_MONO,
         Y4M_PARSE_CS_420P10,
+        Y4M_PARSE_CS_422P10,
         Y4M_PARSE_CS_444P10,
     } colour_space;
     enum {
@@ -216,6 +217,11 @@ y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
                 res->colour_space = Y4M_PARSE_CS_420;
                 res->depth = 8;
             }
+            else if (y4m__match("422p10", 6, &p, end))
+            {
+                res->colour_space = Y4M_PARSE_CS_422P10;
+                res->depth = 10;
+            }
             else if (y4m__match("422", 3, &p, end))
             {
                 res->colour_space = Y4M_PARSE_CS_422;
@@ -343,6 +349,11 @@ y4m_parse_frame(Y4mParse *res)
         break;
     case Y4M_PARSE_CS_422:
         res->frame_data_len = npixels * 2;
+        sdiv = 2;
+        voff = (npixels * 3) / 2;
+        break;
+    case Y4M_PARSE_CS_422P10:
+        res->frame_data_len = npixels * 2 * 2;
         sdiv = 2;
         voff = (npixels * 3) / 2;
         break;
@@ -474,6 +485,7 @@ _load(ImlibImage *im, int load_data)
         conv = conv_mono;
         break;
     case Y4M_PARSE_CS_422:
+    case Y4M_PARSE_CS_422P10:
         if (y4m.range == Y4M_PARSE_RANGE_FULL)
             conv = J422ToARGB;
         else
@@ -525,6 +537,10 @@ _load(ImlibImage *im, int load_data)
         {
             buf_size = (y4m.w * y4m.h * 3) >> 1;
         }
+        else if (y4m.colour_space == Y4M_PARSE_CS_422P10)
+        {
+            buf_size = (y4m.w * y4m.h * 2);
+        }
         else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
         {
             buf_size = (y4m.w * y4m.h * 3);
@@ -541,6 +557,10 @@ _load(ImlibImage *im, int load_data)
         {
             voff = (npixels * 5) / 4;
         }
+        else if (y4m.colour_space == Y4M_PARSE_CS_422P10)
+        {
+            voff = (npixels * 3) / 2;
+        }
         else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
         {
             voff = npixels * 2;
@@ -554,6 +574,10 @@ _load(ImlibImage *im, int load_data)
         {
             sdiv = 2;
         }
+        else if (y4m.colour_space == Y4M_PARSE_CS_422P10)
+        {
+            sdiv = 2;
+        }
         else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
         {
             sdiv = 1;
@@ -564,6 +588,12 @@ _load(ImlibImage *im, int load_data)
         if (y4m.colour_space == Y4M_PARSE_CS_420P10)
         {
             I010ToI420(y4m.y, y4m.y_stride, y4m.u, y4m.u_stride,
+                       y4m.v, y4m.v_stride, buf_y, buf_stride_y,
+                       buf_u, buf_stride_u, buf_v, buf_stride_v, y4m.w, y4m.h);
+        }
+        else if (y4m.colour_space == Y4M_PARSE_CS_422P10)
+        {
+            I210ToI422(y4m.y, y4m.y_stride, y4m.u, y4m.u_stride,
                        y4m.v, y4m.v_stride, buf_y, buf_stride_y,
                        buf_u, buf_stride_u, buf_v, buf_stride_v, y4m.w, y4m.h);
         }
