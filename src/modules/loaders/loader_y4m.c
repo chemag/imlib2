@@ -432,6 +432,14 @@ conv_mono(const uint8_t *y, int y_stride, const uint8_t *u, int u_stride,
 }
 
 static int
+conv_mono_full(const uint8_t *y, int y_stride, const uint8_t *u, int u_stride,
+               const uint8_t *v, int v_stride, uint8_t *dst, int dst_stride,
+               int width, int height)
+{
+    return J400ToARGB(y, y_stride, dst, dst_stride, width, height);
+}
+
+static int
 _load(ImlibImage *im, int load_data)
 {
     Y4mParse        y4m;
@@ -494,7 +502,10 @@ _load(ImlibImage *im, int load_data)
     {
     case Y4M_PARSE_CS_MONO:
     case Y4M_PARSE_CS_MONO10:
-        conv = conv_mono;
+        if (y4m.range == Y4M_PARSE_RANGE_FULL)
+            conv = conv_mono_full;
+        else
+            conv = conv_mono;
         break;
     case Y4M_PARSE_CS_422:
     case Y4M_PARSE_CS_422P10:
