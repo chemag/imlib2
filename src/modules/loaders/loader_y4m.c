@@ -317,7 +317,7 @@ y4m_parse_init(Y4mParse *res, const void *buffer, ptrdiff_t size)
 Y4M_PARSE_API enum Y4mParseStatus
 y4m_parse_frame(Y4mParse *res)
 {
-    ptrdiff_t       npixels, sdiv, voff;
+    ptrdiff_t       ypixels, cpixels, cstride_pixels, voff;
     const uint8_t  *p = res->p, *end = res->end;
 
     Y4M_PARSE_ASSERT(p <= end);
@@ -337,54 +337,57 @@ y4m_parse_frame(Y4mParse *res)
     ++p;                        /* skip '\n' */
 
     res->frame_data = p;
-    npixels = res->w * res->h;
+    ypixels = res->w * res->h;
     switch (res->colour_space)
     {
     case Y4M_PARSE_CS_420JPEG:
     case Y4M_PARSE_CS_420MPEG2:
     case Y4M_PARSE_CS_420PALDV:
     case Y4M_PARSE_CS_420:
-        res->frame_data_len = npixels * 3 / 2;
-        sdiv = 2;
-        voff = (npixels * 5) / 4;
+        cpixels = ((res->w + 1) / 2) * ((res->h + 1) / 2);
+        res->frame_data_len = ypixels + 2 * cpixels;
+        cstride_pixels = ((res->w + 1) / 2);
         break;
     case Y4M_PARSE_CS_420P10:
-        res->frame_data_len = npixels * 3;
-        sdiv = 2;
-        voff = (npixels * 5) / 4;
+        cpixels = ((res->w + 1) / 2) * ((res->h + 1) / 2);
+        res->frame_data_len = 2 * (ypixels + 2 * cpixels);
+        cstride_pixels = ((res->w + 1) / 2);
         break;
     case Y4M_PARSE_CS_422:
-        res->frame_data_len = npixels * 2;
-        sdiv = 2;
-        voff = (npixels * 3) / 2;
+        cpixels = ((res->w + 1) / 2) * res->h;
+        res->frame_data_len = ypixels + 2 * cpixels;
+        cstride_pixels = ((res->w + 1) / 2);
         break;
     case Y4M_PARSE_CS_422P10:
-        res->frame_data_len = npixels * 2 * 2;
-        sdiv = 2;
-        voff = (npixels * 3) / 2;
+        cpixels = ((res->w + 1) / 2) * res->h;
+        res->frame_data_len = 2 * (ypixels + 2 * cpixels);
+        cstride_pixels = ((res->w + 1) / 2);
         break;
     case Y4M_PARSE_CS_444:
-        res->frame_data_len = npixels * 3;
-        sdiv = 1;
-        voff = npixels * 2;
+        cpixels = ypixels;
+        res->frame_data_len = ypixels + 2 * cpixels;
+        cstride_pixels = res->w;
         break;
     case Y4M_PARSE_CS_444P10:
-        res->frame_data_len = npixels * 3 * 2;
-        sdiv = 1;
-        voff = npixels * 2;
+        cpixels = ypixels;
+        res->frame_data_len = 2 * (ypixels + 2 * cpixels);
+        cstride_pixels = res->w;
         break;
     case Y4M_PARSE_CS_MONO10:
-        res->frame_data_len = npixels * 2;
-        sdiv = voff = 0;        // silence bogus compiler warning
+        cpixels = 0;
+        res->frame_data_len = ypixels * 2;
+        cstride_pixels = 0;     // silence bogus compiler warning
         break;
     case Y4M_PARSE_CS_MONO:
-        res->frame_data_len = npixels;
-        sdiv = voff = 0;        // silence bogus compiler warning
+        cpixels = 0;
+        res->frame_data_len = ypixels;
+        cstride_pixels = 0;     // silence bogus compiler warning
         break;
     default:
         return Y4M_PARSE_UNSUPPORTED;
         break;
     }
+    voff = ypixels + cpixels;
     if (end - p < res->frame_data_len)
     {
         return Y4M_PARSE_CORRUPTED;
@@ -402,15 +405,15 @@ y4m_parse_frame(Y4mParse *res)
     {
         if (res->depth == 10)
         {
-            res->u = p + npixels * 2;
+            res->u = p + ypixels * 2;
             res->v = p + voff * 2;
         }
         else
         {
-            res->u = p + npixels;
+            res->u = p + ypixels;
             res->v = p + voff;
         }
-        res->u_stride = res->v_stride = res->w / sdiv;
+        res->u_stride = res->v_stride = cstride_pixels;
     }
 
     res->p = p + res->frame_data_len;   /* advance to next potential frame */
@@ -555,69 +558,40 @@ _load(ImlibImage *im, int load_data)
         /* convert y4m (10-bit YUV) to 8-bit YUV (same subsampling) */
 
         /* 1. allocate a small buffer to convert image data to 8-bit */
-        size_t          buf_size = 0;
+        int             ypixels = y4m.w * y4m.h;
+        int             cpixels = 0;
+        int             cstride_pixels = 0;
         if (y4m.colour_space == Y4M_PARSE_CS_420P10)
         {
-            buf_size = (y4m.w * y4m.h * 3) >> 1;
+            cpixels = ((y4m.w + 1) / 2) * ((y4m.h + 1) / 2);
+            cstride_pixels = ((y4m.w + 1) / 2);
         }
         else if (y4m.colour_space == Y4M_PARSE_CS_422P10)
         {
-            buf_size = (y4m.w * y4m.h * 2);
+            cpixels = ((y4m.w + 1) / 2) * y4m.h;
+            cstride_pixels = ((y4m.w + 1) / 2);
         }
         else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
         {
-            buf_size = (y4m.w * y4m.h * 3);
+            cpixels = ypixels;
+            cstride_pixels = y4m.w;
         }
         else if (y4m.colour_space == Y4M_PARSE_CS_MONO10)
         {
-            buf_size = y4m.w * y4m.h;
+            cpixels = 0;
+            cstride_pixels = 0;
         }
+        size_t          buf_size = ypixels + 2 * cpixels;
         uint8_t        *buf = calloc((buf_size), sizeof(uint8_t));
         if (!buf)
             return LOAD_OOM;
 
         uint8_t        *buf_y = buf;
-        int             npixels = y4m.w * y4m.h;
-        uint8_t        *buf_u = buf + npixels;
-        int             voff = 0;
-        if (y4m.colour_space == Y4M_PARSE_CS_420P10)
-        {
-            voff = (npixels * 5) / 4;
-        }
-        else if (y4m.colour_space == Y4M_PARSE_CS_422P10)
-        {
-            voff = (npixels * 3) / 2;
-        }
-        else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
-        {
-            voff = npixels * 2;
-        }
-        else if (y4m.colour_space == Y4M_PARSE_CS_MONO10)
-        {
-            voff = 0;
-        }
-        uint8_t        *buf_v = buf + voff;
+        uint8_t        *buf_u = buf + ypixels;
+        uint8_t        *buf_v = buf + ypixels + cpixels;
         int             buf_stride_y = y4m.w;
-        ptrdiff_t       buf_stride_u;
-        ptrdiff_t       buf_stride_v;
-        int             sdiv = 0;
-        if (y4m.colour_space == Y4M_PARSE_CS_420P10)
-        {
-            sdiv = 2;
-        }
-        else if (y4m.colour_space == Y4M_PARSE_CS_422P10)
-        {
-            sdiv = 2;
-        }
-        else if (y4m.colour_space == Y4M_PARSE_CS_444P10)
-        {
-            sdiv = 1;
-        }
-        else if (y4m.colour_space == Y4M_PARSE_CS_MONO10)
-        {
-            sdiv = 1;
-        }
-        buf_stride_u = buf_stride_v = y4m.w / sdiv;
+        ptrdiff_t       buf_stride_u = cstride_pixels;
+        ptrdiff_t       buf_stride_v = cstride_pixels;
 
         /* 2. run the color conversion */
         if (y4m.colour_space == Y4M_PARSE_CS_420P10)
