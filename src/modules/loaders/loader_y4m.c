@@ -50,6 +50,9 @@ typedef struct {
         Y4M_PARSE_CS_420P10,
         Y4M_PARSE_CS_422P10,
         Y4M_PARSE_CS_444P10,
+        Y4M_PARSE_CS_MONO12,
+        Y4M_PARSE_CS_MONO14,
+        Y4M_PARSE_CS_MONO16,
     } colour_space;
     enum {
         Y4M_PARSE_IL_PROGRESSIVE,
@@ -192,6 +195,21 @@ y4m__parse_params(Y4mParse *res, const uint8_t **start, const uint8_t *end)
             {
                 res->colour_space = Y4M_PARSE_CS_MONO10;
                 res->depth = 10;
+            }
+            else if (y4m__match("mono12", 6, &p, end))
+            {
+                res->colour_space = Y4M_PARSE_CS_MONO12;
+                res->depth = 12;
+            }
+            else if (y4m__match("mono14", 6, &p, end))
+            {
+                res->colour_space = Y4M_PARSE_CS_MONO14;
+                res->depth = 14;
+            }
+            else if (y4m__match("mono16", 6, &p, end))
+            {
+                res->colour_space = Y4M_PARSE_CS_MONO16;
+                res->depth = 16;
             }
             else if (y4m__match("mono", 4, &p, end))
             {
@@ -378,6 +396,21 @@ y4m_parse_frame(Y4mParse *res)
         res->frame_data_len = ypixels * 2;
         cstride_pixels = 0;     // silence bogus compiler warning
         break;
+    case Y4M_PARSE_CS_MONO12:
+        cpixels = 0;
+        res->frame_data_len = ypixels * 2;
+        cstride_pixels = 0;     // silence bogus compiler warning
+        break;
+    case Y4M_PARSE_CS_MONO14:
+        cpixels = 0;
+        res->frame_data_len = ypixels * 2;
+        cstride_pixels = 0;     // silence bogus compiler warning
+        break;
+    case Y4M_PARSE_CS_MONO16:
+        cpixels = 0;
+        res->frame_data_len = ypixels * 2;
+        cstride_pixels = 0;     // silence bogus compiler warning
+        break;
     case Y4M_PARSE_CS_MONO:
         cpixels = 0;
         res->frame_data_len = ypixels;
@@ -396,14 +429,18 @@ y4m_parse_frame(Y4mParse *res)
     res->y = p;
     res->y_stride = res->w;
     if (res->colour_space == Y4M_PARSE_CS_MONO ||
-        res->colour_space == Y4M_PARSE_CS_MONO10)
+        res->colour_space == Y4M_PARSE_CS_MONO10 ||
+        res->colour_space == Y4M_PARSE_CS_MONO12 ||
+        res->colour_space == Y4M_PARSE_CS_MONO14 ||
+        res->colour_space == Y4M_PARSE_CS_MONO16)
     {
         res->u = res->v = NULL;
         res->u_stride = res->v_stride = 0;
     }
     else
     {
-        if (res->depth == 10)
+        if (res->depth == 10 || res->depth == 12 || res->depth == 14 ||
+            res->depth == 16)
         {
             res->u = p + ypixels * 2;
             res->v = p + voff * 2;
@@ -505,6 +542,9 @@ _load(ImlibImage *im, int load_data)
     {
     case Y4M_PARSE_CS_MONO:
     case Y4M_PARSE_CS_MONO10:
+    case Y4M_PARSE_CS_MONO12:
+    case Y4M_PARSE_CS_MONO14:
+    case Y4M_PARSE_CS_MONO16:
         if (y4m.range == Y4M_PARSE_RANGE_FULL)
             conv = conv_mono_full;
         else
@@ -553,9 +593,10 @@ _load(ImlibImage *im, int load_data)
     if (!__imlib_AllocateData(im))
         return LOAD_OOM;
 
-    if (y4m.depth == 10)
+    if (y4m.depth == 10 || y4m.depth == 12 || y4m.depth == 14 ||
+        y4m.depth == 16)
     {
-        /* convert y4m (10-bit YUV) to 8-bit YUV (same subsampling) */
+        /* convert y4m (10/12/14/16-bit YUV) to 8-bit YUV (same subsampling) */
 
         /* 1. allocate a small buffer to convert image data to 8-bit */
         int             ypixels = y4m.w * y4m.h;
@@ -576,7 +617,10 @@ _load(ImlibImage *im, int load_data)
             cpixels = ypixels;
             cstride_pixels = y4m.w;
         }
-        else if (y4m.colour_space == Y4M_PARSE_CS_MONO10)
+        else if (y4m.colour_space == Y4M_PARSE_CS_MONO10 ||
+                 y4m.colour_space == Y4M_PARSE_CS_MONO12 ||
+                 y4m.colour_space == Y4M_PARSE_CS_MONO14 ||
+                 y4m.colour_space == Y4M_PARSE_CS_MONO16)
         {
             cpixels = 0;
             cstride_pixels = 0;
@@ -622,6 +666,42 @@ _load(ImlibImage *im, int load_data)
             {
                 /* convert 10-bit to 8-bit */
                 buf_y[i] = (uint8_t) ((*((uint16_t *) (y4m.y) + i)) >> 2);
+            }
+        }
+        else if (y4m.colour_space == Y4M_PARSE_CS_MONO12)
+        {
+            /* libyuv does not support 12-bit grayscale (Y12-like) color.
+             * Let's downconvert to 8-bit before using the original mono
+             * conversion function. */
+            /* convert the 12-bit plane to an 8-bit plane */
+            for (int i = 0; i < y4m.w * y4m.h; ++i)
+            {
+                /* convert 12-bit to 8-bit */
+                buf_y[i] = (uint8_t) ((*((uint16_t *) (y4m.y) + i)) >> 4);
+            }
+        }
+        else if (y4m.colour_space == Y4M_PARSE_CS_MONO14)
+        {
+            /* libyuv does not support 14-bit grayscale (Y14-like) color.
+             * Let's downconvert to 8-bit before using the original mono
+             * conversion function. */
+            /* convert the 14-bit plane to an 8-bit plane */
+            for (int i = 0; i < y4m.w * y4m.h; ++i)
+            {
+                /* convert 14-bit to 8-bit */
+                buf_y[i] = (uint8_t) ((*((uint16_t *) (y4m.y) + i)) >> 6);
+            }
+        }
+        else if (y4m.colour_space == Y4M_PARSE_CS_MONO16)
+        {
+            /* libyuv does not support 16-bit grayscale (Y16-like) color.
+             * Let's downconvert to 8-bit before using the original mono
+             * conversion function. */
+            /* convert the 16-bit plane to an 8-bit plane */
+            for (int i = 0; i < y4m.w * y4m.h; ++i)
+            {
+                /* convert 16-bit to 8-bit */
+                buf_y[i] = (uint8_t) ((*((uint16_t *) (y4m.y) + i)) >> 8);
             }
         }
 
