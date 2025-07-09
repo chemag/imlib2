@@ -139,8 +139,11 @@ static tii_t    tii[] = {
    { "img-8x8.yuv420p10.full_range.framerate_no.y4m",   1737487406 },
    { "img-8x8.yuv422p10.full_range.y4m",   1737487406 },
    { "img-8x8.yuv444p10.full_range.y4m",   1737487406 },
-   { "img-8x8.mono.full_range.y4m",        1737487406 },
-   { "img-8x8.mono10.full_range.y4m",      1737487406 },
+   { "img-8x8.mono.full_range.y4m",        3364792903 },
+   { "img-8x8.mono10.full_range.y4m",      3364792903 },
+   { "img-8x8.mono12.full_range.y4m",      3364792903 },
+   { "img-8x8.mono14.full_range.y4m",      3324419283 },
+   { "img-8x8.mono16.full_range.y4m",      3364792903 },
 #endif
 
    { "icon-128.ico",                     218415319 },
