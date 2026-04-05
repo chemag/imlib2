@@ -80,7 +80,7 @@ test_rotate_LDADD = $(LIBS)
 
  TESTS_RUN = $(addprefix run-, $(GTESTS))
 
- TEST_ENV  = LD_LIBRARY_PATH=$(top_builddir)/src/lib/.libs
+ TEST_ENV  = LD_LIBRARY_PATH=$(top_builddir)/src/lib/.libs:$(LD_LIBRARY_PATH)
  TEST_ENV += IMLIB2_LOADER_PATH=$(top_builddir)/src/modules/loaders/.libs
 
  VG_PROG = valgrind --leak-check=full
