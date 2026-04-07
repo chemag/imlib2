@@ -300,11 +300,13 @@ _load(ImlibImage *im, int load_data)
         }
     }
 
-    if (v > 255)
+    if (v > 65535)
         goto quit;
 
-    D("P%c: pxtype=%d WxH=%ux%u V=%u A=%s\n",
-      p, pxt, w, h, v, im->has_alpha ? "YES" : "NO");
+    unsigned int    bps = (v > 255) ? 2 : 1;    /* bytes per sample */
+
+    D("P%c: pxtype=%d WxH=%ux%u V=%u bps=%u A=%s\n",
+      p, pxt, w, h, v, bps, im->has_alpha ? "YES" : "NO");
 
     rc = LOAD_BADIMAGE;         /* Format accepted */
 
@@ -444,29 +446,42 @@ _load(ImlibImage *im, int load_data)
         }
         break;
 
-    case GRAY_RAW:             /* binary 8bit grayscale GGGGGGGG */
+    case GRAY_RAW:             /* binary 8bit or 16bit grayscale */
         if (im->has_alpha)
         {
             for (y = 0; y < h; y++)
             {
-                if (!mm_check(ptr + 2 * w))
+                if (!mm_check(ptr + 2 * w * bps))
                     goto quit;
 
-                if (v == 0 || v == 255)
+                if (bps == 1)
                 {
-                    for (x = 0; x < w; x++, ptr += 2)
+                    if (v == 0 || v == 255)
                     {
-                        aval = ptr[1];
-                        gval = ptr[0];
-                        *ptr2++ = PIXEL_ARGB(aval, gval, gval, gval);
+                        // "no scaling needed" fast path
+                        for (x = 0; x < w; x++, ptr += 2)
+                        {
+                            aval = ptr[1];
+                            gval = ptr[0];
+                            *ptr2++ = PIXEL_ARGB(aval, gval, gval, gval);
+                        }
+                    }
+                    else
+                    {
+                        for (x = 0; x < w; x++, ptr += 2)
+                        {
+                            aval = (ptr[1] * 255) / v;
+                            gval = (ptr[0] * 255) / v;
+                            *ptr2++ = PIXEL_ARGB(aval, gval, gval, gval);
+                        }
                     }
                 }
-                else
+                else if (bps == 2)
                 {
-                    for (x = 0; x < w; x++, ptr += 2)
+                    for (x = 0; x < w; x++, ptr += 4)
                     {
-                        aval = (ptr[1] * 255) / v;
-                        gval = (ptr[0] * 255) / v;
+                        gval = (((ptr[0] << 8) | ptr[1]) * 255) / v;
+                        aval = (((ptr[2] << 8) | ptr[3]) * 255) / v;
                         *ptr2++ = PIXEL_ARGB(aval, gval, gval, gval);
                     }
                 }
@@ -475,26 +490,38 @@ _load(ImlibImage *im, int load_data)
                     goto quit_progress;
             }
         }
-        else
+        else                    // (!im->has_alpha)
         {
             for (y = 0; y < h; y++)
             {
-                if (!mm_check(ptr + w))
+                if (!mm_check(ptr + w * bps))
                     goto quit;
 
-                if (v == 0 || v == 255)
+                if (bps == 1)
                 {
-                    for (x = 0; x < w; x++, ptr++)
+                    if (v == 0 || v == 255)
                     {
-                        gval = ptr[0];
-                        *ptr2++ = PIXEL_ARGB(0xff, gval, gval, gval);
+                        // "no scaling needed" fast path
+                        for (x = 0; x < w; x++, ptr++)
+                        {
+                            gval = ptr[0];
+                            *ptr2++ = PIXEL_ARGB(0xff, gval, gval, gval);
+                        }
+                    }
+                    else
+                    {
+                        for (x = 0; x < w; x++, ptr++)
+                        {
+                            gval = (ptr[0] * 255) / v;
+                            *ptr2++ = PIXEL_ARGB(0xff, gval, gval, gval);
+                        }
                     }
                 }
-                else
+                else if (bps == 2)
                 {
-                    for (x = 0; x < w; x++, ptr++)
+                    for (x = 0; x < w; x++, ptr += 2)
                     {
-                        gval = (ptr[0] * 255) / v;
+                        gval = (((ptr[0] << 8) | ptr[1]) * 255) / v;
                         *ptr2++ = PIXEL_ARGB(0xff, gval, gval, gval);
                     }
                 }
@@ -505,49 +532,79 @@ _load(ImlibImage *im, int load_data)
         }
         break;
 
-    case RGB_RAW:              /* 24bit binary RGBRGBRGB */
+    case RGB_RAW:              /* 24bit or 48bit binary RGB */
         if (im->has_alpha)
         {
             for (y = 0; y < h; y++)
             {
-                if (!mm_check(ptr + 4 * w))
+                if (!mm_check(ptr + 4 * w * bps))
                     goto quit;
 
-                if (v == 0 || v == 255)
+                if (bps == 1)
                 {
-                    for (x = 0; x < w; x++, ptr += 4)
-                        *ptr2++ = PIXEL_ARGB(ptr[3], ptr[0], ptr[1], ptr[2]);
+                    if (v == 0 || v == 255)
+                    {
+                        // "no scaling needed" fast path
+                        for (x = 0; x < w; x++, ptr += 4)
+                            *ptr2++ =
+                                PIXEL_ARGB(ptr[3], ptr[0], ptr[1], ptr[2]);
+                    }
+                    else
+                    {
+                        for (x = 0; x < w; x++, ptr += 4)
+                            *ptr2++ =
+                                PIXEL_ARGB((ptr[3] * 255) / v,
+                                           (ptr[0] * 255) / v,
+                                           (ptr[1] * 255) / v,
+                                           (ptr[2] * 255) / v);
+                    }
                 }
-                else
+                else if (bps == 2)
                 {
-                    for (x = 0; x < w; x++, ptr += 4)
+                    for (x = 0; x < w; x++, ptr += 8)
                         *ptr2++ =
-                            PIXEL_ARGB((ptr[3] * 255) / v, (ptr[0] * 255) / v,
-                                       (ptr[1] * 255) / v, (ptr[2] * 255) / v);
+                            PIXEL_ARGB((((ptr[6] << 8) | ptr[7]) * 255) / v,
+                                       (((ptr[0] << 8) | ptr[1]) * 255) / v,
+                                       (((ptr[2] << 8) | ptr[3]) * 255) / v,
+                                       (((ptr[4] << 8) | ptr[5]) * 255) / v);
                 }
 
                 if (im->lc && __imlib_LoadProgressRows(im, y, 1))
                     goto quit_progress;
             }
         }
-        else
+        else                    // (!im->has_alpha)
         {
             for (y = 0; y < h; y++)
             {
-                if (!mm_check(ptr + 3 * w))
+                if (!mm_check(ptr + 3 * w * bps))
                     goto quit;
 
-                if (v == 0 || v == 255)
+                if (bps == 1)
                 {
-                    for (x = 0; x < w; x++, ptr += 3)
-                        *ptr2++ = PIXEL_ARGB(0xff, ptr[0], ptr[1], ptr[2]);
+                    if (v == 0 || v == 255)
+                    {
+                        // "no scaling needed" fast path
+                        for (x = 0; x < w; x++, ptr += 3)
+                            *ptr2++ = PIXEL_ARGB(0xff, ptr[0], ptr[1], ptr[2]);
+                    }
+                    else
+                    {
+                        for (x = 0; x < w; x++, ptr += 3)
+                            *ptr2++ =
+                                PIXEL_ARGB(0xff, (ptr[0] * 255) / v,
+                                           (ptr[1] * 255) / v,
+                                           (ptr[2] * 255) / v);
+                    }
                 }
-                else
+                else if (bps == 2)
                 {
-                    for (x = 0; x < w; x++, ptr += 3)
+                    for (x = 0; x < w; x++, ptr += 6)
                         *ptr2++ =
-                            PIXEL_ARGB(0xff, (ptr[0] * 255) / v,
-                                       (ptr[1] * 255) / v, (ptr[2] * 255) / v);
+                            PIXEL_ARGB(0xff,
+                                       (((ptr[0] << 8) | ptr[1]) * 255) / v,
+                                       (((ptr[2] << 8) | ptr[3]) * 255) / v,
+                                       (((ptr[4] << 8) | ptr[5]) * 255) / v);
                 }
 
                 if (im->lc && __imlib_LoadProgressRows(im, y, 1))
