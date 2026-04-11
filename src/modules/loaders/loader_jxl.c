@@ -19,12 +19,11 @@ static JxlParallelRunner *
 _jxl_create_runner(void)
 {
     JxlParallelRunner *runner;
-    unsigned int    n_runners;
+    unsigned int    n_runners_dflt, n_runners;
 
-    n_runners = JxlThreadParallelRunnerDefaultNumWorkerThreads();
-    if (n_runners > MAX_RUNNERS)
-        n_runners = MAX_RUNNERS;
-    D("n_runners = %d\n", n_runners);
+    n_runners_dflt = JxlThreadParallelRunnerDefaultNumWorkerThreads();
+    n_runners = (n_runners_dflt + 1) / 2;
+    D("n_runners = %d/%d\n", n_runners, n_runners_dflt);
     runner = JxlThreadParallelRunnerCreate(NULL, n_runners);
 
     return runner;
