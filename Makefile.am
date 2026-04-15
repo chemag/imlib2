@@ -20,6 +20,7 @@ MAINTAINERCLEANFILES = aclocal.m4 compile \
 
 EXTRA_DIST = AUTHORS COPYING COPYING-PLAIN \
 	     README.in README \
+	     third-party/uscaler.h \
 	     $(PACKAGE).pc.in \
 	     $(PACKAGE).spec.in
 

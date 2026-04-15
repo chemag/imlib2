@@ -287,6 +287,15 @@ AC_ARG_ENABLE([doc-build],
 )
 AM_CONDITIONAL(BUILD_DOC, test "$enable_doc_build" = "yes")
 
+AC_ARG_ENABLE([uscaler],
+  [AS_HELP_STRING([--enable-uscaler], [Enable bicubic scaling via uscaler @<:@default=yes@:>@])],
+  [ enable_uscaler="$enableval" ],
+  [ enable_uscaler="yes" ]
+)
+if test "$enable_uscaler" = "yes"; then
+  AC_DEFINE(ENABLE_USCALER, 1, [Enable bicubic scaling via uscaler])
+fi
+
 # If libImlib2 is loaded with RTLD_LOCAL, modules must be linked with libimlib2
 AC_ARG_ENABLE([rtld-local-support],
   [AS_HELP_STRING([--enable-rtld-local-support], [Link modules with libImlib2 @<:@default=yes@:>@])],,
@@ -376,6 +385,7 @@ echo "Use AMD64 for speed.......: $amd64"
 echo
 echo "Include filters...........: $enable_filters"
 echo "Include text functions....: $enable_text"
+echo "Use uscaler...............: $enable_uscaler"
 echo "Use visibility hiding.....: $enable_visibility_hiding"
 echo "Use struct packing........: $enable_packing"
 echo "Enable RTLD_LOCAL support.: $enable_rtld_local_support"

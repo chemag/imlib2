@@ -8,6 +8,15 @@
 #include "image.h"
 #include "scale.h"
 
+#ifdef ENABLE_USCALER
+#define USC_IMPLEMENTATION
+#define USC_API static
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#include "third-party/uscaler.h"
+#pragma GCC diagnostic pop
+#endif
+
 #undef DO_MMX_ASM               // __imlib_Scale_mmx_AARGBA() is broken
 
 /*\ NB: If you change this, don't forget asm_scale.S \*/
@@ -18,6 +27,9 @@ struct _imlib_scale_info {
     int            *yapoints;
     int             xup_yup;
     uint32_t       *pix_assert;
+#ifdef ENABLE_USCALER
+    UscContext     *usc_ctx;
+#endif
 };
 
 #define INV_XAP                   (256 - xapoints[x])
@@ -187,6 +199,13 @@ __imlib_FreeScaleInfo(ImlibScaleInfo *isi)
 {
     if (isi)
     {
+#ifdef ENABLE_USCALER
+        if (isi->usc_ctx)
+        {
+            usc_ctx_release(isi->usc_ctx);
+            free(isi->usc_ctx);
+        }
+#endif
         free(isi->xpoints);
         free(isi->ypoints);
         free(isi->xapoints);
@@ -206,12 +225,41 @@ __imlib_CalcScaleInfo(const ImlibImage *im, int sw, int sh, int dw, int dh,
     scw = dw * im->w / sw;
     sch = dh * im->h / sh;
 
-    isi = malloc(sizeof(ImlibScaleInfo));
+    isi = calloc(1, sizeof(ImlibScaleInfo));
     if (!isi)
         return NULL;
-    memset(isi, 0, sizeof(ImlibScaleInfo));
 
     isi->pix_assert = im->data + im->w * im->h;
+
+#ifdef ENABLE_USCALER
+    if (aa && dw > 0 && dh > 0 && scw > 0 && sch > 0 &&
+        !im->border.left && !im->border.right &&
+        !im->border.top && !im->border.bottom)
+    {
+        static float    weights[256][4];
+        static int      weights_initialized;
+        UscExtra        extra = {.bicubic_weights = weights };
+
+        if (!weights_initialized)
+        {
+            usc_build_bicubic_weight_table(weights, 0.0f, 0.5f);
+            weights_initialized = 1;
+        }
+
+        isi->usc_ctx = calloc(1, sizeof(*isi->usc_ctx));
+        if (!isi->usc_ctx)
+            goto bail;
+
+        if (usc_ctx_init(isi->usc_ctx, im->w, im->h, scw, sch, &extra) < 0)
+        {
+            free(isi->usc_ctx);
+            isi->usc_ctx = NULL;
+            goto bail;
+        }
+
+        return isi;
+    }
+#endif
 
     isi->xup_yup = (abs(dw) >= sw) + ((abs(dh) >= sh) << 1);
 
@@ -1049,6 +1097,27 @@ __imlib_Scale(const ImlibScaleInfo *isi, bool aa, bool alpha,
               const uint32_t *srce, uint32_t *dest, int dxx, int dyy,
               int dx, int dy, int dw, int dh, int dow, int sow)
 {
+#ifdef ENABLE_USCALER
+    if (isi->usc_ctx)
+    {
+/**INDENT-OFF**/
+        usc_ctx_set_input_buffer(isi->usc_ctx, (UscBuffer){
+            .cdata = srce,
+            .stride_bytes = sow * sizeof(uint32_t),
+            .pixel_type = USC_PIX_ARGB32,
+            .flags = alpha ? 0 : USC_IF_IGNORE_ALPHA,
+        });
+        usc_ctx_set_output_subrect(isi->usc_ctx, dxx, dyy, dw, dh);
+        usc_resize_extended(isi->usc_ctx, (UscBuffer){
+            .data = dest + dx + (dy * dow),
+            .stride_bytes = dow * sizeof(uint32_t),
+            .pixel_type = USC_PIX_ARGB32,
+            .flags = alpha ? 0 : USC_IF_IGNORE_ALPHA,
+        });
+/**INDENT-ON**/
+        return;
+    }
+#endif
     if (aa)
     {
         if (alpha)
