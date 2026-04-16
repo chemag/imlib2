@@ -254,7 +254,7 @@ _load(ImlibImage *im, int load_data)
         goto quit;
     }
 
-    im->has_alpha = amask;
+    im->has_alpha = amask != 0;
 
     imgsize = size - bfh_offset;
     D("w=%3d h=%3d bitcount=%d comp=%d imgsize=%d\n",
