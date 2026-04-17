@@ -132,7 +132,11 @@ _save(ImlibImage *im)
 
     rgb.pixels = (uint8_t *) im->data;
     rgb.rowBytes = im->w * 4;
-    rgb.format = AVIF_RGB_FORMAT_RGBA;
+#ifdef WORDS_BIGENDIAN          /* NOTE(NRK): untested on big endian */
+    rgb.format = AVIF_RGB_FORMAT_ARGB;
+#else
+    rgb.format = AVIF_RGB_FORMAT_BGRA;
+#endif
     rgb.ignoreAlpha = !im->has_alpha;
 
     avrc = avifImageRGBToYUV(avim, &rgb);
