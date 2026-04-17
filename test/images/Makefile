@@ -17,8 +17,8 @@
  TYPES_NOALP += .argb
  TYPES_NOALP += .bmp
  TYPES_NOALP += .ff
- TYPES_NOALP += .heif
  TYPES_NOALP += .gif
+ TYPES_NOALP += .heif
  TYPES_NOALP += .ico
  TYPES_NOALP += .jpg
  TYPES_NOALP += .j2k -gray.j2k
@@ -43,16 +43,27 @@
 #TYPES_NOALP += .gz
 #TYPES_NOALP += .id3
 
+ TYPES_ALPHA += .png -gray.png
  TYPES_ALPHA += .avif
+ TYPES_ALPHA += .argb
+ TYPES_ALPHA += .bmp
  TYPES_ALPHA += .ff
  TYPES_ALPHA += .gif
  TYPES_ALPHA += .heif
- TYPES_ALPHA += .png -gray.png
+ TYPES_ALPHA += .ico
+#TYPES_ALPHA += .jpg	# Never transparent
  TYPES_ALPHA += .jp2 -gray.jp2
  TYPES_ALPHA += .j2k -gray.j2k
+ TYPES_ALPHA += .jxl
+#TYPES_ALPHA += .ilbm	# convert doesn't support it?
  TYPES_ALPHA += .pam -gray.pam -mono.pam
  TYPES_ALPHA += -P8.ppm
  TYPES_ALPHA += .svg
+ TYPES_ALPHA += .tga
+ TYPES_ALPHA += .tiff
+ TYPES_ALPHA += .webp
+#TYPES_ALPHA += .xbm	# No - bitmap
+ TYPES_ALPHA += .xpm
 
 .PHONY: all imgs_noalp_64 imgs_alpha_64
 all: imgs_noalp_64 imgs_alpha_64

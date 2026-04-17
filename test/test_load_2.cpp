@@ -25,11 +25,13 @@ typedef struct {
 static tii_t    tii[] = {
 /**INDENT-OFF**/
    { "image-noalp-64.argb",             1636116234 },
+   { "image-alpha-64.argb",              169859126 },
 #ifdef BUILD_AVIF_LOADER
    { "image-noalp-64.avif",             1550669574 },
    { "image-alpha-64.avif",             3518810777 },
 #endif
    { "image-noalp-64.bmp",              1636116234 },
+   { "image-alpha-64.bmp",               169859126 },
    { "image-noalp-64.ff",               1636116234 },
    { "image-alpha-64.ff",                169859126 },
 #ifdef BUILD_BZ2_LOADER
@@ -55,6 +57,7 @@ static tii_t    tii[] = {
 #endif
 #endif
    { "image-noalp-64.ico",              1636116234 },
+   { "image-alpha-64.ico",               169859126 },
    { "image-noalp-64.ilbm",             1636116234 },
 #ifdef BUILD_JPEG_LOADER
    { "image-noalp-64.jpg",              3363041416 },
@@ -78,8 +81,10 @@ static tii_t    tii[] = {
 #if JPEGXL_NUMERIC_VERSION >= JPEGXL_COMPUTE_NUMERIC_VERSION(0, 10, 0)
 #ifdef __i386__
    { "image-noalp-64.jxl",              2550658206 },
+   { "image-alpha-64.jxl",              2672917367 },
 #else
    { "image-noalp-64.jxl",              3151654577 },
+   { "image-alpha-64.jxl",               858149128 },
 #endif
 #else
    { "image-noalp-64.jxl",              2534597492 },
@@ -105,19 +110,23 @@ static tii_t    tii[] = {
    { "image-alpha-64-gray.pam",         1639956975 },
    { "image-alpha-64-mono.pam",         3339433956 },
    { "image-noalp-64.qoi",              1636116234 },
-   { "image-noalp-64.tga",              1636116234 },
 #ifdef BUILD_SVG_LOADER
    { "image-noalp-64.svg",              1636116234 },
    { "image-alpha-64.svg",               169859126 },
 #endif
+   { "image-noalp-64.tga",              1636116234 },
+   { "image-alpha-64.tga",               169859126 },
 #ifdef BUILD_TIFF_LOADER
    { "image-noalp-64.tiff",             1636116234 },
+   { "image-alpha-64.tiff",             3206230379 },
 #endif
 #ifdef BUILD_WEBP_LOADER
    { "image-noalp-64.webp",             3702954496 },
+   { "image-alpha-64.webp",             1070534241 },
 #endif
    { "image-noalp-64.xbm",              1318187821 },
    { "image-noalp-64.xpm",              3493023514 },
+   { "image-alpha-64.xpm",              2852291560 },
 #ifdef BUILD_Y4M_LOADER
    { "image-noalp-64-yuv444p.y4m",      1981141086 },
    { "image-noalp-64-yuv422p.y4m",      4153669830 },
