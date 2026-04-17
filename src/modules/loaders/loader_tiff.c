@@ -476,9 +476,7 @@ _save(ImlibImage *im)
     uint8_t        *buf = NULL;
     const uint32_t *imdata;
     uint32_t        pixel;
-    double          alpha_factor;
     int             x, y;
-    uint8_t         r, g, b, a = 0;
     int             has_alpha = im->has_alpha;
     int             compression_type;
     int             i;
@@ -571,25 +569,11 @@ _save(ImlibImage *im)
         {
             pixel = imdata[(y * im->w) + x];
 
-            r = PIXEL_R(pixel);
-            g = PIXEL_G(pixel);
-            b = PIXEL_B(pixel);
+            buf[i++] = PIXEL_R(pixel);
+            buf[i++] = PIXEL_G(pixel);
+            buf[i++] = PIXEL_B(pixel);
             if (has_alpha)
-            {
-                /* TIFF makes you pre-mutiply the rgb components by alpha */
-                a = PIXEL_A(pixel);
-                alpha_factor = ((double)a / 255.0);
-                r *= alpha_factor;
-                g *= alpha_factor;
-                b *= alpha_factor;
-            }
-
-            /* This might be endian dependent */
-            buf[i++] = r;
-            buf[i++] = g;
-            buf[i++] = b;
-            if (has_alpha)
-                buf[i++] = a;
+                buf[i++] = PIXEL_A(pixel);
         }
 
         if (!TIFFWriteScanline(tif, buf, y, 0))
