@@ -16,7 +16,6 @@ typedef struct {
 } td_t;
 
 #define FILE_NOALP FILE_PFX1 ".png"
-//#define FILE_NOALP "../../duo_light.jpg"
 
 /**INDENT-OFF**/
 static const tv_t tv1[] = {
@@ -61,7 +60,7 @@ _test_scale2(Imlib_Image im, const char *image,
              unsigned int crc_exp)
 {
     static int      seqn = 0;
-    char            buf[64];
+    char            buf[80];
     int             w, h, wo, ho, xs, ys, ws, hs;
     unsigned int    crc;
     Imlib_Image     im2;
@@ -77,8 +76,10 @@ _test_scale2(Imlib_Image im, const char *image,
     ws = wo - (ml + mr);
     hs = ho - (mt + mb);
 
-    pr_info("%s: %s: s=%4d,%4d, m=%d,%d,%d,%d: %dx%d -> %dx%d",
-            __func__, image, sw, sh, ml, mr, mt, mb, w, h, ws, hs);
+    seqn++;
+
+    pr_info("%s: %2d out=%dx%d m=%d,%d,%d,%d: %dx%d -> %d,%d:%dx%d",
+            __func__, seqn, wo, ho, ml, mr, mt, mb, w, h, xs, ys, ws, hs);
 
     im2 = imlib_create_image(wo, ho);
     ASSERT_TRUE(im2);
@@ -92,8 +93,8 @@ _test_scale2(Imlib_Image im, const char *image,
     imlib_context_set_blend(1);
     imlib_blend_image_onto_image(im, 0, 0, 0, w, h, xs, ys, ws, hs);
 
-    snprintf(buf, sizeof(buf), "%s/scale2-%02d-%dx%d.%s",
-             IMG_GEN, ++seqn, wo, ho, "png");
+    snprintf(buf, sizeof(buf), "%s/scale2-%02d-%dx%d:%d,%d-%dx%d.%s",
+             IMG_GEN, seqn, wo, ho, xs, ys, ws, hs, "png");
     imlib_save_image(buf);
 
     crc = image_get_crc32(im2);
