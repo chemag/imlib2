@@ -126,6 +126,16 @@ typedef struct UscBuffer {
 /// flush the old cache before the next resize.
 USC_API void usc_ctx_set_input_buffer(UscContext *ctx, UscBuffer input);
 
+/// Configure conceptual output flipping.
+/// This flips the input sampling while keeping output buffer layout and
+/// `usc_ctx_set_output_subrect()` coordinates unchanged.
+typedef enum {
+	USC_FLIP_NONE = 0,
+	USC_FLIP_X    = 1 << 0,
+	USC_FLIP_Y    = 1 << 1,
+} UscFlipFlags;
+USC_API void usc_ctx_set_flip(UscContext *ctx, UscFlipFlags flip);
+
 /// Only output the specified subrectangle.
 /// The subrectangle must not extend beyond the conceptual output dimensions
 /// specified in `usc_ctx_init()`. If not set, defaults to the full output.
@@ -160,6 +170,7 @@ struct UscContext {
 	int64_t output_w, output_h;
 	int64_t output_subrect_x, output_subrect_y;
 	int64_t output_subrect_w, output_subrect_h;
+	UscFlipFlags flip;
 	UscBuffer input_buffer;
 	UscExtra extra;
 	float *decode_row;
@@ -175,8 +186,8 @@ struct UscContext {
 	float *ring_buf;
 	ptrdiff_t ring_buf_size;
 	float *ring[4];
-	int ring_head;
-	int ring_tail;
+	int64_t ring_head;
+	int64_t ring_tail;
 	ptrdiff_t bicubic_weights_size;
 	int use_box_x, use_box_y;
 	Usc__Fx64 map_x_start, map_delta_x;
@@ -578,6 +589,18 @@ usc__ctx_reset_decode_cache(UscContext *ctx)
 	ctx->ring_tail = 0;
 }
 
+static int64_t
+usc__map_output_x(const UscContext *ctx, int64_t x)
+{
+	return (ctx->flip & USC_FLIP_X) ? (ctx->output_w - 1 - x) : x;
+}
+
+static int64_t
+usc__map_output_y(const UscContext *ctx, int64_t y)
+{
+	return (ctx->flip & USC_FLIP_Y) ? (ctx->output_h - 1 - y) : y;
+}
+
 USC_API int
 usc_ctx_init(
 	UscContext *ctx,
@@ -764,6 +787,16 @@ usc_ctx_set_input_buffer(UscContext *ctx, UscBuffer input)
 }
 
 USC_API void
+usc_ctx_set_flip(UscContext *ctx, UscFlipFlags flip)
+{
+	USC_ASSERT(ctx != NULL);
+	USC_ASSERT((flip & ~(USC_FLIP_X | USC_FLIP_Y)) == 0);
+	if (ctx->flip != flip)
+		usc__ctx_reset_decode_cache(ctx);
+	ctx->flip = flip;
+}
+
+USC_API void
 usc_ctx_set_output_subrect(
 	UscContext *ctx,
 	int64_t x, int64_t y, int64_t w, int64_t h
@@ -827,22 +860,31 @@ usc_resize_extended(
 	    ctx->output_subrect_w == 0 || ctx->output_subrect_h == 0)
 		return;
 
+	int64_t sample_x0 = usc__map_output_x(ctx, ctx->output_subrect_x);
+	int64_t sample_x1 = usc__map_output_x(ctx, ctx->output_subrect_x + ctx->output_subrect_w - 1);
+	int64_t sample_x_lo = sample_x0 < sample_x1 ? sample_x0 : sample_x1;
+	int64_t sample_x_hi = sample_x0 > sample_x1 ? sample_x0 : sample_x1;
+	int64_t sample_x_step = (ctx->flip & USC_FLIP_X) ? -1 : 1;
+	Usc__Fx64 map_x_row = ctx->map_x_start + sample_x0 * ctx->map_delta_x;
+	Usc__Fx64 map_x_step = sample_x_step * ctx->map_delta_x;
 	int64_t decode_xoff = ctx->input_w;
 	int64_t decode_xend = 0;
 	if (ctx->use_box_x) {
-		decode_xoff = ctx->box_x[ctx->output_subrect_x].left_idx;
-		decode_xend = ctx->box_x[ctx->output_subrect_x + ctx->output_subrect_w - 1].right_idx + 1;
+		decode_xoff = ctx->box_x[sample_x_lo].left_idx;
+		decode_xend = ctx->box_x[sample_x_hi].right_idx + 1;
 	} else {
-		Usc__Fx64 map_x0 = ctx->map_x_start + ctx->output_subrect_x * ctx->map_delta_x;
-		Usc__Fx64 map_x1 = map_x0 + (ctx->output_subrect_w - 1) * ctx->map_delta_x;
-		decode_xoff = usc__clamp((map_x0 >> FX_FRAC) - 1, 0, ctx->input_w - 1);
-		decode_xend = usc__clamp((map_x1 >> FX_FRAC) + 3, 0, ctx->input_w);
+		Usc__Fx64 map_x_lo = ctx->map_x_start + sample_x_lo * ctx->map_delta_x;
+		Usc__Fx64 map_x_hi = ctx->map_x_start + sample_x_hi * ctx->map_delta_x;
+		decode_xoff = usc__clamp((map_x_lo >> FX_FRAC) - 1, 0, ctx->input_w - 1);
+		decode_xend = usc__clamp((map_x_hi >> FX_FRAC) + 3, 0, ctx->input_w);
 	}
 
-	Usc__Fx64 map_y = ctx->map_y_start + ctx->output_subrect_y * ctx->map_delta_y;
+	int64_t sample_y = usc__map_output_y(ctx, ctx->output_subrect_y);
+	Usc__Fx64 map_y = ctx->map_y_start + sample_y * ctx->map_delta_y;
+	Usc__Fx64 map_y_step = (ctx->flip & USC_FLIP_Y) ? -ctx->map_delta_y : ctx->map_delta_y;
 	char *dst_row = output_buf.data;
 	for (int64_t dy = 0; dy < ctx->output_subrect_h;
-	     ++dy, map_y += ctx->map_delta_y,
+	     ++dy, map_y += map_y_step,
 	     dst_row += output_buf.stride_bytes)
 	{
 		int64_t base_y = (map_y >> FX_FRAC) - 1;
@@ -850,6 +892,7 @@ usc_resize_extended(
 		Usc__Fx64 top_box = map_y - (ctx->map_delta_y >> 1);
 		Usc__Fx64 bot_box = map_y + (ctx->map_delta_y >> 1);
 		int64_t start_y, end_y;
+		int64_t want_y0 = 0, want_y1 = -1;
 
 		if (ctx->use_box_y) {
 			start_y = top_box >> FX_FRAC;
@@ -858,27 +901,40 @@ usc_resize_extended(
 			end_y = usc__clamp(end_y, 0, ctx->input_h - 1);
 			usc__memzero(ctx->acc_row, ctx->acc_row_size);
 		} else {
-			start_y = usc__clamp(base_y, 0, ctx->input_h - 1);
-			end_y = usc__clamp(base_y + 3, 0, ctx->input_h - 1);
-			if (start_y < ctx->ring_head || start_y > ctx->ring_tail) {
-				ctx->ring_head = start_y;
-				ctx->ring_tail = start_y;
+			want_y0 = usc__clamp(base_y, 0, ctx->input_h - 1);
+			want_y1 = usc__clamp(base_y + 3, 0, ctx->input_h - 1);
+			if (ctx->ring_head >= ctx->ring_tail ||
+			    want_y1 < ctx->ring_head || want_y0 >= ctx->ring_tail ||
+			    (want_y0 < ctx->ring_head && want_y1 >= ctx->ring_tail))
+			{ /* empty/disjoint cache, or the new window extends past both ends: refill all. */
+				ctx->ring_head = want_y0;
+				ctx->ring_tail = want_y0;
 			}
-			start_y = end_y < ctx->ring_tail ? end_y + 1 : ctx->ring_tail;
+			start_y = want_y0;
+			end_y = want_y1;
+			if (want_y0 >= ctx->ring_head && want_y1 < ctx->ring_tail) {
+				/* fully covered by cache: decode nothing. */
+				start_y = 1;
+				end_y = 0;
+			} else if (want_y0 >= ctx->ring_head && want_y0 < ctx->ring_tail &&
+			           want_y1 >= ctx->ring_tail - 1)
+			{ /* overlap at the front only: append the missing suffix rows. */
+				start_y = ctx->ring_tail;
+			} else if (want_y1 >= ctx->ring_head && want_y1 < ctx->ring_tail &&
+			           want_y0 <= ctx->ring_head)
+			{ /* overlap at the back only: prepend the missing prefix rows. */
+				end_y = ctx->ring_head - 1;
+			}
 		}
 
 		for (int64_t sy = start_y; sy <= end_y; ++sy) {
-			float *out_row = ctx->use_box_y ? ctx->acc_row :
-			                 ctx->ring[ctx->ring_tail++ % RING_ROWS];
+			float *out_row = ctx->use_box_y ? ctx->acc_row : ctx->ring[sy % RING_ROWS];
 			float *src_row = usc__decode_row(
 				ctx->decode_row, &ctx->decode_row_y, ctx->prefixsum_row,
 				decode_xoff, decode_xend, sy,
 				input.cdata, input_info
 			);
 			float wy = 0.0f;
-
-			if (ctx->ring_tail - ctx->ring_head > RING_ROWS)
-				ctx->ring_head = ctx->ring_tail - RING_ROWS;
 
 			if (ctx->use_box_y) {
 				Usc__Fx64 row_top = sy * FX_ONE;
@@ -889,12 +945,12 @@ usc_resize_extended(
 				wy = overlap * ctx->inv_map_delta_y;
 			}
 
-			Usc__Fx64 map_x = ctx->map_x_start + ctx->output_subrect_x * ctx->map_delta_x;
-			for (int64_t dx = 0; dx < ctx->output_subrect_w; ++dx, map_x += ctx->map_delta_x) {
-				int64_t full_dx = ctx->output_subrect_x + dx;
+			Usc__Fx64 map_x = map_x_row;
+			int64_t sample_x = sample_x0;
+			for (int64_t dx = 0; dx < ctx->output_subrect_w; ++dx, sample_x += sample_x_step, map_x += map_x_step) {
 				usc__pix4 pix;
 				if (ctx->use_box_x) {
-					usc__BoxInfo *bx = ctx->box_x + full_dx;
+					usc__BoxInfo *bx = ctx->box_x + sample_x;
 					ptrdiff_t lidx = bx->left_idx, ridx = bx->right_idx;
 					usc__pix4 lsum = usc__pix4_load(ctx->prefixsum_row + lidx * 4);
 					usc__pix4 rsum = usc__pix4_load(ctx->prefixsum_row + (ridx + 1) * 4);
@@ -918,6 +974,11 @@ usc_resize_extended(
 				}
 				usc__pix4_store(out_row + dx * channels, pix);
 			}
+		}
+
+		if (!ctx->use_box_y) {
+			ctx->ring_head = want_y0;
+			ctx->ring_tail = want_y1 + 1;
 		}
 
 		if (ctx->use_box_y) {
