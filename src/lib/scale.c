@@ -232,13 +232,13 @@ __imlib_CalcScaleInfo(const ImlibImage *im, int sw, int sh, int dw, int dh,
     isi->pix_assert = im->data + im->w * im->h;
 
 #ifdef ENABLE_USCALER
-    if (aa && dw > 0 && dh > 0 && scw > 0 && sch > 0 &&
-        !im->border.left && !im->border.right &&
+    if (aa && !im->border.left && !im->border.right &&
         !im->border.top && !im->border.bottom)
     {
         static float    weights[256][4];
         static int      weights_initialized;
         UscExtra        extra = {.bicubic_weights = weights };
+        UscFlipFlags    flip = USC_FLIP_NONE;
 
         if (!weights_initialized)
         {
@@ -250,12 +250,20 @@ __imlib_CalcScaleInfo(const ImlibImage *im, int sw, int sh, int dw, int dh,
         if (!isi->usc_ctx)
             goto bail;
 
-        if (usc_ctx_init(isi->usc_ctx, im->w, im->h, scw, sch, &extra) < 0)
+        if (dw < 0)
+            flip |= USC_FLIP_X;
+        if (dh < 0)
+            flip |= USC_FLIP_Y;
+
+        if (usc_ctx_init(isi->usc_ctx, im->w, im->h,
+                         abs(scw), abs(sch), &extra) < 0)
         {
             free(isi->usc_ctx);
             isi->usc_ctx = NULL;
             goto bail;
         }
+
+        usc_ctx_set_flip(isi->usc_ctx, flip);
 
         return isi;
     }
